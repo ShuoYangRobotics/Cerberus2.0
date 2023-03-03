@@ -1,4 +1,4 @@
-# Cerberus2.0
+# Cerberus 2.0
 A precise low-drift Visual-Inertial-Leg Odometry for legged robots
 
 This is an improved version of [Cerberus](https://github.com/ShuoYangRobotics/Cerberus). It is based on the following publications:
