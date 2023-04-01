@@ -75,3 +75,10 @@ target_link_libraries(mipo_main
         ${FUSION_LIB}
 )
 
+
+add_executable(cerberus2_main src/program/cerberus2_main.cpp)
+target_link_libraries(cerberus2_main
+        ${catkin_LIBRARIES}
+)
+
+
