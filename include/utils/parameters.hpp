@@ -9,12 +9,15 @@
 #define DIM_GRF 12
 #define NUM_DOF 12
 
-// fusion constant
-int WINDOW_SIZE = 50;
-int MIN_WINDOW_SIZE = 5;
-int FOOT_IMU_WINDOW_SIZE = 30;
-double WINDOW_TIME_SPAN = 0.8;  // 400ms
-int MAX_MESSAGE_QUEUE_SIZE = 80;
+int WINDOW_SIZE = 100;
+int MIN_WINDOW_SIZE = 10;
+int FOOT_IMU_WINDOW_SIZE = 70;
+double WINDOW_TIME_SPAN = 0.8; // 400ms
+int MAX_MESSAGE_QUEUE_SIZE = 150;
+
+int FOOT_IMU_MOVMEAN_WINDOW_SIZE = 10;
+int JOINT_MOVMEAN_WINDOW_SIZE = 10;
+
 std::string IMU_TOPIC;
 std::string JOINT_FOOT_TOPIC;
 std::string FL_IMU_TOPIC;
@@ -26,9 +29,10 @@ std::string GT_TOPIC;
 // this variable means the estimator actually always estimates the state at the
 // current time - LAG_TIME. We do so to account for potential delays and sensor
 // information mistaches
-double LAG_TIME = 0.10;  // 100ms
+double LAG_TIME = 0.0; // 100ms
 
-double FOOT_IMU_DELAY = 0.023;  // 23ms, this is estimated from analysing data in Matlab
+double FOOT_IMU_DELAY =
+    0.0; // 23ms, this is estimated from analysing data in Matlab
 
 namespace Utils {
 
@@ -44,4 +48,4 @@ void readParameters() {
 
   // read from rosparam
 }
-}  // namespace Utils
+} // namespace Utils

@@ -157,8 +157,8 @@ struct MIPOParams {
 
   double meas_n_fk_pos = 0.001;
   double meas_n_fk_vel = 0.01;
-  double meas_n_foot_height = 0.001;
-  double meas_n_rolling_vel = 0.01;
+  double meas_n_foot_height = 0.1;
+  double meas_n_rolling_vel = 0.05;
 };
 
 class MIPOEstimator {

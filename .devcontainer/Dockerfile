@@ -1,4 +1,168 @@
-FROM yyss2028/legged_state_estimation:gtsam
+# we build this docker based on a docker with ros already installed
+FROM ros:noetic-perception-focal
+
+LABEL maintainer="shuoyang@andrew.cmu.edu"
+ENV REFRESH_AT 2023-04-02
+
+ARG USE_PROC=1
+RUN echo "USE_PROC=${USE_PROC}"
+
+###################  first system wide configuration ###################################
+# change timezone (this is very important otherwise many ROS topic time will be strange)
+# TODO: please modify it to your timezone accordingly
+ENV TZ=America/New_York
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \ 
+    && apt-get install -y --no-install-recommends\
+    cmake \
+    libatlas-base-dev \
+    libeigen3-dev \
+    libgoogle-glog-dev \
+    libsuitesparse-dev \
+    python3-catkin-tools \
+    lsb-release \
+    curl \
+    git \
+    gdb \
+    clang \
+    gnupg2 \
+    wget \
+    unzip \
+    gnuplot \
+    openssh-client \
+    ros-${ROS_DISTRO}-cv-bridge \
+    ros-${ROS_DISTRO}-rviz \
+    ros-${ROS_DISTRO}-robot-state-publisher \
+    ros-${ROS_DISTRO}-image-transport \
+    ros-${ROS_DISTRO}-message-filters \
+    ros-${ROS_DISTRO}-tf \
+    ros-${ROS_DISTRO}-plotjuggler \
+    ros-${ROS_DISTRO}-plotjuggler-ros \
+    zsh \
+    clang-format-10 && \
+    rm -rf /var/lib/apt/lists/*
+
+###################  configuration specific to the docker user  ###################################
+# create a non-root user
+ARG USERNAME=EstimationUser
+ARG USER_UID=1000
+ARG USER_GID=$USER_UID
+
+# Create the user
+RUN groupadd --gid $USER_GID $USERNAME \
+    && useradd --uid $USER_UID --gid $USER_GID -m $USERNAME \
+    #
+    # [Optional] Add sudo support. Omit if you don't need to install software after connecting.
+    && apt-get update \
+    && apt-get install -y sudo \
+    && echo $USERNAME ALL=\(root\) NOPASSWD:ALL > /etc/sudoers.d/$USERNAME \
+    && chmod 0440 /etc/sudoers.d/$USERNAME
+
+# [Optional] Set the default user. Omit if you want to keep the default as root.
+USER $USERNAME
+
+# switch to zsh from this point on
+RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/v1.1.4/zsh-in-docker.sh)" -- \
+    -t robbyrussell \
+    -a 'source /opt/ros/noetic/setup.zsh' \
+    -a 'alias wssetup=". ./devel/setup.zsh"' \
+    -p git \
+    -p ssh-agent
+
+# config zsh 
+CMD ["/bin/zsh"]
+ENV SHELL /bin/zsh
+
+
+ENV CERES_VERSION="1.14.0"
+ENV CATKIN_WS=/home/${USERNAME}/estimation_ws
+ENV SUPPORT_WS=/home/${USERNAME}/support_ws
+
+# Build and install Ceres
+RUN mkdir -p $SUPPORT_WS 
+WORKDIR $SUPPORT_WS
+RUN pwd
+RUN git clone https://ceres-solver.googlesource.com/ceres-solver && \
+    cd ceres-solver && \
+    git checkout tags/${CERES_VERSION} && \
+    mkdir build && cd build && \
+    cmake .. && \
+    make -j ${USE_PROC} && \
+    sudo make install
+
+RUN ls -l
+
+# Add VINS-Fusion
+RUN mkdir -p $CATKIN_WS/src
+WORKDIR $CATKIN_WS/src
+RUN git clone https://github.com/ShuoYangRobotics/VINS-Fusion.git
+
+# Build VINS-Fusion
+WORKDIR $CATKIN_WS
+RUN /bin/zsh -c "source /opt/ros/${ROS_DISTRO}/setup.zsh; catkin build; source ${CATKIN_WS}/devel/setup.zsh; catkin build" && \
+    echo "source ${CATKIN_WS}/devel/setup.zsh" >> /home/${USERNAME}/.zshrc
+
+# casadi 
+WORKDIR $SUPPORT_WS
+RUN git clone https://github.com/casadi/casadi.git && \
+    cd ${SUPPORT_WS}/casadi && git checkout tags/3.5.5 && \
+    mkdir ${SUPPORT_WS}/casadi/build && cd ${SUPPORT_WS}/casadi/build && \
+    cmake -DWITH_CPLEX=OFF -DWITH_KNITRO=OFF -DWITH_OOQP=OFF -DWITH_SNOPT=OFF ${SUPPORT_WS}/casadi && \
+    make -j ${USE_PROC} && \
+    sudo make install
+
+# filter for processing sensor data
+WORKDIR $SUPPORT_WS
+RUN git clone https://github.com/ShuoYangRobotics/gram_savitzky_golay.git && \
+    cd gram_savitzky_golay  && \
+    git submodule init     && \
+    git submodule update   && \
+    mkdir build    && \
+    cd build   && \
+    cmake -DCMAKE_BUILD_TYPE=Release ../   && \
+    make -j ${USE_PROC} && \
+    sudo make install
+
+# install pinnochio
+WORKDIR $SUPPORT_WS
+RUN git clone --recursive https://github.com/stack-of-tasks/pinocchio
+RUN export CMAKE_PREFIX_PATH=/opt/openrobots
+RUN cd pinocchio && mkdir build && cd build && \
+    cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr/local -DBUILD_PYTHON_INTERFACE=OFF && \
+    make -j ${USE_PROC}
+WORKDIR $SUPPORT_WS/pinocchio/build
+RUN sudo make install && \
+    echo "export PATH=/usr/local/bin:$PATH"  >> /home/${USERNAME}/.zshrc \ 
+    && echo "export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH"  >> /home/${USERNAME}/.zshrc \
+    && echo "export LD_LIBRARY_PATH=/usr/local/lib:$LD_LIBRARY_PATH"  >> /home/${USERNAME}/.zshrc \
+    && echo "export PYTHONPATH=/usr/local/lib/python2.7/site-packages:$PYTHONPATH"  >> /home/${USERNAME}/.zshrc \
+    && echo "export CMAKE_PREFIX_PATH=/usr/local:$CMAKE_PREFIX_PATH"  >> /home/${USERNAME}/.zshrc
+
+WORKDIR $CATKIN_WS
+RUN catkin build
+RUN /bin/zsh -c "source ${CATKIN_WS}/devel/setup.zsh" && echo "source ${CATKIN_WS}/devel/setup.zsh" >> /home/${USERNAME}/.zshrc
+
+
+# add OSQP 
+# follow https://osqp.org/docs/get_started/sources.html#build-from-sources to install OSQP from sources
+WORKDIR $SUPPORT_WS
+RUN git clone --recursive https://github.com/oxfordcontrol/osqp && cd osqp && mkdir build  && cd build && \
+    cmake -G "Unix Makefiles" ..  && \
+    cmake --build .  && \
+    sudo cmake --build . --target install
+
+
+# add OSQP-python
+RUN sudo apt-get install -y python3-pip python3-wheel
+RUN pip install osqp 
+
+# add osqp-eigen
+WORKDIR $SUPPORT_WS
+RUN git clone https://github.com/robotology/osqp-eigen.git && cd osqp-eigen && mkdir build  && cd build && \
+    cmake ../  && \
+    make  -j ${USE_PROC} && \
+    sudo make install
 
 # add libtorch
 # https://github.com/pytorch/pytorch/issues/17492#issuecomment-524692441
@@ -6,8 +170,4 @@ FROM yyss2028/legged_state_estimation:gtsam
 # otherwise it will break ROS installation 
 WORKDIR $SUPPORT_WS
 RUN wget https://download.pytorch.org/libtorch/nightly/cpu/libtorch-cxx11-abi-shared-with-deps-latest.zip
-RUN sudo apt-get install -y unzip gnuplot
 RUN unzip libtorch-cxx11-abi-shared-with-deps-latest.zip
-
-
-RUN sudo apt-get install -y ros-melodic-plotjuggler-ros

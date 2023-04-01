@@ -11,5 +11,5 @@
     <node name="mipo_main" pkg="cerberus2"
         type="mipo_main"
         output="screen"
-        launch-prefix="bash -c 'sleep $(arg node_start_delay); $0 $@' " />
+        launch-prefix="zsh -c 'sleep $(arg node_start_delay); $0 $@' " />
 </launch>

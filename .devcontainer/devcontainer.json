@@ -1,12 +1,13 @@
 {
 	"name": "Ubuntu",
-	"build": {
-		"dockerfile": "Dockerfile",
-		"args": {
-			"-t": "cerberus_image",
-			"USE_PROC": "1"
-		}
-	},
+	"image": "yyss2028/legged_state_estimation:2.0", // noetic
+	// "build": {
+	// 	"dockerfile": "Dockerfile",
+	// 	"args": {
+	// 		"-t": "cerberus_image",
+	// 		"USE_PROC": "6"
+	// 	}
+	// },
 	"runArgs": [
 		"--network=host",
 		"--privileged",

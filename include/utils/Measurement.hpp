@@ -57,6 +57,7 @@ public:
     double t1 = m1->t;
     double t2 = m2->t;
     double alpha = (t - t1) / (t2 - t1);
+    alpha = std::min(1.0, std::max(0.0, alpha));
     Eigen::Vector3d imu_acc = m1->imu_acc * (1 - alpha) + m2->imu_acc * alpha;
     Eigen::Vector3d imu_gyro =
         m1->imu_gyro * (1 - alpha) + m2->imu_gyro * alpha;
@@ -107,6 +108,7 @@ public:
     double t1 = m1->t;
     double t2 = m2->t;
     double alpha = (t - t1) / (t2 - t1);
+    alpha = std::min(1.0, std::max(0.0, alpha));
     Eigen::Matrix<double, 12, 1> joint_pos =
         m1->joint_pos * (1 - alpha) + m2->joint_pos * alpha;
     Eigen::Matrix<double, 12, 1> joint_vel =
@@ -153,6 +155,7 @@ public:
     double t1 = m1->t;
     double t2 = m2->t;
     double alpha = (t - t1) / (t2 - t1);
+    alpha = std::min(1.0, std::max(0.0, alpha));
     Eigen::Vector3d imu_acc = m1->imu_acc * (1 - alpha) + m2->imu_acc * alpha;
     Eigen::Vector3d imu_gyro =
         m1->imu_gyro * (1 - alpha) + m2->imu_gyro * alpha;
@@ -189,6 +192,7 @@ public:
     double t1 = m1->t;
     double t2 = m2->t;
     double alpha = (t - t1) / (t2 - t1);
+    alpha = std::min(1.0, std::max(0.0, alpha));
     Eigen::Vector3d foot_force_xyz =
         m1->foot_force_xyz * (1 - alpha) + m2->foot_force_xyz * alpha;
     return std::make_shared<FootForceMeasurement>(t, foot_force_xyz, m1->id);
@@ -229,6 +233,7 @@ public:
     double t1 = m1->t;
     double t2 = m2->t;
     double alpha = (t - t1) / (t2 - t1);
+    alpha = std::min(1.0, std::max(0.0, alpha));
     Eigen::Vector3d pos = m1->pos * (1 - alpha) + m2->pos * alpha;
     Eigen::Quaterniond quat = m1->quat.slerp(alpha, m2->quat);
     return std::make_shared<PoseMeasurement>(t, pos, quat);

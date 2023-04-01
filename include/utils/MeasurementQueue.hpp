@@ -42,7 +42,10 @@ public:
 
   std::shared_ptr<Measurement> top() { return pq_meas.top(); }
 
+  bool empty() { return pq_meas.empty(); }
+
   double latestTime() { return newestElementTime; }
+  double oldestTime() { return pq_meas.top()->getTime(); }
 
   // get the horizon time of the queue, which equals to the time of the
   // first element minus the time of the last element
@@ -410,11 +413,14 @@ public:
 
   // helper function, intepolate among a vector of measurements
   std::shared_ptr<Measurement>
-  interpolate_list(double t, std::vector<std::shared_ptr<Measurement>> vec) {
+  interpolate_list(double t, std::vector<std::shared_ptr<Measurement>> &vec) {
     // first make sure the time is within the range
     if (t < vec.front()->getTime() || t > vec.back()->getTime()) {
       std::cout << "time is out of range" << std::endl;
       throw 207;
+    }
+    if (vec.size() == 1) {
+      return vec.front();
     }
     // find the two element that is closest to t, if t is the same as one of the
     // element, return that element

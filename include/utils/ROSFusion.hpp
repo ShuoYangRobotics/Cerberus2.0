@@ -18,6 +18,7 @@
 #include "mipo/MIPOEstimator.hpp"
 #include "utils/Measurement.hpp"
 #include "utils/MeasurementQueue.hpp"
+#include "utils/MovingWindowFilter.hpp"
 #include "utils/parameters.hpp"
 
 // this is a helper class to bridge ros messages and robot estimator
@@ -25,7 +26,7 @@
 // as the robot estimator so that the robot estimator is ros free
 
 class ROSFusion {
- public:
+public:
   ROSFusion(ros::NodeHandle nh);
   ~ROSFusion(){};
 
@@ -33,20 +34,23 @@ class ROSFusion {
 
   void loop();
   bool isDataAvailable();
-  double getOldestLatestTime();
+  double getMinLatestTime();
+  double getMaxOldestTime();
 
-  void publishEstimationResult(Eigen::Matrix<double, MS_SIZE, 1>& x, Eigen::Matrix<double, MS_SIZE, MS_SIZE>& P, double cur_time);
+  void publishEstimationResult(Eigen::Matrix<double, MS_SIZE, 1> &x,
+                               Eigen::Matrix<double, MS_SIZE, MS_SIZE> &P,
+                               double cur_time);
 
   // initialize callback functions
-  void imuCallback(const sensor_msgs::Imu::ConstPtr& msg);
-  void jointFootCallback(const sensor_msgs::JointState::ConstPtr& msg);
-  void flImuCallback(const sensor_msgs::Imu::ConstPtr& msg);
-  void frImuCallback(const sensor_msgs::Imu::ConstPtr& msg);
-  void rlImuCallback(const sensor_msgs::Imu::ConstPtr& msg);
-  void rrImuCallback(const sensor_msgs::Imu::ConstPtr& msg);
-  void gtCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+  void imuCallback(const sensor_msgs::Imu::ConstPtr &msg);
+  void jointFootCallback(const sensor_msgs::JointState::ConstPtr &msg);
+  void flImuCallback(const sensor_msgs::Imu::ConstPtr &msg);
+  void frImuCallback(const sensor_msgs::Imu::ConstPtr &msg);
+  void rlImuCallback(const sensor_msgs::Imu::ConstPtr &msg);
+  void rrImuCallback(const sensor_msgs::Imu::ConstPtr &msg);
+  void gtCallback(const geometry_msgs::PoseStamped::ConstPtr &msg);
 
- private:
+private:
   // ros handle
   ros::NodeHandle nh_;
 
@@ -81,10 +85,18 @@ class ROSFusion {
   SWE::MeasureQueue mq_rl_imu_;
   SWE::MeasureQueue mq_rr_imu_;
   SWE::MeasureQueue mq_gt_;
-  double foot_delay = FOOT_IMU_DELAY;
-  bool is_gt_available_;  // maybe gt is not available, we need to check this
-  // init gt position
-  Eigen::Vector3d init_gt_pos;
+  bool is_gt_available_; // maybe gt is not available, we need to check this
+  std::shared_ptr<SWE::Measurement> latest_gt_meas;
+  // foot imu filter
+  MovingWindowFilter joint_foot_filter_[12];
+  MovingWindowFilter fl_imu_acc_filter_[3];
+  MovingWindowFilter fr_imu_acc_filter_[3];
+  MovingWindowFilter rl_imu_acc_filter_[3];
+  MovingWindowFilter rr_imu_acc_filter_[3];
+  MovingWindowFilter fl_imu_gyro_filter_[3];
+  MovingWindowFilter fr_imu_gyro_filter_[3];
+  MovingWindowFilter rl_imu_gyro_filter_[3];
+  MovingWindowFilter rr_imu_gyro_filter_[3];
 
   // prev loop time
   double prev_loop_time;
