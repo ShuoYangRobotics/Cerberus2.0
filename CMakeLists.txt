@@ -53,7 +53,7 @@ message("${CMAKE_CXX_FLAGS}")
 
 set(FUSION_LIB fusion) # set library name
 set(${FUSION_LIB}_SRC
-        src/utils/ROSFusion.cpp
+        src/fusion/ROSFusion.cpp
         src/mipo/MIPOEstimator.cpp
 )
 add_library(${FUSION_LIB} SHARED ${${FUSION_LIB}_SRC})

@@ -1,5 +1,5 @@
 
-#include "utils/ROSFusion.hpp"
+#include "fusion/ROSFusion.hpp"
 #include "utils/casadi_kino.hpp"
 
 ROSFusion::ROSFusion(ros::NodeHandle nh) {
