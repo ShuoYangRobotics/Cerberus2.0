@@ -1,0 +1,64 @@
+{
+	"name": "Ubuntu",
+	"build": {
+		"dockerfile": "Dockerfile",
+		"args": {
+			"-t": "cerberus_image",
+			"USE_PROC": "1"
+		}
+	},
+	"runArgs": [
+		"--network=host",
+		"--privileged",
+		"--runtime=nvidia", // comment this out if you do not have nvidia gpu 
+		"--cap-add=IPC_LOCK",
+		"--cap-add=sys_nice",
+		"--device=/dev/input",
+		"--device=/dev/bus",
+		"--volume=/dev/serial:/dev/serial:ro",
+		"--name=cerberus_image_container",
+		"-e",
+		"DISPLAY",
+		"-e",
+		"XAUTHORITY",
+		"-v",
+		"/tmp/.docker.xauth:/tmp/.docker.xauth"
+	],
+	"workspaceMount": "source=${localWorkspaceFolder},target=/home/EstimationUser/estimation_ws/src/Cerberus2,type=bind",
+	"workspaceFolder": "/home/EstimationUser/estimation_ws/src/Cerberus2",
+	"initializeCommand": "sh .devcontainer/configure_xauth.bash; echo $DISPLAY $XAUTHORITY; xhost +",
+	"remoteUser": "EstimationUser",
+	"postStartCommand": "sudo cp /home/EstimationUser/estimation_ws/src/Cerberus2/misc/casadi_misc.hpp /usr/local/include/casadi/core/",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"donjayamanne.githistory",
+				"mhutchie.git-graph",
+				"ms-vscode.cmake-tools",
+				"josetr.cmake-language-support-vscode",
+				"cheshirekow.cmake-format",
+				"tombonnike.vscode-status-bar-format-toggle",
+				"xaver.clang-format",
+				"ms-vscode.cpptools-extension-pack",
+				"streetsidesoftware.code-spell-checker",
+				"cschlosser.doxdocgen",
+				"betwo.vscode-doxygen-runner",
+				"ms-iot.vscode-ros",
+				"smilerobotics.urdf",
+				"redhat.vscode-xml",
+				"redhat.vscode-yaml",
+				"github.copilot"
+			]
+		}
+	},
+	// for X display connection
+	"containerEnv": {
+		"DISPLAY": ":0",
+		"QT_X11_NO_MITSHM": "1",
+		"NVIDIA_VISIBLE_DEVICES": "ALL",
+		"NVIDIA_DRIVER_CAPABILITIES": "compute,utility,graphics"
+	},
+	"mounts": [
+		"source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached"
+	]
+}
