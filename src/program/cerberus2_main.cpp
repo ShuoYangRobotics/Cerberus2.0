@@ -7,6 +7,9 @@
 #include <ros/ros.h>
 #include <sensor_msgs/Imu.h>
 
+// project files
+#include "fusion/VILOFusion.hpp"
+
 // Define the function to be called when ctrl-c (SIGINT) is sent to process
 void signal_callback_handler(int signum) {
   std::cout << "Caught signal " << signum << std::endl;
@@ -22,6 +25,7 @@ int main(int argc, char** argv) {
   ros::console::set_logger_level(ROSCONSOLE_DEFAULT_NAME, ros::console::levels::Info);
 
   /* create an estimator object */
+  VILOFusion vilo_fusion(nh);
 
   ros::spin();
   return 0;
