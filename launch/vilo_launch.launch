@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+
+<launch>
+    <!-- use sim time-->
+    <param name="use_sim_time" value="true" />
+
+    <arg name="node_start_delay" default="1.0" />
+    <node pkg="rosbag" type="play" name="player"
+        args="--clock --hz=1000  $(find cerberus2)/bags/legged_robots/20230215_lab_short.bag" />
+
+    <node name="cerberus2_main" pkg="cerberus2"
+        type="cerberus2_main"
+        output="screen"
+        launch-prefix="zsh -c 'sleep $(arg node_start_delay); $0 $@' " />
+</launch>
