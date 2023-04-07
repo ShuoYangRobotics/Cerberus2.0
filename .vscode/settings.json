@@ -78,7 +78,9 @@
         "cinttypes": "cpp",
         "typeindex": "cpp",
         "variant": "cpp",
-        "core": "cpp"
+        "core": "cpp",
+        "dense": "cpp",
+        "csignal": "cpp"
     },
     "clang-format.executable": "/usr/bin/clang-format-10"
 }

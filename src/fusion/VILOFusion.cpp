@@ -4,6 +4,8 @@ VILOFusion::VILOFusion(ros::NodeHandle nh) {
   nh_ = nh;
   Utils::readParameters(nh);
 
+  mipo_estimator = std::make_unique<MIPOEstimator>();
+
   // bind the loop_thread_ to the loop function
   loop_thread_ = std::thread(&VILOFusion::loop, this);
 
@@ -92,7 +94,7 @@ void VILOFusion::loop() {
         prev_data = std::make_shared<MIPOEstimatorSensorData>();
         prev_data->loadFromVec(sensor_data);
         // initialize the estimator
-        x = mipo_estimator.ekfInitState(*prev_data);
+        x = mipo_estimator->ekfInitState(*prev_data);
         P = 1e-4 * Eigen::Matrix<double, MS_SIZE, MS_SIZE>::Identity();
       } else {
         curr_data = std::make_shared<MIPOEstimatorSensorData>();
@@ -101,7 +103,7 @@ void VILOFusion::loop() {
         // do estimation
         Eigen::Matrix<double, MS_SIZE, 1> x_k1_est;
         Eigen::Matrix<double, MS_SIZE, MS_SIZE> P_k1_est;
-        mipo_estimator.ekfUpdate(x, P, *prev_data, *curr_data, dt_ros, x_k1_est, P_k1_est);
+        mipo_estimator->ekfUpdate(x, P, *prev_data, *curr_data, dt_ros, x_k1_est, P_k1_est);
 
         x = x_k1_est;
         // std::cout << "x: " << x.transpose() << std::endl;
@@ -116,7 +118,7 @@ void VILOFusion::loop() {
       prev_esti_time += dt_ros;
     }
 
-    // process images, trigger VILO solve
+    // process images
     inputImagesToVILO();
 
     /* record end time */
@@ -257,7 +259,7 @@ void VILOFusion::imuCallback(const sensor_msgs::Imu::ConstPtr& msg) {
   mq_imu_.push(t, acc, ang_vel);
 
   // limit the size of the message queue
-  if (!mq_imu_.empty() && mq_imu_.size() > MAX_MESSAGE_QUEUE_SIZE) {
+  if (!mq_imu_.empty() && mq_imu_.size() > MAX_PO_QUEUE_SIZE) {
     mq_imu_.pop();
   }
   mtx.unlock();
@@ -278,7 +280,7 @@ void VILOFusion::jointFootCallback(const sensor_msgs::JointState::ConstPtr& msg)
   mtx.lock();
   mq_joint_foot_.push(t, joint_pos, joint_vel);
   // limit the size of the message queue
-  if (!mq_joint_foot_.empty() && mq_joint_foot_.size() > MAX_MESSAGE_QUEUE_SIZE) {
+  if (!mq_joint_foot_.empty() && mq_joint_foot_.size() > MAX_PO_QUEUE_SIZE) {
     mq_joint_foot_.pop();
   }
   mtx.unlock();
@@ -299,7 +301,7 @@ void VILOFusion::flImuCallback(const sensor_msgs::Imu::ConstPtr& msg) {
   mtx.lock();
   mq_fl_imu_.push(t, acc, ang_vel, 0);
   // limit the size of the message queue
-  if (!mq_fl_imu_.empty() && mq_fl_imu_.size() > MAX_MESSAGE_QUEUE_SIZE) {
+  if (!mq_fl_imu_.empty() && mq_fl_imu_.size() > MAX_PO_QUEUE_SIZE) {
     mq_fl_imu_.pop();
   }
   mtx.unlock();
@@ -320,7 +322,7 @@ void VILOFusion::frImuCallback(const sensor_msgs::Imu::ConstPtr& msg) {
   mtx.lock();
   mq_fr_imu_.push(t, acc, ang_vel, 1);
   // limit the size of the message queue
-  if (!mq_fr_imu_.empty() && mq_fr_imu_.size() > MAX_MESSAGE_QUEUE_SIZE) {
+  if (!mq_fr_imu_.empty() && mq_fr_imu_.size() > MAX_PO_QUEUE_SIZE) {
     mq_fr_imu_.pop();
   }
   mtx.unlock();
@@ -341,7 +343,7 @@ void VILOFusion::rlImuCallback(const sensor_msgs::Imu::ConstPtr& msg) {
   mtx.lock();
   mq_rl_imu_.push(t, acc, ang_vel, 2);
   // limit the size of the message queue
-  if (!mq_rl_imu_.empty() && mq_rl_imu_.size() > MAX_MESSAGE_QUEUE_SIZE) {
+  if (!mq_rl_imu_.empty() && mq_rl_imu_.size() > MAX_PO_QUEUE_SIZE) {
     mq_rl_imu_.pop();
   }
   mtx.unlock();
@@ -362,7 +364,7 @@ void VILOFusion::rrImuCallback(const sensor_msgs::Imu::ConstPtr& msg) {
   mtx.lock();
   mq_rr_imu_.push(t, acc, ang_vel, 3);
   // limit the size of the message queue
-  if (!mq_rr_imu_.empty() && mq_rr_imu_.size() > MAX_MESSAGE_QUEUE_SIZE) {
+  if (!mq_rr_imu_.empty() && mq_rr_imu_.size() > MAX_PO_QUEUE_SIZE) {
     mq_rr_imu_.pop();
   }
   mtx.unlock();
@@ -379,7 +381,7 @@ void VILOFusion::gtCallback(const geometry_msgs::PoseStamped::ConstPtr& msg) {
 
   mq_gt_.push(t, pos, q);
   // limit the size of the message queue
-  if (!mq_gt_.empty() && mq_gt_.size() > MAX_MESSAGE_QUEUE_SIZE) {
+  if (!mq_gt_.empty() && mq_gt_.size() > MAX_PO_QUEUE_SIZE) {
     mq_gt_.pop();
   }
 
@@ -390,9 +392,9 @@ void VILOFusion::gtCallback(const geometry_msgs::PoseStamped::ConstPtr& msg) {
 
 // functions for processing PO data
 bool VILOFusion::isPODataAvailable() {
-  if (mq_imu_.size() > MIN_WINDOW_SIZE && mq_joint_foot_.size() > MIN_WINDOW_SIZE && mq_fl_imu_.size() > MIN_WINDOW_SIZE &&
-      mq_fr_imu_.size() > MIN_WINDOW_SIZE && mq_rl_imu_.size() > MIN_WINDOW_SIZE && mq_rr_imu_.size() > MIN_WINDOW_SIZE &&
-      mq_gt_.size() > MIN_WINDOW_SIZE) {
+  if (mq_imu_.size() > MIN_PO_QUEUE_SIZE && mq_joint_foot_.size() > MIN_PO_QUEUE_SIZE && mq_fl_imu_.size() > MIN_PO_QUEUE_SIZE &&
+      mq_fr_imu_.size() > MIN_PO_QUEUE_SIZE && mq_rl_imu_.size() > MIN_PO_QUEUE_SIZE && mq_rr_imu_.size() > MIN_PO_QUEUE_SIZE &&
+      mq_gt_.size() > MIN_PO_QUEUE_SIZE) {
     return true;
   }
   return false;

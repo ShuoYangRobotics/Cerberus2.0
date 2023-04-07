@@ -65,6 +65,7 @@ set(FUSION_LIB fusion) # set library name
 set(${FUSION_LIB}_SRC
         src/fusion/ROSFusion.cpp
         src/mipo/MIPOEstimator.cpp
+        src/utils/parameters.cpp
 )
 add_library(${FUSION_LIB} SHARED ${${FUSION_LIB}_SRC})
 target_link_libraries(${FUSION_LIB}
@@ -90,6 +91,10 @@ set(VILO_LIB vilo_fusion) # set library name
 set(${VILO_LIB}_SRC
         src/fusion/VILOFusion.cpp
         src/mipo/MIPOEstimator.cpp
+        src/vilo/VILOEstimator.cpp
+        src/featureTracker/feature_tracker.cpp
+        src/featureTracker/feature_manager.cpp
+        src/utils/parameters.cpp
 )
 add_library(${VILO_LIB} SHARED ${${VILO_LIB}_SRC})
 target_link_libraries(${VILO_LIB}

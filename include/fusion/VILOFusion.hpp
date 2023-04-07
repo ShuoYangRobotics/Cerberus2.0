@@ -65,7 +65,7 @@ class VILOFusion {
   std::thread loop_thread_;
 
   // filters
-  MIPOEstimator mipo_estimator;
+  std::unique_ptr<MIPOEstimator> mipo_estimator;
 
   // measurement queues filled by callback functions
   SWE::MeasureQueue mq_imu_;
