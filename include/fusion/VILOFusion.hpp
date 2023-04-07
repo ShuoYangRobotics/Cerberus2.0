@@ -30,20 +30,23 @@
 #include "utils/MovingWindowFilter.hpp"
 #include "utils/casadi_kino.hpp"
 #include "utils/parameters.hpp"
+#include "vilo/VILOEstimator.hpp"
 
 // this file is similar to ROSFusion.hpp but it also fuses camera data
 // the process of vision part is similar to cerberus' main.cpp
 
 class VILOFusion {
- public:
+public:
   VILOFusion(ros::NodeHandle nh);
-  ~VILOFusion(){};
+  ~VILOFusion();
 
-  void loop();
+  void POLoop();   // this loop runs MIPO at 400Hz
+  void VILOLoop(); // this loop triggers VILO at 15Hz
 
-  void publishMIPOEstimationResult(Eigen::Matrix<double, MS_SIZE, 1>& x, Eigen::Matrix<double, MS_SIZE, MS_SIZE>& P);
+  void publishMIPOEstimationResult(Eigen::Matrix<double, MS_SIZE, 1> &x,
+                                   Eigen::Matrix<double, MS_SIZE, MS_SIZE> &P);
 
- private:
+private:
   // ros handle
   ros::NodeHandle nh_;
 
@@ -62,10 +65,12 @@ class VILOFusion {
   // ros publishers for debug
   ros::Publisher pose_pub_;
 
-  std::thread loop_thread_;
+  std::thread po_loop_thread_;
+  std::thread vilo_loop_thread_;
 
   // filters
   std::unique_ptr<MIPOEstimator> mipo_estimator;
+  std::unique_ptr<VILOEstimator> vilo_estimator;
 
   // measurement queues filled by callback functions
   SWE::MeasureQueue mq_imu_;
@@ -75,7 +80,7 @@ class VILOFusion {
   SWE::MeasureQueue mq_rl_imu_;
   SWE::MeasureQueue mq_rr_imu_;
   SWE::MeasureQueue mq_gt_;
-  bool is_gt_available_;  // maybe gt is not available, we need to check this
+  bool is_gt_available_; // maybe gt is not available, we need to check this
   std::shared_ptr<SWE::Measurement> latest_gt_meas;
   // foot imu filter
   MovingWindowFilter joint_foot_filter_[12];
@@ -102,26 +107,26 @@ class VILOFusion {
   std::mutex mtx_image;
 
   // private helper functions
-  void img0Callback(const sensor_msgs::ImageConstPtr& img_msg);
-  void img1Callback(const sensor_msgs::ImageConstPtr& img_msg);
-  cv::Mat getImageFromMsg(const sensor_msgs::ImageConstPtr& img_msg);
+  void img0Callback(const sensor_msgs::ImageConstPtr &img_msg);
+  void img1Callback(const sensor_msgs::ImageConstPtr &img_msg);
+  cv::Mat getImageFromMsg(const sensor_msgs::ImageConstPtr &img_msg);
 
   void inputImagesToVILO();
 
   // initialize proprioceptive sensor callback functions
-  void imuCallback(const sensor_msgs::Imu::ConstPtr& msg);
-  void jointFootCallback(const sensor_msgs::JointState::ConstPtr& msg);
-  void flImuCallback(const sensor_msgs::Imu::ConstPtr& msg);
-  void frImuCallback(const sensor_msgs::Imu::ConstPtr& msg);
-  void rlImuCallback(const sensor_msgs::Imu::ConstPtr& msg);
-  void rrImuCallback(const sensor_msgs::Imu::ConstPtr& msg);
+  void imuCallback(const sensor_msgs::Imu::ConstPtr &msg);
+  void jointFootCallback(const sensor_msgs::JointState::ConstPtr &msg);
+  void flImuCallback(const sensor_msgs::Imu::ConstPtr &msg);
+  void frImuCallback(const sensor_msgs::Imu::ConstPtr &msg);
+  void rlImuCallback(const sensor_msgs::Imu::ConstPtr &msg);
+  void rrImuCallback(const sensor_msgs::Imu::ConstPtr &msg);
 
   // initialize gt callback
-  void gtCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
+  void gtCallback(const geometry_msgs::PoseStamped::ConstPtr &msg);
 
   bool isPODataAvailable();
   double getPOMinLatestTime();
   double getPOMaxOldestTime();
 
-  void interpolatePOData(Eigen::Matrix<double, 55, 1>& sensor_data, double dt);
+  void interpolatePOData(Eigen::Matrix<double, 55, 1> &sensor_data, double dt);
 };

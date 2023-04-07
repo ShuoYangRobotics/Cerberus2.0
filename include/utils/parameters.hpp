@@ -1,6 +1,8 @@
 #pragma once
-#include <ros/ros.h>
 #include <Eigen/Dense>
+#include <opencv2/core/eigen.hpp>
+#include <opencv2/opencv.hpp>
+#include <ros/ros.h>
 #include <string>
 
 // robot constant
@@ -21,21 +23,22 @@ extern int JOINT_MOVMEAN_WINDOW_SIZE;
 
 // topic names
 extern std::string IMU_TOPIC;
-extern std::string JOINT_FOOT_TOPIC;
+extern std::string LEG_TOPIC;
 extern std::string FL_IMU_TOPIC;
 extern std::string FR_IMU_TOPIC;
 extern std::string RL_IMU_TOPIC;
 extern std::string RR_IMU_TOPIC;
 extern std::string GT_TOPIC;
-extern std::string CAMERA0_TOPIC;
-extern std::string CAMERA1_TOPIC;
+extern std::string IMAGE0_TOPIC;
+extern std::string IMAGE1_TOPIC;
 
 // this variable means the estimator actually always estimates the state at the
 // current time - LAG_TIME. We do so to account for potential delays and sensor
 // information mistaches
-extern double LAG_TIME;  // 100ms
+extern double LAG_TIME; // 100ms
 
-extern double FOOT_IMU_DELAY;  // 23ms, this is estimated from analysing data in Matlab
+extern double
+    FOOT_IMU_DELAY; // 23ms, this is estimated from analysing data in Matlab
 
 /*
  * VINS Fusion parameters
@@ -52,8 +55,8 @@ extern int ESTIMATE_EXTRINSIC;
 extern double ACC_N, ACC_N_Z, ACC_W;
 extern double GYR_N, GYR_W;
 
-extern std::vector<Eigen::Matrix3d> RIC;  // num of cam, imu to camera rotation
-extern std::vector<Eigen::Vector3d> TIC;  // num of cam, imu to camera position
+extern std::vector<Eigen::Matrix3d> RIC; // num of cam, imu to camera rotation
+extern std::vector<Eigen::Vector3d> TIC; // num of cam, imu to camera position
 extern Eigen::Vector3d G;
 
 extern double BIAS_ACC_THRESHOLD;
@@ -82,5 +85,17 @@ extern int FLOW_BACK;
 
 namespace Utils {
 
-void readParameters(ros::NodeHandle& nh_);
+void readParametersROS(ros::NodeHandle &nh_);
+void readParametersFile(std::string config_file);
+
+static std::string GetCurrentTimeForFileName() {
+  auto time = std::time(nullptr);
+  std::stringstream ss;
+  ss << std::put_time(std::localtime(&time),
+                      "%F_%T"); // ISO 8601 without timezone information.
+  auto s = ss.str();
+  std::replace(s.begin(), s.end(), ':', '-');
+  return s;
 }
+
+} // namespace Utils

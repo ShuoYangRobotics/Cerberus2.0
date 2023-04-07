@@ -1,16 +1,42 @@
 #pragma once
+#include <Eigen/Dense>
+#include <opencv2/imgproc/imgproc_c.h>
+#include <opencv2/opencv.hpp>
+#include <thread>
+
 #include "featureTracker/feature_manager.h"
 #include "featureTracker/feature_tracker.h"
 
 class VILOEstimator {
- public:
+public:
   VILOEstimator();
   ~VILOEstimator();
 
- private:
+  void setParameter();
+
+  void inputImage(double t, const cv::Mat &_img,
+                  const cv::Mat &_img1 = cv::Mat());
+
+  // main function
+  void processMeasurements();
+
+private:
   std::unique_ptr<FeatureTracker> feature_tracker_;
   std::unique_ptr<FeatureManager> feature_manager_;
 
+  std::thread processThread;
+
+  // IMU, visual buffers and their mutexes
+  std::mutex mProcess;
+  std::mutex mBuf;
+  std::mutex mPropagate;
+  queue<pair<double, Eigen::Vector3d>> accBuf;
+  queue<pair<double, Eigen::Vector3d>> gyrBuf;
+  queue<pair<double, map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>>>>
+      featureBuf;
+  int inputImageCnt;
+
+  Vector3d g;
   // the actual solved results, Ps Vs Rs are the pose of the imu link
   Matrix3d ric[2];
   Vector3d tic[2];

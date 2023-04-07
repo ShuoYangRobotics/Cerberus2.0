@@ -95,6 +95,8 @@ set(${VILO_LIB}_SRC
         src/featureTracker/feature_tracker.cpp
         src/featureTracker/feature_manager.cpp
         src/utils/parameters.cpp
+        src/utils/visualization.cpp
+        src/utils/CameraPoseVisualization.cpp
 )
 add_library(${VILO_LIB} SHARED ${${VILO_LIB}_SRC})
 target_link_libraries(${VILO_LIB}

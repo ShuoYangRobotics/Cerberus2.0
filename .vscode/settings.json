@@ -80,7 +80,11 @@
         "variant": "cpp",
         "core": "cpp",
         "dense": "cpp",
-        "csignal": "cpp"
+        "csignal": "cpp",
+        "forward_list": "cpp",
+        "unordered_set": "cpp",
+        "hash_map": "cpp",
+        "hash_set": "cpp"
     },
     "clang-format.executable": "/usr/bin/clang-format-10"
 }

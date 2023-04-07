@@ -1,0 +1,18 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "test_cerberus2",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "/home/EstimationUser/estimation_ws/devel/lib/cerberus2/cerberus2_main",
+            "args": [
+                "/home/EstimationUser/estimation_ws/src/cerberus2/config/go1_config/hardware_go1_vilo_config.yaml"
+            ],
+            "cwd": "/home/EstimationUser/estimation_ws/devel/lib/cerberus2/"
+        }
+    ]
+}
