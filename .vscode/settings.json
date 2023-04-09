@@ -84,7 +84,8 @@
         "forward_list": "cpp",
         "unordered_set": "cpp",
         "hash_map": "cpp",
-        "hash_set": "cpp"
+        "hash_set": "cpp",
+        "*.ipp": "cpp"
     },
     "clang-format.executable": "/usr/bin/clang-format-10"
 }

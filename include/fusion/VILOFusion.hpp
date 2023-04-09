@@ -128,5 +128,6 @@ private:
   double getPOMinLatestTime();
   double getPOMaxOldestTime();
 
-  void interpolatePOData(Eigen::Matrix<double, 55, 1> &sensor_data, double dt);
+  double interpolatePOData(Eigen::Matrix<double, 55, 1> &sensor_data,
+                           double dt);
 };

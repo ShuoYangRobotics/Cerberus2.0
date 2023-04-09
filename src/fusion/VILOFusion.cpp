@@ -5,6 +5,7 @@ VILOFusion::VILOFusion(ros::NodeHandle nh) {
 
   mipo_estimator = std::make_unique<MIPOEstimator>();
   vilo_estimator = std::make_unique<VILOEstimator>();
+  vilo_estimator->setParameter();
 
   // bind the po_loop_thread_ to the loop function
   po_loop_thread_ = std::thread(&VILOFusion::POLoop, this);
@@ -101,7 +102,7 @@ void VILOFusion::POLoop() {
     // process PO data and run MIPO
     if (isPODataAvailable()) {
       Eigen::Matrix<double, 55, 1> sensor_data;
-      interpolatePOData(sensor_data, dt_ros);
+      double curr_esti_time = interpolatePOData(sensor_data, dt_ros);
 
       // run MIPO
       if (prev_data == nullptr) {
@@ -128,6 +129,8 @@ void VILOFusion::POLoop() {
         publishMIPOEstimationResult(x, P);
 
         // inputPODataToVILO();
+        vilo_estimator->inputBodyIMU(curr_esti_time, curr_data->body_acc,
+                                     curr_data->body_gyro);
       }
     } else {
       prev_esti_time += dt_ros;
@@ -137,7 +140,7 @@ void VILOFusion::POLoop() {
     auto loop_end = std::chrono::system_clock::now();
     auto loop_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
         loop_end - loop_start);
-    std::cout << "total loop time: " << loop_elapsed.count() << std::endl;
+    // std::cout << "total loop time: " << loop_elapsed.count() << std::endl;
 
     auto ros_loop_end = ros::Time::now().toSec();
     auto ros_loop_elapsed = ros_loop_end - ros_loop_start;
@@ -145,10 +148,10 @@ void VILOFusion::POLoop() {
     /* sleep a while to make sure the loop run at LOOP_DT */
     if (ros_loop_elapsed * 1000 >= LOOP_DT) {
       // do not sleep
-      std::cout
-          << "POLoop computation time is longer than desired dt, optimize "
-             "code or increase LOOP_DT"
-          << std::endl;
+      // std::cout
+      //     << "POLoop computation time is longer than desired dt, optimize "
+      //        "code or increase LOOP_DT"
+      //     << std::endl;
     } else {
       double sleep_time = LOOP_DT * 0.001 - ros_loop_elapsed;
       ros::Duration(sleep_time).sleep();
@@ -158,8 +161,8 @@ void VILOFusion::POLoop() {
 }
 
 void VILOFusion::VILOLoop() {
-  // loop runs a little over 20Hz, call inputImagesToVILO() every 50ms
-  const double LOOP_DT = 50; // 20Hz
+  // loop runs a little over 100Hz, call inputImagesToVILO() every 10ms
+  const double LOOP_DT = 10; // 100Hz
   while (ros::ok()) {
     auto ros_loop_start = ros::Time::now().toSec();
     /* logic */
@@ -282,11 +285,10 @@ void VILOFusion::inputImagesToVILO() {
       img1_buf.pop();
       // std::cout << "synced image, " << std::setprecision(15) << time0 <<
       // std::endl;
+      // we have 60ms budget for one VILO solve
+      vilo_estimator->inputImage(time, image0, image1);
     }
   }
-  // we have 60ms budget for one VILO solve
-  if (!image0.empty())
-    vilo_estimator->inputImage(time, image0, image1);
 }
 
 // callback functions
@@ -505,8 +507,8 @@ double VILOFusion::getPOMaxOldestTime() {
   return t;
 }
 
-void VILOFusion::interpolatePOData(Eigen::Matrix<double, 55, 1> &sensor_data,
-                                   double dt) {
+double VILOFusion::interpolatePOData(Eigen::Matrix<double, 55, 1> &sensor_data,
+                                     double dt) {
   const std::lock_guard<std::mutex> lock(mtx);
 
   double queue_time_end = getPOMinLatestTime();
@@ -577,4 +579,6 @@ void VILOFusion::interpolatePOData(Eigen::Matrix<double, 55, 1> &sensor_data,
   } else {
     // TODO: use the yaw output from the VILO estimator
   }
+
+  return curr_esti_time;
 }

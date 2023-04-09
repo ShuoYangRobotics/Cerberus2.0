@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10.1)
 project(cerberus2)
-set(CMAKE_BUILD_TYPE Release)
+set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_STANDARD 14)          
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -97,6 +97,14 @@ set(${VILO_LIB}_SRC
         src/utils/parameters.cpp
         src/utils/visualization.cpp
         src/utils/CameraPoseVisualization.cpp
+        src/utils/vins_utility.cpp
+        src/factor/pose_local_parameterization.cpp
+        src/factor/projectionTwoFrameOneCamFactor.cpp
+        src/factor/projectionTwoFrameTwoCamFactor.cpp
+        src/factor/projectionOneFrameTwoCamFactor.cpp
+        src/factor/marginalization_factor.cpp
+
+        src/vilo/initial_aligment.cpp
 )
 add_library(${VILO_LIB} SHARED ${${VILO_LIB}_SRC})
 target_link_libraries(${VILO_LIB}

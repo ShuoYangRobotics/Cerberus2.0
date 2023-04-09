@@ -13,6 +13,18 @@
 #define DIM_GRF 12
 #define NUM_DOF 12
 
+// size and state order definitions
+
+enum SIZE_PARAMETERIZATION {
+  SIZE_POSE = 7,      // position, quaternion
+  SIZE_SPEEDBIAS = 9, // velocity, bias acc, bias gyr
+  SIZE_FEATURE = 1
+};
+
+enum StateOrder { O_P = 0, O_R = 3, O_V = 6, O_BA = 9, O_BG = 12 };
+
+enum NoiseOrder { O_AN = 0, O_GN = 3, O_AW = 6, O_GW = 9 };
+
 /*
  * PO message queue
  */
