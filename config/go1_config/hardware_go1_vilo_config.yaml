@@ -1,15 +1,16 @@
 %YAML:1.0
 
 #common parameters
-#support: 1 imu 1 cam; 1 imu 2 cam: 2 cam; 
 imu: 1         
 num_of_cam: 2  
+
+robot_type: "go1"   # should be go1 or a1 
+dataset_name: "lab"    # to keep track of datasets
 
 imu_topic: "/unitree_hardware/imu"
 image0_topic: "/camera_forward/infra1/image_rect_raw"
 image1_topic: "/camera_forward/infra2/image_rect_raw"
 output_path: "/home/EstimationUser/estimation_ws/src/cerberus2/bags/output"
-
 # leg topics
 leg_topic: "/unitree_hardware/joint_foot"
 
@@ -20,8 +21,6 @@ image_height: 480
    
 
 # leg related
-robot_type: "go1"   # should be go1 or a1 
-dataset_name: "lab"    # to keep track of datasets
 
 
 # Extrinsic parameter between IMU and Camera.

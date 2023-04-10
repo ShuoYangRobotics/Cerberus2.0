@@ -200,7 +200,7 @@ void VILOEstimator::processMeasurements() {
         if (BodyIMUAvailable(feature.first + td))
           break;
         else {
-          printf("wait for imu ... \n");
+          // printf("wait for imu ... \n");
           std::this_thread::sleep_for(dura);
         }
       }
@@ -232,19 +232,6 @@ void VILOEstimator::processMeasurements() {
       const std::lock_guard<std::mutex> lock(mProcess);
       processImage(feature.second, feature.first);
       prevTime = curTime;
-
-      // printStatistics(*this, 0);
-
-      // std_msgs::Header header;
-      // header.frame_id = "world";
-      // header.stamp = ros::Time(feature.first);
-
-      // pubOdometry(*this, header);
-      // pubKeyPoses(*this, header);
-      // pubCameraPose(*this, header);
-      // pubPointCloud(*this, header);
-      // pubKeyframe(*this);
-      // pubTF(*this, header);
     }
 
     std::this_thread::sleep_for(dura);
@@ -272,15 +259,15 @@ void VILOEstimator::initFirstIMUPose(
 }
 
 // output latest state
-Eigen::VectorXd VILOEstimator::outputState() const {
-  Eigen::VectorXd state(16);
-  if (frame_count == WINDOW_SIZE) {
-    state.head(3) = Ps[WINDOW_SIZE];
-    state.segment(3, 4) = Eigen::Quaterniond(Rs[WINDOW_SIZE]).coeffs();
-    state.segment(7, 3) = Vs[WINDOW_SIZE];
-    state.segment(10, 3) = Bas[WINDOW_SIZE];
-    state.segment(13, 3) = Bgs[WINDOW_SIZE];
-  }
+Eigen::Matrix<double, VS_OUTSIZE, 1> VILOEstimator::outputState() const {
+  Eigen::Matrix<double, VS_OUTSIZE, 1> state;
+  state(0) = latest_time;
+  state.segment(1, 3) = latest_P;
+  state.segment(4, 4) = Eigen::Quaterniond(latest_Q).coeffs(); // x y z w
+  state.segment(8, 3) = latest_V;
+  state.segment(11, 3) = latest_Ba;
+  state.segment(14, 3) = latest_Bg;
+
   return state;
 }
 

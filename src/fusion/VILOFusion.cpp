@@ -86,9 +86,6 @@ void VILOFusion::POLoop() {
   std::shared_ptr<MIPOEstimatorSensorData> prev_data = nullptr;
   std::shared_ptr<MIPOEstimatorSensorData> curr_data = nullptr;
 
-  Eigen::Matrix<double, MS_SIZE, 1> x;       // state
-  Eigen::Matrix<double, MS_SIZE, MS_SIZE> P; // covariance
-
   while (ros::ok()) {
     /* record start time */
     auto loop_start = std::chrono::system_clock::now();
@@ -115,24 +112,25 @@ void VILOFusion::POLoop() {
         prev_data = std::make_shared<MIPOEstimatorSensorData>();
         prev_data->loadFromVec(sensor_data);
         // initialize the estimator
-        x = mipo_estimator->ekfInitState(*prev_data);
-        P = 1e-4 * Eigen::Matrix<double, MS_SIZE, MS_SIZE>::Identity();
+        mipo_x = mipo_estimator->ekfInitState(*prev_data);
+        mipo_x(mipo_x.size() - 1) = curr_esti_time; // the inital time stamp
+        mipo_P = 1e-4 * Eigen::Matrix<double, MS_SIZE, MS_SIZE>::Identity();
       } else {
         curr_data = std::make_shared<MIPOEstimatorSensorData>();
         curr_data->loadFromVec(sensor_data);
 
         // do estimation
-        Eigen::Matrix<double, MS_SIZE, 1> x_k1_est;
-        Eigen::Matrix<double, MS_SIZE, MS_SIZE> P_k1_est;
-        mipo_estimator->ekfUpdate(x, P, *prev_data, *curr_data, dt_ros,
-                                  x_k1_est, P_k1_est);
+        Eigen::Matrix<double, MS_SIZE, 1> mipo_x_k1_est;
+        Eigen::Matrix<double, MS_SIZE, MS_SIZE> mipo_P_k1_est;
+        mipo_estimator->ekfUpdate(mipo_x, mipo_P, *prev_data, *curr_data,
+                                  dt_ros, mipo_x_k1_est, mipo_P_k1_est);
 
-        x = x_k1_est;
+        mipo_x = mipo_x_k1_est;
         // std::cout << "x: " << x.transpose() << std::endl;
-        P = P_k1_est;
+        mipo_P = mipo_P_k1_est;
         prev_data = curr_data;
         // publish the estimation result
-        publishMIPOEstimationResult(x, P);
+        publishMIPOEstimationResult(mipo_x, mipo_P);
 
         // inputPODataToVILO();
         vilo_estimator->inputBodyIMU(curr_esti_time, curr_data->body_acc,
@@ -142,8 +140,10 @@ void VILOFusion::POLoop() {
       prev_esti_time += dt_ros;
     }
     // extract the result from VILO estimator and publish it
-    Eigen::VectorXd x_vilo = vilo_estimator->outputState();
-    publishVILOEstimationResult(x_vilo);
+    vilo_x = vilo_estimator->outputState();
+    publishVILOEstimationResult(vilo_x);
+
+    // TODO: save results to file so we can do a good comparison
 
     /* record end time */
     auto loop_end = std::chrono::system_clock::now();
@@ -170,12 +170,84 @@ void VILOFusion::POLoop() {
 }
 
 void VILOFusion::VILOLoop() {
-  // loop runs a little over 100Hz, call inputImagesToVILO() every 10ms
-  const double LOOP_DT = 10; // 100Hz
+  // loop runs a little over 20Hz, call inputImagesToVILO() every 50ms
+  const double LOOP_DT = 20; // 20Hz
+  int loop_count = 0;
   while (ros::ok()) {
+    loop_count++;
+
     auto ros_loop_start = ros::Time::now().toSec();
     /* logic */
     inputImagesToVILO();
+
+    // logging here.
+    if (loop_count % 4) { // 1/4 of the loop
+
+      // write VILO
+      double vilo_time = vilo_x(0);
+      Eigen::Vector3d vilo_pos = vilo_x.segment<3>(1);
+      Eigen::Vector3d vilo_vel = vilo_x.segment<3>(8);
+      Eigen::Quaterniond vilo_quat(vilo_x(7), vilo_x(4), vilo_x(5), vilo_x(6));
+      Eigen::Vector3d vilo_euler = legged::quat_to_euler(vilo_quat);
+      ofstream fout_vilo(VILO_RESULT_PATH, ios::app);
+      fout_vilo.setf(ios::fixed, ios::floatfield);
+      fout_vilo.precision(15);
+      fout_vilo << vilo_time << ",";
+      fout_vilo.precision(5);
+      fout_vilo << vilo_pos(0) << "," << vilo_pos(1) << "," << vilo_pos(2)
+                << ",";
+      fout_vilo << vilo_euler(0) << "," << vilo_euler(1) << "," << vilo_euler(2)
+                << ",";
+      fout_vilo << vilo_vel(0) << "," << vilo_vel(1) << "," << vilo_vel(2);
+      fout_vilo << endl;
+      fout_vilo.close();
+
+      // write MIPO
+      double mipo_time = mipo_x(mipo_x.size() - 1);
+      Eigen::Vector3d mipo_pos = mipo_x.segment<3>(0);
+      Eigen::Vector3d mipo_vel = mipo_x.segment<3>(3);
+      Eigen::Vector3d mipo_euler = mipo_x.segment<3>(6);
+      ofstream fout_mipo(PO_RESULT_PATH, ios::app);
+      fout_mipo.setf(ios::fixed, ios::floatfield);
+      fout_mipo.precision(15);
+      fout_mipo << mipo_time << ",";
+      fout_mipo.precision(5);
+      fout_mipo << mipo_pos(0) << "," << mipo_pos(1) << "," << mipo_pos(2)
+                << ",";
+      fout_mipo << mipo_euler(0) << "," << mipo_euler(1) << "," << mipo_euler(2)
+                << ",";
+      fout_mipo << mipo_vel(0) << "," << mipo_vel(1) << "," << mipo_vel(2);
+      fout_mipo << endl;
+      fout_mipo.close();
+
+      // write GT is mocap is available
+      if (mq_gt_.size() > 0) {
+        std::shared_ptr<SWE::Measurement> gt_meas = mq_gt_.top();
+        if (gt_meas != nullptr) { // if gt is available
+          latest_gt_meas = gt_meas;
+
+          double gt_time = gt_meas->getTime();
+          Eigen::VectorXd gt_data = latest_gt_meas->getVector();
+          Eigen::VectorXd gt_quat_vec = gt_data.segment<4>(3);
+          Eigen::Quaterniond gt_quat(gt_quat_vec(0), gt_quat_vec(1),
+                                     gt_quat_vec(2), gt_quat_vec(3));
+
+          Eigen::Vector3d gt_pos = gt_data.segment<3>(0);
+          Eigen::Vector3d gt_euler = legged::quat_to_euler<double>(gt_quat);
+          ofstream fout_gt(GT_RESULT_PATH, ios::app);
+          fout_gt.setf(ios::fixed, ios::floatfield);
+          fout_gt.precision(15);
+          fout_gt << gt_time << ",";
+          fout_gt.precision(5);
+          fout_gt << gt_pos(0) << "," << gt_pos(1) << "," << gt_pos(2) << ",";
+          fout_gt << gt_euler(0) << "," << gt_euler(1) << "," << gt_euler(2)
+                  << ",";
+          fout_gt << 0 << "," << 0 << "," << 0;
+          fout_gt << endl;
+          fout_gt.close();
+        }
+      }
+    }
 
     auto ros_loop_end = ros::Time::now().toSec();
     auto ros_loop_elapsed = ros_loop_end - ros_loop_start;
@@ -249,11 +321,14 @@ void VILOFusion::publishMIPOEstimationResult(
   return;
 }
 
-void VILOFusion::publishVILOEstimationResult(Eigen::VectorXd &state) {
+void VILOFusion::publishVILOEstimationResult(
+    Eigen::Matrix<double, VS_OUTSIZE, 1> &state) {
 
-  Eigen::Vector3d pos = state.head(3);
-  Eigen::Quaterniond quat(state(3), state(4), state(5), state(6));
-  Eigen::Vector3d vel = state.segment(7, 3);
+  Eigen::Vector3d pos = state.segment(1, 3);
+  Eigen::Quaterniond quat(state(7), state(4), state(5),
+                          state(6)); // state quaternion is in order x, y, z, w
+                                     // because of Eigen coeffs function
+  Eigen::Vector3d vel = state.segment(8, 3);
   // publish pose topic and twist topic
   geometry_msgs::PoseWithCovarianceStamped pose_msg;
   pose_msg.header.stamp = ros::Time::now();
@@ -617,10 +692,10 @@ double VILOFusion::interpolatePOData(Eigen::Matrix<double, 55, 1> &sensor_data,
   sensor_data.segment<3>(51) = rr_imu_data.segment<3>(3) / 180.0 * M_PI;
 
   // source of yaw observation
-  if (1) {
+  if (!vilo_estimator->isRunning()) { // vilo not started yet
     // timing of ground truth is not very critical we just use the latest
     std::shared_ptr<SWE::Measurement> gt_meas = mq_gt_.top();
-    if (gt_meas != nullptr) {
+    if (gt_meas != nullptr) { // if gt is available
       latest_gt_meas = gt_meas;
 
       Eigen::VectorXd gt_data = latest_gt_meas->getVector();
@@ -630,9 +705,17 @@ double VILOFusion::interpolatePOData(Eigen::Matrix<double, 55, 1> &sensor_data,
       Eigen::Vector3d gt_euler = legged::quat_to_euler<double>(gt_quat);
       // item 54 is the body yaw, set to 0 for now
       sensor_data(54) = gt_euler(2);
+    } else {
+      // gt is not available, then just treat the yaw as 0
+      sensor_data(54) = 0.0;
     }
   } else {
-    // TODO: use the yaw output from the VILO estimator
+    // use the yaw output from the VILO estimator
+    // yaw is observable anyway so timing is not critical
+    Eigen::VectorXd x_vilo = vilo_estimator->outputState();
+    Eigen::Quaterniond quat(x_vilo(6), x_vilo(3), x_vilo(4), x_vilo(5));
+    Eigen::Vector3d euler = legged::quat_to_euler<double>(quat);
+    sensor_data(54) = euler(2);
   }
 
   return curr_esti_time;

@@ -17,6 +17,8 @@
 #include "factor/projectionTwoFrameOneCamFactor.h"
 #include "factor/projectionTwoFrameTwoCamFactor.h"
 
+#define VS_OUTSIZE 17
+
 class VILOEstimator {
 public:
   VILOEstimator();
@@ -36,7 +38,10 @@ public:
   void inputLOVel(double t, const Vector3d &linearVelocity);
 
   // output latest state
-  Eigen::VectorXd outputState() const;
+  Eigen::Matrix<double, VS_OUTSIZE, 1> outputState() const;
+  bool isRunning() const {
+    return (solver_flag == NON_LINEAR) && (frame_count == WINDOW_SIZE);
+  }
 
   // main function
   void processMeasurements();

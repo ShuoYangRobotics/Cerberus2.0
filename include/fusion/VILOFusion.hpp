@@ -47,7 +47,7 @@ public:
   void publishMIPOEstimationResult(Eigen::Matrix<double, MS_SIZE, 1> &x,
                                    Eigen::Matrix<double, MS_SIZE, MS_SIZE> &P);
 
-  void publishVILOEstimationResult(Eigen::VectorXd &state);
+  void publishVILOEstimationResult(Eigen::Matrix<double, VS_OUTSIZE, 1> &state);
 
 private:
   // ros handle
@@ -111,6 +111,12 @@ private:
   std::queue<sensor_msgs::ImageConstPtr> img0_buf;
   std::queue<sensor_msgs::ImageConstPtr> img1_buf;
   std::mutex mtx_image;
+
+  // save results
+  Eigen::Matrix<double, MS_SIZE, 1> mipo_x;       // MIPO state
+  Eigen::Matrix<double, MS_SIZE, MS_SIZE> mipo_P; // MIPO covariance
+
+  Eigen::Matrix<double, 17, 1> vilo_x; // VILO state
 
   // private helper functions
   void img0Callback(const sensor_msgs::ImageConstPtr &img_msg);

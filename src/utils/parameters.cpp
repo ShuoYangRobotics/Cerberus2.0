@@ -54,6 +54,8 @@ int NUM_ITERATIONS;
 std::string EX_CALIB_RESULT_PATH;
 std::string DATASET_NAME;
 std::string VILO_RESULT_PATH;
+std::string PO_RESULT_PATH;
+std::string GT_RESULT_PATH;
 std::string OUTPUT_FOLDER;
 double TD;
 int ESTIMATE_TD;
@@ -137,9 +139,17 @@ void Utils::readParametersFile(std::string config_file) {
   fsSettings["output_path"] >> OUTPUT_FOLDER;
   VILO_RESULT_PATH = OUTPUT_FOLDER + "/vilo" + GetCurrentTimeForFileName() +
                      "-" + DATASET_NAME + ".csv";
+  PO_RESULT_PATH = OUTPUT_FOLDER + "/po" + GetCurrentTimeForFileName() + "-" +
+                   DATASET_NAME + ".csv";
+  GT_RESULT_PATH = OUTPUT_FOLDER + "/gt" + GetCurrentTimeForFileName() + "-" +
+                   DATASET_NAME + ".csv";
   std::cout << "result path " << VILO_RESULT_PATH << std::endl;
-  std::ofstream fout(VILO_RESULT_PATH, std::ios::out);
-  fout.close();
+  std::ofstream fout_V(VILO_RESULT_PATH, std::ios::out);
+  fout_V.close();
+  std::ofstream fout_P(PO_RESULT_PATH, std::ios::out);
+  fout_P.close();
+  std::ofstream fout_G(GT_RESULT_PATH, std::ios::out);
+  fout_G.close();
 
   ESTIMATE_EXTRINSIC = fsSettings["estimate_extrinsic"];
   if (ESTIMATE_EXTRINSIC == 0) {

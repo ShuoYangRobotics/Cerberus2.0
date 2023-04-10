@@ -78,6 +78,8 @@ extern int NUM_ITERATIONS;
 extern std::string EX_CALIB_RESULT_PATH;
 extern std::string DATASET_NAME;
 extern std::string VILO_RESULT_PATH;
+extern std::string PO_RESULT_PATH;
+extern std::string GT_RESULT_PATH;
 extern std::string OUTPUT_FOLDER;
 extern double TD;
 extern int ESTIMATE_TD;
