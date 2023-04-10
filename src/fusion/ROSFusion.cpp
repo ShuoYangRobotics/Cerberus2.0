@@ -1,5 +1,5 @@
 
-#include "utils/ROSFusion.hpp"
+#include "fusion/ROSFusion.hpp"
 #include "utils/casadi_kino.hpp"
 
 ROSFusion::ROSFusion(ros::NodeHandle nh) {
@@ -11,8 +11,8 @@ ROSFusion::ROSFusion(ros::NodeHandle nh) {
 
   // initialize callback functions
   imu_sub_ = nh_.subscribe(IMU_TOPIC, 1000, &ROSFusion::imuCallback, this);
-  joint_foot_sub_ = nh_.subscribe(JOINT_FOOT_TOPIC, 1000,
-                                  &ROSFusion::jointFootCallback, this);
+  joint_foot_sub_ =
+      nh_.subscribe(LEG_TOPIC, 1000, &ROSFusion::jointFootCallback, this);
   fl_imu_sub_ =
       nh_.subscribe(FL_IMU_TOPIC, 1000, &ROSFusion::flImuCallback, this);
   fr_imu_sub_ =
@@ -55,7 +55,7 @@ ROSFusion::ROSFusion(ros::NodeHandle nh) {
 void ROSFusion::readParameters() {
   // parameters default values
   IMU_TOPIC = "/unitree_hardware/imu";
-  JOINT_FOOT_TOPIC = "/unitree_hardware/joint_foot";
+  LEG_TOPIC = "/unitree_hardware/joint_foot";
   FL_IMU_TOPIC = "/WT901_49_Data";
   FR_IMU_TOPIC = "/WT901_48_Data";
   RL_IMU_TOPIC = "/WT901_50_Data";
@@ -64,7 +64,7 @@ void ROSFusion::readParameters() {
 
   // read parameters from ros server
   nh_.param<std::string>("IMU_TOPIC", IMU_TOPIC, "/unitree_hardware/imu");
-  nh_.param<std::string>("JOINT_FOOT_TOPIC", JOINT_FOOT_TOPIC,
+  nh_.param<std::string>("LEG_TOPIC", LEG_TOPIC,
                          "/unitree_hardware/joint_foot");
   nh_.param<std::string>("FL_IMU_TOPIC", FL_IMU_TOPIC, "/WT901_49_Data");
   nh_.param<std::string>("FR_IMU_TOPIC", FR_IMU_TOPIC, "/WT901_48_Data");
@@ -267,12 +267,13 @@ void ROSFusion::loop() {
 
 //
 bool ROSFusion::isDataAvailable() {
-  if (mq_imu_.size() > MIN_WINDOW_SIZE &&
-      mq_joint_foot_.size() > MIN_WINDOW_SIZE &&
-      mq_fl_imu_.size() > MIN_WINDOW_SIZE &&
-      mq_fr_imu_.size() > MIN_WINDOW_SIZE &&
-      mq_rl_imu_.size() > MIN_WINDOW_SIZE &&
-      mq_rr_imu_.size() > MIN_WINDOW_SIZE && mq_gt_.size() > MIN_WINDOW_SIZE) {
+  if (mq_imu_.size() > MIN_PO_QUEUE_SIZE &&
+      mq_joint_foot_.size() > MIN_PO_QUEUE_SIZE &&
+      mq_fl_imu_.size() > MIN_PO_QUEUE_SIZE &&
+      mq_fr_imu_.size() > MIN_PO_QUEUE_SIZE &&
+      mq_rl_imu_.size() > MIN_PO_QUEUE_SIZE &&
+      mq_rr_imu_.size() > MIN_PO_QUEUE_SIZE &&
+      mq_gt_.size() > MIN_PO_QUEUE_SIZE) {
     return true;
   }
   return false;
@@ -402,7 +403,7 @@ void ROSFusion::imuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
   mq_imu_.push(t, acc, ang_vel);
 
   // limit the size of the message queue
-  if (!mq_imu_.empty() && mq_imu_.size() > MAX_MESSAGE_QUEUE_SIZE) {
+  if (!mq_imu_.empty() && mq_imu_.size() > MAX_PO_QUEUE_SIZE) {
     mq_imu_.pop();
   }
   mtx.unlock();
@@ -424,8 +425,7 @@ void ROSFusion::jointFootCallback(
   mtx.lock();
   mq_joint_foot_.push(t, joint_pos, joint_vel);
   // limit the size of the message queue
-  if (!mq_joint_foot_.empty() &&
-      mq_joint_foot_.size() > MAX_MESSAGE_QUEUE_SIZE) {
+  if (!mq_joint_foot_.empty() && mq_joint_foot_.size() > MAX_PO_QUEUE_SIZE) {
     mq_joint_foot_.pop();
   }
   mtx.unlock();
@@ -448,7 +448,7 @@ void ROSFusion::flImuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
   mtx.lock();
   mq_fl_imu_.push(t, acc, ang_vel, 0);
   // limit the size of the message queue
-  if (!mq_fl_imu_.empty() && mq_fl_imu_.size() > MAX_MESSAGE_QUEUE_SIZE) {
+  if (!mq_fl_imu_.empty() && mq_fl_imu_.size() > MAX_PO_QUEUE_SIZE) {
     mq_fl_imu_.pop();
   }
   mtx.unlock();
@@ -471,7 +471,7 @@ void ROSFusion::frImuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
   mtx.lock();
   mq_fr_imu_.push(t, acc, ang_vel, 1);
   // limit the size of the message queue
-  if (!mq_fr_imu_.empty() && mq_fr_imu_.size() > MAX_MESSAGE_QUEUE_SIZE) {
+  if (!mq_fr_imu_.empty() && mq_fr_imu_.size() > MAX_PO_QUEUE_SIZE) {
     mq_fr_imu_.pop();
   }
   mtx.unlock();
@@ -494,7 +494,7 @@ void ROSFusion::rlImuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
   mtx.lock();
   mq_rl_imu_.push(t, acc, ang_vel, 2);
   // limit the size of the message queue
-  if (!mq_rl_imu_.empty() && mq_rl_imu_.size() > MAX_MESSAGE_QUEUE_SIZE) {
+  if (!mq_rl_imu_.empty() && mq_rl_imu_.size() > MAX_PO_QUEUE_SIZE) {
     mq_rl_imu_.pop();
   }
   mtx.unlock();
@@ -517,7 +517,7 @@ void ROSFusion::rrImuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
   mtx.lock();
   mq_rr_imu_.push(t, acc, ang_vel, 3);
   // limit the size of the message queue
-  if (!mq_rr_imu_.empty() && mq_rr_imu_.size() > MAX_MESSAGE_QUEUE_SIZE) {
+  if (!mq_rr_imu_.empty() && mq_rr_imu_.size() > MAX_PO_QUEUE_SIZE) {
     mq_rr_imu_.pop();
   }
   mtx.unlock();
@@ -536,7 +536,7 @@ void ROSFusion::gtCallback(const geometry_msgs::PoseStamped::ConstPtr &msg) {
 
   mq_gt_.push(t, pos, q);
   // limit the size of the message queue
-  if (!mq_gt_.empty() && mq_gt_.size() > MAX_MESSAGE_QUEUE_SIZE) {
+  if (!mq_gt_.empty() && mq_gt_.size() > MAX_PO_QUEUE_SIZE) {
     mq_gt_.pop();
   }
 

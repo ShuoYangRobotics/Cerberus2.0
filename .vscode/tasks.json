@@ -1,0 +1,14 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "baglaunch",
+            "command": "roslaunch", // Could be any other shell command
+            "args": [
+                "cerberus2",
+                "vilo_launch.launch"
+            ],
+            "type": "shell"
+        }
+    ]
+}

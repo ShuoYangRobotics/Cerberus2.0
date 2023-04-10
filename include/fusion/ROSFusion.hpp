@@ -68,7 +68,7 @@ private:
 
   // topic names
   std::string IMU_TOPIC;
-  std::string JOINT_FOOT_TOPIC;
+  std::string LEG_TOPIC;
   std::string FL_IMU_TOPIC;
   std::string FR_IMU_TOPIC;
   std::string RL_IMU_TOPIC;

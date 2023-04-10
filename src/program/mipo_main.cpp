@@ -8,7 +8,7 @@
 #include <sensor_msgs/Imu.h>
 
 // project files
-#include "utils/ROSFusion.hpp"
+#include "fusion/ROSFusion.hpp"
 
 // Define the function to be called when ctrl-c (SIGINT) is sent to process
 void signal_callback_handler(int signum) {
