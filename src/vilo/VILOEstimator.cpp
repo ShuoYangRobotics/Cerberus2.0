@@ -134,10 +134,10 @@ void VILOEstimator::inputImage(double t, const cv::Mat &_img,
   }
 
   // TODO: understand why MULTIPLE_THREAD has this if statement
-  if (inputImageCnt % 2 == 0) {
-    const std::lock_guard<std::mutex> lock(mBuf);
-    featureBuf.push(make_pair(t, featureFrame));
-  }
+  // if (inputImageCnt % 2 == 0) {
+  const std::lock_guard<std::mutex> lock(mBuf);
+  featureBuf.push(make_pair(t, featureFrame));
+  // }
 }
 
 void VILOEstimator::inputBodyIMU(double t, const Vector3d &linearAcceleration,
@@ -187,7 +187,7 @@ bool VILOEstimator::BodyIMUAvailable(double t) {
 
 void VILOEstimator::processMeasurements() {
   std::chrono::milliseconds dura(2);
-  while (1) {
+  while (ros::ok()) {
     pair<double, map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>>>
         feature;
     vector<pair<double, Eigen::Vector3d>> accVector, gyrVector;

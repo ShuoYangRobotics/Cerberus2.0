@@ -10,6 +10,9 @@ image0_topic: "/camera_forward/infra1/image_rect_raw"
 image1_topic: "/camera_forward/infra2/image_rect_raw"
 output_path: "/home/EstimationUser/estimation_ws/src/cerberus2/bags/output"
 
+# leg topics
+leg_topic: "/unitree_hardware/joint_foot"
+
 cam0_calib: "go1_realsense_left.yaml"
 cam1_calib: "go1_realsense_right.yaml"
 image_width: 640  
@@ -19,34 +22,6 @@ image_height: 480
 # leg related
 robot_type: "go1"   # should be go1 or a1 
 dataset_name: "lab"    # to keep track of datasets
-use_leg_odom: 1
-num_of_leg: 4
-leg_topic: "/unitree_hardware/joint_foot"
-optimize_leg_bias: 0
-
-joint_angle_n: 0.00001
-joint_velocity_n: 0.00001
-
-contact_sensor_type:   2        # 0 use KF output; 1 use plan contact; 2 use foot force sensor reading (then a complicated force model is needed)
-
-leg_bias_c_n:   0.00000001
-leg_bias_nc_n:  0.00000000001
-# contact model
-v_n_force_thres_ratio: 0.8
-v_n_min_xy: 0.001
-v_n_min_z: 0.005
-v_n_min: 0.005
-v_n_max: 900.0
-# v_n_w1: 0.333
-# v_n_w2: 0.333
-# v_n_w3: 0.333
-v_n_term1_steep: 10
-v_n_term2_var_rescale: 1.0e-6
-v_n_term3_distance_rescale: 1.0e-3
-v_n_final_ratio: 0.1
-
-# leg kinematics parameter
-lower_leg_length: 0.21
 
 
 # Extrinsic parameter between IMU and Camera.
