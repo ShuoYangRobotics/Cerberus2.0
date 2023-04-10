@@ -18,6 +18,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <geometry_msgs/TwistWithCovarianceStamped.h>
 #include <ros/ros.h>
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/JointState.h>
@@ -46,6 +47,8 @@ public:
   void publishMIPOEstimationResult(Eigen::Matrix<double, MS_SIZE, 1> &x,
                                    Eigen::Matrix<double, MS_SIZE, MS_SIZE> &P);
 
+  void publishVILOEstimationResult(Eigen::VectorXd &state);
+
 private:
   // ros handle
   ros::NodeHandle nh_;
@@ -63,7 +66,10 @@ private:
   ros::Subscriber img1_sub_;
 
   // ros publishers for debug
-  ros::Publisher pose_pub_;
+  ros::Publisher pose_pub_;       // MIPO pose
+  ros::Publisher pose_vilo_pub_;  // VILO pose
+  ros::Publisher twist_pub_;      // MIPO twist
+  ros::Publisher twist_vilo_pub_; // VILO twist
 
   std::thread po_loop_thread_;
   std::thread vilo_loop_thread_;

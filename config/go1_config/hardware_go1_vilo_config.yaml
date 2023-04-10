@@ -12,8 +12,8 @@ output_path: "/home/EstimationUser/estimation_ws/src/cerberus2/bags/output"
 
 cam0_calib: "go1_realsense_left.yaml"
 cam1_calib: "go1_realsense_right.yaml"
-image_width: 424
-image_height: 240
+image_width: 640  
+image_height: 480
    
 
 # leg related

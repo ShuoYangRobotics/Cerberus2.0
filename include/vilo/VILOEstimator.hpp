@@ -35,6 +35,9 @@ public:
                     const Vector3d &angularVelocity);
   void inputLOVel(double t, const Vector3d &linearVelocity);
 
+  // output latest state
+  Eigen::VectorXd outputState() const;
+
   // main function
   void processMeasurements();
 

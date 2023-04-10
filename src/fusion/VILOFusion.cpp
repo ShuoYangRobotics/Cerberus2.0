@@ -42,6 +42,12 @@ VILOFusion::VILOFusion(ros::NodeHandle nh) {
   // initialize publishers
   pose_pub_ = nh_.advertise<geometry_msgs::PoseWithCovarianceStamped>(
       "/mipo/estimate_pose", 1000);
+  pose_vilo_pub_ = nh_.advertise<geometry_msgs::PoseWithCovarianceStamped>(
+      "/vilo/estimate_pose", 1000);
+  twist_pub_ = nh_.advertise<geometry_msgs::TwistWithCovarianceStamped>(
+      "/mipo/estimate_twist", 1000);
+  twist_vilo_pub_ = nh_.advertise<geometry_msgs::TwistWithCovarianceStamped>(
+      "/vilo/estimate_twist", 1000);
 
   // initialize the filter
   for (int i = 0; i < 3; i++) {
@@ -135,6 +141,9 @@ void VILOFusion::POLoop() {
     } else {
       prev_esti_time += dt_ros;
     }
+    // extract the result from VILO estimator and publish it
+    Eigen::VectorXd x_vilo = vilo_estimator->outputState();
+    publishVILOEstimationResult(x_vilo);
 
     /* record end time */
     auto loop_end = std::chrono::system_clock::now();
@@ -229,6 +238,49 @@ void VILOFusion::publishMIPOEstimationResult(
   pose_msg.pose.covariance[14] = pos_cov(2, 2);
   pose_pub_.publish(pose_msg);
 
+  geometry_msgs::TwistWithCovarianceStamped twist_msg;
+  twist_msg.header.stamp = ros::Time::now();
+  twist_msg.header.frame_id = "world";
+  twist_msg.twist.twist.linear.x = vel(0);
+  twist_msg.twist.twist.linear.y = vel(1);
+  twist_msg.twist.twist.linear.z = vel(2);
+
+  twist_pub_.publish(twist_msg);
+  return;
+}
+
+void VILOFusion::publishVILOEstimationResult(Eigen::VectorXd &state) {
+
+  Eigen::Vector3d pos = state.head(3);
+  Eigen::Quaterniond quat(state(3), state(4), state(5), state(6));
+  Eigen::Vector3d vel = state.segment(7, 3);
+  // publish pose topic and twist topic
+  geometry_msgs::PoseWithCovarianceStamped pose_msg;
+  pose_msg.header.stamp = ros::Time::now();
+  pose_msg.header.frame_id = "world";
+  pose_msg.pose.pose.position.x = pos(0);
+  pose_msg.pose.pose.position.y = pos(1);
+  pose_msg.pose.pose.position.z = pos(2);
+  pose_msg.pose.pose.orientation.w = quat.w();
+  pose_msg.pose.pose.orientation.x = quat.x();
+  pose_msg.pose.pose.orientation.y = quat.y();
+  pose_msg.pose.pose.orientation.z = quat.z();
+  for (int i = 0; i < 36; i++) {
+    pose_msg.pose.covariance[i] = 0;
+  }
+  pose_vilo_pub_.publish(pose_msg);
+
+  geometry_msgs::TwistWithCovarianceStamped twist_msg;
+  twist_msg.header.stamp = ros::Time::now();
+  twist_msg.header.frame_id = "world";
+  twist_msg.twist.twist.linear.x = vel(0);
+  twist_msg.twist.twist.linear.y = vel(1);
+  twist_msg.twist.twist.linear.z = vel(2);
+
+  for (int i = 0; i < 36; i++) {
+    twist_msg.twist.covariance[i] = 0;
+  }
+  twist_vilo_pub_.publish(twist_msg);
   return;
 }
 

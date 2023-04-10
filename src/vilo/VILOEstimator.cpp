@@ -263,6 +263,19 @@ void VILOEstimator::initFirstIMUPose(
   // Vs[0] = Vector3d(5, 0, 0);
 }
 
+// output latest state
+Eigen::VectorXd VILOEstimator::outputState() const {
+  Eigen::VectorXd state(16);
+  if (frame_count == WINDOW_SIZE) {
+    state.head(3) = Ps[WINDOW_SIZE];
+    state.segment(3, 4) = Eigen::Quaterniond(Rs[WINDOW_SIZE]).coeffs();
+    state.segment(7, 3) = Vs[WINDOW_SIZE];
+    state.segment(10, 3) = Bas[WINDOW_SIZE];
+    state.segment(13, 3) = Bgs[WINDOW_SIZE];
+  }
+  return state;
+}
+
 void VILOEstimator::processIMU(double t, double dt,
                                const Vector3d &linear_acceleration,
                                const Vector3d &angular_velocity) {
