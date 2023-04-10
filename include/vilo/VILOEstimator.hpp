@@ -98,7 +98,7 @@ private:
   // process imu
   bool first_imu;
   Vector3d acc_0, gyr_0; // save previous imu data
-  std::shared_ptr<IntegrationBase> pre_integrations[(WINDOW_SIZE + 1)];
+  IntegrationBase *pre_integrations[(WINDOW_SIZE + 1)] = {nullptr};
 
   bool initFirstPoseFlag;
 
@@ -108,12 +108,12 @@ private:
 
   // initialization related
   map<double, ImageFrame> all_image_frame;
-  std::shared_ptr<IntegrationBase> tmp_pre_integration;
+  IntegrationBase *tmp_pre_integration = nullptr;
 
   // control solver
   SolverFlag solver_flag;
   MarginalizationFlag marginalization_flag;
-  std::shared_ptr<MarginalizationInfo> last_marginalization_info;
+  MarginalizationInfo *last_marginalization_info = nullptr;
   vector<double *> last_marginalization_parameter_blocks;
 
   // ceres solver variable
@@ -157,7 +157,6 @@ private:
   void slideWindowNew();
   void slideWindowOld();
   void optimization();
-  void marginalization();
 
   // get latest state
   void updateLatestStates();

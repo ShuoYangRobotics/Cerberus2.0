@@ -182,10 +182,10 @@ void VILOFusion::VILOLoop() {
     /* sleep a while to make sure the loop run at LOOP_DT */
     if (ros_loop_elapsed * 1000 >= LOOP_DT) {
       // do not sleep
-      std::cout
-          << "VILOLoop computation time is longer than desired dt, optimize "
-             "code or increase LOOP_DT"
-          << std::endl;
+      // std::cout
+      //     << "VILOLoop computation time is longer than desired dt, optimize "
+      //        "code or increase LOOP_DT"
+      //     << std::endl;
     } else {
       double sleep_time = LOOP_DT * 0.001 - ros_loop_elapsed;
       ros::Duration(sleep_time).sleep();
@@ -281,6 +281,9 @@ void VILOFusion::publishVILOEstimationResult(Eigen::VectorXd &state) {
     twist_msg.twist.covariance[i] = 0;
   }
   twist_vilo_pub_.publish(twist_msg);
+
+  // printf("time: %f, t: %f %f %f q: %f %f %f %f \n", ros::Time::now().toSec(),
+  //        pos(0), pos(1), pos(2), quat.w(), quat.x(), quat.y(), quat.z());
   return;
 }
 

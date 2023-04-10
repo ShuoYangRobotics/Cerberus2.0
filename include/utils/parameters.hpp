@@ -85,7 +85,6 @@ extern int ROLLING_SHUTTER;
 extern int ROW, COL;
 extern int NUM_OF_CAM;
 extern int STEREO;
-extern int USE_IMU;
 
 extern std::string FISHEYE_MASK;
 extern std::vector<std::string> CAM_NAMES;

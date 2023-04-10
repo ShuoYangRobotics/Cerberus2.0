@@ -75,6 +75,9 @@ void VILOEstimator::reset() {
     linear_acceleration_buf[i].clear();
     angular_velocity_buf[i].clear();
 
+    if (pre_integrations[i] != nullptr) {
+      delete pre_integrations[i];
+    }
     pre_integrations[i] = nullptr;
   }
 
@@ -86,7 +89,12 @@ void VILOEstimator::reset() {
   first_imu = false;
   initFirstPoseFlag = false;
 
-  tmp_pre_integration.reset();
+  if (tmp_pre_integration != nullptr)
+    delete tmp_pre_integration;
+  tmp_pre_integration = nullptr;
+
+  if (last_marginalization_info != nullptr)
+    delete last_marginalization_info;
   last_marginalization_info = nullptr;
   last_marginalization_parameter_blocks.clear();
 
@@ -179,7 +187,7 @@ bool VILOEstimator::BodyIMUAvailable(double t) {
 
 void VILOEstimator::processMeasurements() {
   std::chrono::milliseconds dura(2);
-  while (ros::ok()) {
+  while (1) {
     pair<double, map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>>>
         feature;
     vector<pair<double, Eigen::Vector3d>> accVector, gyrVector;
@@ -206,8 +214,8 @@ void VILOEstimator::processMeasurements() {
       if (!initFirstPoseFlag) {
         initFirstIMUPose(accVector);
       }
-      std::cout << "prevTime " << prevTime << std::endl;
-      std::cout << "curTime " << curTime << std::endl;
+      std::cout << "prevTime " << setprecision(15) << prevTime << std::endl;
+      std::cout << "curTime " << setprecision(15) << curTime << std::endl;
 
       for (size_t i = 0; i < accVector.size(); i++) {
         double dt;
@@ -285,9 +293,9 @@ void VILOEstimator::processIMU(double t, double dt,
     gyr_0 = angular_velocity;
   }
 
-  if (pre_integrations[frame_count] == nullptr) {
-    pre_integrations[frame_count] = std::make_shared<IntegrationBase>(
-        acc_0, gyr_0, Bas[frame_count], Bgs[frame_count]);
+  if (!pre_integrations[frame_count]) {
+    pre_integrations[frame_count] =
+        new IntegrationBase{acc_0, gyr_0, Bas[frame_count], Bgs[frame_count]};
   }
   if (frame_count != 0) {
     pre_integrations[frame_count]->push_back(dt, linear_acceleration,
@@ -331,8 +339,8 @@ void VILOEstimator::processImage(
   ImageFrame imageframe(image, header);
   imageframe.pre_integration = tmp_pre_integration;
   all_image_frame.insert(make_pair(header, imageframe));
-  tmp_pre_integration = std::make_shared<IntegrationBase>(
-      acc_0, gyr_0, Bas[frame_count], Bgs[frame_count]);
+  tmp_pre_integration =
+      new IntegrationBase{acc_0, gyr_0, Bas[frame_count], Bgs[frame_count]};
 
   if (solver_flag == INITIAL) { // stereo + IMU initialization
     feature_manager_->initFramePoseByPnP(frame_count, Ps, Rs, tic, ric);
@@ -391,6 +399,15 @@ void VILOEstimator::processImage(
     last_P0 = Ps[0];
     updateLatestStates();
   }
+  // std cout solver flag and frame count
+  std::cout << "solver_flag: " << solver_flag << std::endl;
+  std::cout << "frame_count: " << frame_count << std::endl;
+  Eigen::VectorXd x_vilo = outputState();
+  Eigen::Vector3d pos = x_vilo.head(3);
+  Eigen::Quaterniond quat(x_vilo(3), x_vilo(4), x_vilo(5), x_vilo(6));
+  Eigen::Vector3d vel = x_vilo.segment(7, 3);
+  printf("time: %f, t: %f %f %f q: %f %f %f %f \n", ros::Time::now().toSec(),
+         pos(0), pos(1), pos(2), quat.w(), quat.x(), quat.y(), quat.z());
 }
 
 void VILOEstimator::vector2double() {
@@ -404,19 +421,17 @@ void VILOEstimator::vector2double() {
     para_Pose[i][5] = q.z();
     para_Pose[i][6] = q.w();
 
-    if (USE_IMU) {
-      para_SpeedBias[i][0] = Vs[i].x();
-      para_SpeedBias[i][1] = Vs[i].y();
-      para_SpeedBias[i][2] = Vs[i].z();
+    para_SpeedBias[i][0] = Vs[i].x();
+    para_SpeedBias[i][1] = Vs[i].y();
+    para_SpeedBias[i][2] = Vs[i].z();
 
-      para_SpeedBias[i][3] = Bas[i].x();
-      para_SpeedBias[i][4] = Bas[i].y();
-      para_SpeedBias[i][5] = Bas[i].z();
+    para_SpeedBias[i][3] = Bas[i].x();
+    para_SpeedBias[i][4] = Bas[i].y();
+    para_SpeedBias[i][5] = Bas[i].z();
 
-      para_SpeedBias[i][6] = Bgs[i].x();
-      para_SpeedBias[i][7] = Bgs[i].y();
-      para_SpeedBias[i][8] = Bgs[i].z();
-    }
+    para_SpeedBias[i][6] = Bgs[i].x();
+    para_SpeedBias[i][7] = Bgs[i].y();
+    para_SpeedBias[i][8] = Bgs[i].z();
   }
 
   for (int i = 0; i < NUM_OF_CAM; i++) {
@@ -500,8 +515,6 @@ void VILOEstimator::double2vector() {
   feature_manager_->setDepth(dep);
 
   td = para_Td[0][0];
-
-  return;
 }
 
 bool VILOEstimator::failureDetection() {
@@ -559,7 +572,7 @@ void VILOEstimator::slideWindow() {
         Rs[i].swap(Rs[i + 1]);
         Ps[i].swap(Ps[i + 1]);
 
-        pre_integrations[i].swap(pre_integrations[i + 1]);
+        std::swap(pre_integrations[i], pre_integrations[i + 1]);
 
         dt_buf[i].swap(dt_buf[i + 1]);
         linear_acceleration_buf[i].swap(linear_acceleration_buf[i + 1]);
@@ -577,8 +590,9 @@ void VILOEstimator::slideWindow() {
       Bas[WINDOW_SIZE] = Bas[WINDOW_SIZE - 1];
       Bgs[WINDOW_SIZE] = Bgs[WINDOW_SIZE - 1];
 
-      pre_integrations[WINDOW_SIZE] = std::make_shared<IntegrationBase>(
-          acc_0, gyr_0, Bas[WINDOW_SIZE], Bgs[WINDOW_SIZE]);
+      delete pre_integrations[WINDOW_SIZE];
+      pre_integrations[WINDOW_SIZE] =
+          new IntegrationBase{acc_0, gyr_0, Bas[WINDOW_SIZE], Bgs[WINDOW_SIZE]};
 
       dt_buf[WINDOW_SIZE].clear();
       linear_acceleration_buf[WINDOW_SIZE].clear();
@@ -587,6 +601,7 @@ void VILOEstimator::slideWindow() {
       if (true || solver_flag == INITIAL) {
         map<double, ImageFrame>::iterator it_0;
         it_0 = all_image_frame.find(t_0);
+        delete it_0->second.pre_integration;
         all_image_frame.erase(all_image_frame.begin(), it_0);
       }
       slideWindowOld();
@@ -616,12 +631,13 @@ void VILOEstimator::slideWindow() {
       Bas[frame_count - 1] = Bas[frame_count];
       Bgs[frame_count - 1] = Bgs[frame_count];
 
-      pre_integrations[frame_count] = std::make_shared<IntegrationBase>(
-          acc_0, gyr_0, Bas[frame_count], Bgs[frame_count]);
+      delete pre_integrations[WINDOW_SIZE];
+      pre_integrations[WINDOW_SIZE] =
+          new IntegrationBase{acc_0, gyr_0, Bas[WINDOW_SIZE], Bgs[WINDOW_SIZE]};
 
-      dt_buf[frame_count].clear();
-      linear_acceleration_buf[frame_count].clear();
-      angular_velocity_buf[frame_count].clear();
+      dt_buf[WINDOW_SIZE].clear();
+      linear_acceleration_buf[WINDOW_SIZE].clear();
+      angular_velocity_buf[WINDOW_SIZE].clear();
 
       slideWindowNew();
     }
@@ -697,7 +713,7 @@ void VILOEstimator::optimization() {
   if (last_marginalization_info && last_marginalization_info->valid) {
     // construct new marginlization_factor
     MarginalizationFactor *marginalization_factor =
-        new MarginalizationFactor(last_marginalization_info.get());
+        new MarginalizationFactor(last_marginalization_info);
     problem.AddResidualBlock(marginalization_factor, NULL,
                              last_marginalization_parameter_blocks);
   }
@@ -707,7 +723,7 @@ void VILOEstimator::optimization() {
     int j = i + 1;
     if (pre_integrations[j]->sum_dt > 10.0)
       continue;
-    IMUFactor *imu_factor = new IMUFactor(pre_integrations[j].get());
+    IMUFactor *imu_factor = new IMUFactor(pre_integrations[j]);
     problem.AddResidualBlock(imu_factor, NULL, para_Pose[i], para_SpeedBias[i],
                              para_Pose[j], para_SpeedBias[j]);
   }
@@ -797,8 +813,7 @@ void VILOEstimator::optimization() {
     // perform marginalization
     TicToc t_whole_marginalization;
     if (marginalization_flag == MARGIN_OLD) {
-      std::shared_ptr<MarginalizationInfo> marginalization_info =
-          std::make_shared<MarginalizationInfo>();
+      MarginalizationInfo *marginalization_info = new MarginalizationInfo();
       vector2double();
 
       if (last_marginalization_info && last_marginalization_info->valid) {
@@ -812,7 +827,7 @@ void VILOEstimator::optimization() {
         }
         // construct new marginlization_factor
         MarginalizationFactor *marginalization_factor =
-            new MarginalizationFactor(last_marginalization_info.get());
+            new MarginalizationFactor(last_marginalization_info);
         ResidualBlockInfo *residual_block_info = new ResidualBlockInfo(
             marginalization_factor, NULL, last_marginalization_parameter_blocks,
             drop_set);
@@ -820,7 +835,7 @@ void VILOEstimator::optimization() {
       }
 
       if (pre_integrations[1]->sum_dt < 10.0) {
-        IMUFactor *imu_factor = new IMUFactor(pre_integrations[1].get());
+        IMUFactor *imu_factor = new IMUFactor(pre_integrations[1]);
         ResidualBlockInfo *residual_block_info = new ResidualBlockInfo(
             imu_factor, NULL,
             vector<double *>{para_Pose[0], para_SpeedBias[0], para_Pose[1],
@@ -921,6 +936,8 @@ void VILOEstimator::optimization() {
       vector<double *> parameter_blocks =
           marginalization_info->getParameterBlocks(addr_shift);
 
+      if (last_marginalization_info)
+        delete last_marginalization_info;
       last_marginalization_info = marginalization_info;
       last_marginalization_parameter_blocks = parameter_blocks;
 
@@ -930,8 +947,7 @@ void VILOEstimator::optimization() {
                      std::end(last_marginalization_parameter_blocks),
                      para_Pose[WINDOW_SIZE - 1])) {
 
-        std::shared_ptr<MarginalizationInfo> marginalization_info =
-            std::make_shared<MarginalizationInfo>();
+        MarginalizationInfo *marginalization_info = new MarginalizationInfo();
         vector2double();
         if (last_marginalization_info && last_marginalization_info->valid) {
           vector<int> drop_set;
@@ -946,7 +962,7 @@ void VILOEstimator::optimization() {
           }
           // construct new marginlization_factor
           MarginalizationFactor *marginalization_factor =
-              new MarginalizationFactor(last_marginalization_info.get());
+              new MarginalizationFactor(last_marginalization_info);
           ResidualBlockInfo *residual_block_info = new ResidualBlockInfo(
               marginalization_factor, NULL,
               last_marginalization_parameter_blocks, drop_set);
@@ -970,14 +986,12 @@ void VILOEstimator::optimization() {
             continue;
           else if (i == WINDOW_SIZE) {
             addr_shift[reinterpret_cast<long>(para_Pose[i])] = para_Pose[i - 1];
-            if (USE_IMU)
-              addr_shift[reinterpret_cast<long>(para_SpeedBias[i])] =
-                  para_SpeedBias[i - 1];
+            addr_shift[reinterpret_cast<long>(para_SpeedBias[i])] =
+                para_SpeedBias[i - 1];
           } else {
             addr_shift[reinterpret_cast<long>(para_Pose[i])] = para_Pose[i];
-            if (USE_IMU)
-              addr_shift[reinterpret_cast<long>(para_SpeedBias[i])] =
-                  para_SpeedBias[i];
+            addr_shift[reinterpret_cast<long>(para_SpeedBias[i])] =
+                para_SpeedBias[i];
           }
         }
         for (int i = 0; i < NUM_OF_CAM; i++)
@@ -987,7 +1001,8 @@ void VILOEstimator::optimization() {
 
         vector<double *> parameter_blocks =
             marginalization_info->getParameterBlocks(addr_shift);
-
+        if (last_marginalization_info)
+          delete last_marginalization_info;
         last_marginalization_info = marginalization_info;
         last_marginalization_parameter_blocks = parameter_blocks;
       }
@@ -995,8 +1010,6 @@ void VILOEstimator::optimization() {
     return;
   }
 }
-
-void VILOEstimator::marginalization() {}
 
 // get latest state
 void VILOEstimator::updateLatestStates() {

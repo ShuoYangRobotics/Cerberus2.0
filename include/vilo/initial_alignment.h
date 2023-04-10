@@ -37,7 +37,7 @@ public:
   double t;
   Matrix3d R;
   Vector3d T;
-  std::shared_ptr<IntegrationBase> pre_integration;
+  IntegrationBase *pre_integration;
   bool is_key_frame;
 };
 void solveGyroscopeBias(map<double, ImageFrame> &all_image_frame,

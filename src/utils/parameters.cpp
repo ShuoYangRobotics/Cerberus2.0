@@ -61,7 +61,6 @@ int ROLLING_SHUTTER;
 int ROW, COL;
 int NUM_OF_CAM;
 int STEREO;
-int USE_IMU;
 
 std::string FISHEYE_MASK;
 std::vector<std::string> CAM_NAMES;
