@@ -6,8 +6,10 @@
 int MIN_PO_QUEUE_SIZE = 10;
 int MAX_PO_QUEUE_SIZE = 150;
 
-int FOOT_IMU_MOVMEAN_WINDOW_SIZE = 10;
+int BODY_IMU_MOVMEAN_WINDOW_SIZE = 5;
+int FOOT_IMU_MOVMEAN_WINDOW_SIZE = 5;
 int JOINT_MOVMEAN_WINDOW_SIZE = 10;
+int YAW_MOVMEAN_WINDOW_SIZE = 10;
 
 // topic names
 std::string IMU_TOPIC;
@@ -26,7 +28,7 @@ std::string IMAGE1_TOPIC;
 double LAG_TIME = 0.0; // 100ms
 
 double FOOT_IMU_DELAY =
-    0.0; // 23ms, this is estimated from analysing data in Matlab
+    0.023; // 23ms, this is estimated from analysing data in Matlab
 
 /*
  * VINS Fusion parameters

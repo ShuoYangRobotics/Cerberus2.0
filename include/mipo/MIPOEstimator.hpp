@@ -129,8 +129,8 @@ struct MIPOEstimatorSensorData {
 };
 
 struct MIPOParams {
-  double init_cov = 0.1;
-  double init_bias_cov = 1e-4;
+  double init_cov = 0.05;
+  double init_bias_cov = 1e-2;
   double init_body_height = 0.3;
 
   int data_start_idx = 200;
@@ -157,8 +157,8 @@ struct MIPOParams {
 
   double meas_n_fk_pos = 0.001;
   double meas_n_fk_vel = 0.01;
-  double meas_n_foot_height = 0.1;
-  double meas_n_rolling_vel = 0.05;
+  double meas_n_foot_height = 0.001;
+  double meas_n_rolling_vel = 0.01;
 };
 
 class MIPOEstimator {
