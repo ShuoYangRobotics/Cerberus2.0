@@ -30,8 +30,10 @@ enum NoiseOrder { O_AN = 0, O_GN = 3, O_AW = 6, O_GW = 9 };
  */
 extern int MIN_PO_QUEUE_SIZE;
 extern int MAX_PO_QUEUE_SIZE;
+extern int BODY_IMU_MOVMEAN_WINDOW_SIZE;
 extern int FOOT_IMU_MOVMEAN_WINDOW_SIZE;
 extern int JOINT_MOVMEAN_WINDOW_SIZE;
+extern int YAW_MOVMEAN_WINDOW_SIZE;
 
 // topic names
 extern std::string IMU_TOPIC;

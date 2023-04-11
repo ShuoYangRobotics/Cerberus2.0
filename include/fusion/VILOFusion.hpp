@@ -99,6 +99,10 @@ private:
   MovingWindowFilter rl_imu_gyro_filter_[3];
   MovingWindowFilter rr_imu_gyro_filter_[3];
 
+  // yaw observation processing
+  double prev_po_input_yaw;
+  MovingWindowFilter yaw_filter_;
+
   // prev loop time
   double prev_loop_time;
   double prev_esti_time;

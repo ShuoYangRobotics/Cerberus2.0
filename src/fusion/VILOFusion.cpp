@@ -63,6 +63,7 @@ VILOFusion::VILOFusion(ros::NodeHandle nh) {
   for (int i = 0; i < NUM_DOF; i++) {
     joint_foot_filter_[i] = MovingWindowFilter(JOINT_MOVMEAN_WINDOW_SIZE);
   }
+  yaw_filter_ = MovingWindowFilter(YAW_MOVMEAN_WINDOW_SIZE);
 }
 
 VILOFusion ::~VILOFusion() {
@@ -187,7 +188,9 @@ void VILOFusion::VILOLoop() {
       double vilo_time = vilo_x(0);
       Eigen::Vector3d vilo_pos = vilo_x.segment<3>(1);
       Eigen::Vector3d vilo_vel = vilo_x.segment<3>(8);
-      Eigen::Quaterniond vilo_quat(vilo_x(7), vilo_x(4), vilo_x(5), vilo_x(6));
+      Eigen::VectorXd vilo_quat_vec = vilo_x.segment<4>(4); // x y z w
+      Eigen::Quaterniond vilo_quat(vilo_quat_vec(3), vilo_quat_vec(0),
+                                   vilo_quat_vec(1), vilo_quat_vec(2));
       Eigen::Vector3d vilo_euler = legged::quat_to_euler(vilo_quat);
       ofstream fout_vilo(VILO_RESULT_PATH, ios::app);
       fout_vilo.setf(ios::fixed, ios::floatfield);
@@ -692,6 +695,7 @@ double VILOFusion::interpolatePOData(Eigen::Matrix<double, 55, 1> &sensor_data,
   sensor_data.segment<3>(51) = rr_imu_data.segment<3>(3) / 180.0 * M_PI;
 
   // source of yaw observation
+  double yaw_source = 0.0;
   if (!vilo_estimator->isRunning()) { // vilo not started yet
     // timing of ground truth is not very critical we just use the latest
     std::shared_ptr<SWE::Measurement> gt_meas = mq_gt_.top();
@@ -704,19 +708,31 @@ double VILOFusion::interpolatePOData(Eigen::Matrix<double, 55, 1> &sensor_data,
                                  gt_quat_vec(3));
       Eigen::Vector3d gt_euler = legged::quat_to_euler<double>(gt_quat);
       // item 54 is the body yaw, set to 0 for now
-      sensor_data(54) = gt_euler(2);
+      yaw_source = gt_euler(2);
     } else {
       // gt is not available, then just treat the yaw as 0
-      sensor_data(54) = 0.0;
+      yaw_source = 0.0;
     }
   } else {
     // use the yaw output from the VILO estimator
     // yaw is observable anyway so timing is not critical
     Eigen::VectorXd x_vilo = vilo_estimator->outputState();
-    Eigen::Quaterniond quat(x_vilo(6), x_vilo(3), x_vilo(4), x_vilo(5));
+    Eigen::VectorXd vilo_quat_vec = x_vilo.segment<4>(4); // x y z w
+    Eigen::Quaterniond quat(vilo_quat_vec(3), vilo_quat_vec(0),
+                            vilo_quat_vec(1), vilo_quat_vec(2));
     Eigen::Vector3d euler = legged::quat_to_euler<double>(quat);
-    sensor_data(54) = euler(2);
+    yaw_source = euler(2);
   }
+  // wrap the yaw_source to make it continuous
+  if (prev_po_input_yaw > M_PI * 0.8 && yaw_source < prev_po_input_yaw - M_PI) {
+    yaw_source += 2.0 * M_PI;
+  } else if (prev_po_input_yaw < -M_PI * 0.8 &&
+             yaw_source > prev_po_input_yaw + M_PI) {
+    yaw_source -= 2.0 * M_PI;
+  }
+
+  sensor_data(54) = yaw_filter_.CalculateAverage(yaw_source);
+  prev_po_input_yaw = sensor_data(54);
 
   return curr_esti_time;
 }
