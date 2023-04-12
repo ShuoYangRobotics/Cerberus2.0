@@ -13,22 +13,15 @@ VILOFusion::VILOFusion(ros::NodeHandle nh) {
 
   // initialize callback functions
   imu_sub_ = nh_.subscribe(IMU_TOPIC, 1000, &VILOFusion::imuCallback, this);
-  joint_foot_sub_ =
-      nh_.subscribe(LEG_TOPIC, 1000, &VILOFusion::jointFootCallback, this);
-  fl_imu_sub_ =
-      nh_.subscribe(FL_IMU_TOPIC, 1000, &VILOFusion::flImuCallback, this);
-  fr_imu_sub_ =
-      nh_.subscribe(FR_IMU_TOPIC, 1000, &VILOFusion::frImuCallback, this);
-  rl_imu_sub_ =
-      nh_.subscribe(RL_IMU_TOPIC, 1000, &VILOFusion::rlImuCallback, this);
-  rr_imu_sub_ =
-      nh_.subscribe(RR_IMU_TOPIC, 1000, &VILOFusion::rrImuCallback, this);
+  joint_foot_sub_ = nh_.subscribe(LEG_TOPIC, 1000, &VILOFusion::jointFootCallback, this);
+  fl_imu_sub_ = nh_.subscribe(FL_IMU_TOPIC, 1000, &VILOFusion::flImuCallback, this);
+  fr_imu_sub_ = nh_.subscribe(FR_IMU_TOPIC, 1000, &VILOFusion::frImuCallback, this);
+  rl_imu_sub_ = nh_.subscribe(RL_IMU_TOPIC, 1000, &VILOFusion::rlImuCallback, this);
+  rr_imu_sub_ = nh_.subscribe(RR_IMU_TOPIC, 1000, &VILOFusion::rrImuCallback, this);
   gt_sub_ = nh_.subscribe(GT_TOPIC, 1000, &VILOFusion::gtCallback, this);
 
-  img0_sub_ =
-      nh_.subscribe(IMAGE0_TOPIC, 1000, &VILOFusion::img0Callback, this);
-  img1_sub_ =
-      nh_.subscribe(IMAGE1_TOPIC, 1000, &VILOFusion::img1Callback, this);
+  img0_sub_ = nh_.subscribe(IMAGE0_TOPIC, 1000, &VILOFusion::img0Callback, this);
+  img1_sub_ = nh_.subscribe(IMAGE1_TOPIC, 1000, &VILOFusion::img1Callback, this);
 
   // initialize queues and specify their main types
   mq_imu_ = SWE::MeasureQueue(SWE::MeasureType::BODY_IMU);
@@ -40,14 +33,10 @@ VILOFusion::VILOFusion(ros::NodeHandle nh) {
   mq_gt_ = SWE::MeasureQueue(SWE::MeasureType::DIRECT_POSE);
 
   // initialize publishers
-  pose_pub_ = nh_.advertise<geometry_msgs::PoseWithCovarianceStamped>(
-      "/mipo/estimate_pose", 1000);
-  pose_vilo_pub_ = nh_.advertise<geometry_msgs::PoseWithCovarianceStamped>(
-      "/vilo/estimate_pose", 1000);
-  twist_pub_ = nh_.advertise<geometry_msgs::TwistWithCovarianceStamped>(
-      "/mipo/estimate_twist", 1000);
-  twist_vilo_pub_ = nh_.advertise<geometry_msgs::TwistWithCovarianceStamped>(
-      "/vilo/estimate_twist", 1000);
+  pose_pub_ = nh_.advertise<geometry_msgs::PoseWithCovarianceStamped>("/mipo/estimate_pose", 1000);
+  pose_vilo_pub_ = nh_.advertise<geometry_msgs::PoseWithCovarianceStamped>("/vilo/estimate_pose", 1000);
+  twist_pub_ = nh_.advertise<geometry_msgs::TwistWithCovarianceStamped>("/mipo/estimate_twist", 1000);
+  twist_vilo_pub_ = nh_.advertise<geometry_msgs::TwistWithCovarianceStamped>("/vilo/estimate_twist", 1000);
 
   // initialize the filter
   for (int i = 0; i < 3; i++) {
@@ -80,7 +69,7 @@ void VILOFusion::POLoop() {
         input necessary information to VILOEstimator
         record MIPO and VILO results
    */
-  const double LOOP_DT = 2.5; // 400Hz
+  const double LOOP_DT = 2.5;  // 400Hz
   prev_loop_time = ros::Time::now().toSec();
   prev_esti_time = ros::Time::now().toSec();
 
@@ -114,7 +103,7 @@ void VILOFusion::POLoop() {
         prev_data->loadFromVec(sensor_data);
         // initialize the estimator
         mipo_x = mipo_estimator->ekfInitState(*prev_data);
-        mipo_x(mipo_x.size() - 1) = curr_esti_time; // the inital time stamp
+        mipo_x(mipo_x.size() - 1) = curr_esti_time;  // the inital time stamp
         mipo_P = 1e-4 * Eigen::Matrix<double, MS_SIZE, MS_SIZE>::Identity();
       } else {
         curr_data = std::make_shared<MIPOEstimatorSensorData>();
@@ -123,8 +112,7 @@ void VILOFusion::POLoop() {
         // do estimation
         Eigen::Matrix<double, MS_SIZE, 1> mipo_x_k1_est;
         Eigen::Matrix<double, MS_SIZE, MS_SIZE> mipo_P_k1_est;
-        mipo_estimator->ekfUpdate(mipo_x, mipo_P, *prev_data, *curr_data,
-                                  dt_ros, mipo_x_k1_est, mipo_P_k1_est);
+        mipo_estimator->ekfUpdate(mipo_x, mipo_P, *prev_data, *curr_data, dt_ros, mipo_x_k1_est, mipo_P_k1_est);
 
         mipo_x = mipo_x_k1_est;
         // std::cout << "x: " << x.transpose() << std::endl;
@@ -134,8 +122,7 @@ void VILOFusion::POLoop() {
         publishMIPOEstimationResult(mipo_x, mipo_P);
 
         // inputPODataToVILO();
-        vilo_estimator->inputBodyIMU(curr_esti_time, curr_data->body_acc,
-                                     curr_data->body_gyro);
+        vilo_estimator->inputBodyIMU(curr_esti_time, curr_data->body_acc, curr_data->body_gyro);
         // input LO velocity
         if (VILO_FUSION_TYPE == 1) {
           vilo_estimator->inputLOVel(curr_esti_time, mipo_x.segment<3>(3));
@@ -152,8 +139,7 @@ void VILOFusion::POLoop() {
 
     /* record end time */
     auto loop_end = std::chrono::system_clock::now();
-    auto loop_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
-        loop_end - loop_start);
+    auto loop_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(loop_end - loop_start);
     std::cout << "total loop time: " << loop_elapsed.count() << std::endl;
 
     auto ros_loop_end = ros::Time::now().toSec();
@@ -176,7 +162,7 @@ void VILOFusion::POLoop() {
 
 void VILOFusion::VILOLoop() {
   // loop runs a little over 20Hz, call inputImagesToVILO() every 50ms
-  const double LOOP_DT = 20; // 20Hz
+  const double LOOP_DT = 20;  // 20Hz
   int loop_count = 0;
   while (ros::ok()) {
     loop_count++;
@@ -186,25 +172,22 @@ void VILOFusion::VILOLoop() {
     inputImagesToVILO();
 
     // logging here.
-    if (loop_count % 4) { // 1/4 of the loop
+    if (loop_count % 4) {  // 1/4 of the loop
 
       // write VILO
       double vilo_time = vilo_x(0);
       Eigen::Vector3d vilo_pos = vilo_x.segment<3>(1);
       Eigen::Vector3d vilo_vel = vilo_x.segment<3>(8);
-      Eigen::VectorXd vilo_quat_vec = vilo_x.segment<4>(4); // x y z w
-      Eigen::Quaterniond vilo_quat(vilo_quat_vec(3), vilo_quat_vec(0),
-                                   vilo_quat_vec(1), vilo_quat_vec(2));
+      Eigen::VectorXd vilo_quat_vec = vilo_x.segment<4>(4);  // x y z w
+      Eigen::Quaterniond vilo_quat(vilo_quat_vec(3), vilo_quat_vec(0), vilo_quat_vec(1), vilo_quat_vec(2));
       Eigen::Vector3d vilo_euler = legged::quat_to_euler(vilo_quat);
       ofstream fout_vilo(VILO_RESULT_PATH, ios::app);
       fout_vilo.setf(ios::fixed, ios::floatfield);
       fout_vilo.precision(15);
       fout_vilo << vilo_time << ",";
       fout_vilo.precision(5);
-      fout_vilo << vilo_pos(0) << "," << vilo_pos(1) << "," << vilo_pos(2)
-                << ",";
-      fout_vilo << vilo_euler(0) << "," << vilo_euler(1) << "," << vilo_euler(2)
-                << ",";
+      fout_vilo << vilo_pos(0) << "," << vilo_pos(1) << "," << vilo_pos(2) << ",";
+      fout_vilo << vilo_euler(0) << "," << vilo_euler(1) << "," << vilo_euler(2) << ",";
       fout_vilo << vilo_vel(0) << "," << vilo_vel(1) << "," << vilo_vel(2);
       fout_vilo << endl;
       fout_vilo.close();
@@ -219,10 +202,8 @@ void VILOFusion::VILOLoop() {
       fout_mipo.precision(15);
       fout_mipo << mipo_time << ",";
       fout_mipo.precision(5);
-      fout_mipo << mipo_pos(0) << "," << mipo_pos(1) << "," << mipo_pos(2)
-                << ",";
-      fout_mipo << mipo_euler(0) << "," << mipo_euler(1) << "," << mipo_euler(2)
-                << ",";
+      fout_mipo << mipo_pos(0) << "," << mipo_pos(1) << "," << mipo_pos(2) << ",";
+      fout_mipo << mipo_euler(0) << "," << mipo_euler(1) << "," << mipo_euler(2) << ",";
       fout_mipo << mipo_vel(0) << "," << mipo_vel(1) << "," << mipo_vel(2);
       fout_mipo << endl;
       fout_mipo.close();
@@ -230,14 +211,13 @@ void VILOFusion::VILOLoop() {
       // write GT is mocap is available
       if (mq_gt_.size() > 0) {
         std::shared_ptr<SWE::Measurement> gt_meas = mq_gt_.top();
-        if (gt_meas != nullptr) { // if gt is available
+        if (gt_meas != nullptr) {  // if gt is available
           latest_gt_meas = gt_meas;
 
           double gt_time = gt_meas->getTime();
           Eigen::VectorXd gt_data = latest_gt_meas->getVector();
           Eigen::VectorXd gt_quat_vec = gt_data.segment<4>(3);
-          Eigen::Quaterniond gt_quat(gt_quat_vec(0), gt_quat_vec(1),
-                                     gt_quat_vec(2), gt_quat_vec(3));
+          Eigen::Quaterniond gt_quat(gt_quat_vec(0), gt_quat_vec(1), gt_quat_vec(2), gt_quat_vec(3));
 
           Eigen::Vector3d gt_pos = gt_data.segment<3>(0);
           Eigen::Vector3d gt_euler = legged::quat_to_euler<double>(gt_quat);
@@ -247,8 +227,7 @@ void VILOFusion::VILOLoop() {
           fout_gt << gt_time << ",";
           fout_gt.precision(5);
           fout_gt << gt_pos(0) << "," << gt_pos(1) << "," << gt_pos(2) << ",";
-          fout_gt << gt_euler(0) << "," << gt_euler(1) << "," << gt_euler(2)
-                  << ",";
+          fout_gt << gt_euler(0) << "," << gt_euler(1) << "," << gt_euler(2) << ",";
           fout_gt << 0 << "," << 0 << "," << 0;
           fout_gt << endl;
           fout_gt.close();
@@ -272,9 +251,7 @@ void VILOFusion::VILOLoop() {
   }
 }
 
-void VILOFusion::publishMIPOEstimationResult(
-    Eigen::Matrix<double, MS_SIZE, 1> &x,
-    Eigen::Matrix<double, MS_SIZE, MS_SIZE> &P) {
+void VILOFusion::publishMIPOEstimationResult(Eigen::Matrix<double, MS_SIZE, 1>& x, Eigen::Matrix<double, MS_SIZE, MS_SIZE>& P) {
   // extract position from the first 3 elements of x
   Eigen::Vector3d pos = x.segment<3>(0);
   // extract position uncertainty from the first 3 elements of P
@@ -328,13 +305,11 @@ void VILOFusion::publishMIPOEstimationResult(
   return;
 }
 
-void VILOFusion::publishVILOEstimationResult(
-    Eigen::Matrix<double, VS_OUTSIZE, 1> &state) {
-
+void VILOFusion::publishVILOEstimationResult(Eigen::Matrix<double, VS_OUTSIZE, 1>& state) {
   Eigen::Vector3d pos = state.segment(1, 3);
   Eigen::Quaterniond quat(state(7), state(4), state(5),
-                          state(6)); // state quaternion is in order x, y, z, w
-                                     // because of Eigen coeffs function
+                          state(6));  // state quaternion is in order x, y, z, w
+                                      // because of Eigen coeffs function
   Eigen::Vector3d vel = state.segment(8, 3);
   // publish pose topic and twist topic
   geometry_msgs::PoseWithCovarianceStamped pose_msg;
@@ -370,16 +345,16 @@ void VILOFusion::publishVILOEstimationResult(
 }
 
 // private functions
-void VILOFusion::img0Callback(const sensor_msgs::ImageConstPtr &img_msg) {
+void VILOFusion::img0Callback(const sensor_msgs::ImageConstPtr& img_msg) {
   const std::lock_guard<std::mutex> lock(mtx_image);
   img0_buf.push(img_msg);
 }
 
-void VILOFusion::img1Callback(const sensor_msgs::ImageConstPtr &img_msg) {
+void VILOFusion::img1Callback(const sensor_msgs::ImageConstPtr& img_msg) {
   const std::lock_guard<std::mutex> lock(mtx_image);
   img1_buf.push(img_msg);
 }
-cv::Mat VILOFusion::getImageFromMsg(const sensor_msgs::ImageConstPtr &img_msg) {
+cv::Mat VILOFusion::getImageFromMsg(const sensor_msgs::ImageConstPtr& img_msg) {
   cv_bridge::CvImageConstPtr ptr;
   if (img_msg->encoding == "8UC1") {
     sensor_msgs::Image img;
@@ -429,15 +404,11 @@ void VILOFusion::inputImagesToVILO() {
 }
 
 // callback functions
-void VILOFusion::imuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
+void VILOFusion::imuCallback(const sensor_msgs::Imu::ConstPtr& msg) {
   double t = msg->header.stamp.toSec();
   // assemble sensor data
-  Eigen::Vector3d acc =
-      Eigen::Vector3d(msg->linear_acceleration.x, msg->linear_acceleration.y,
-                      msg->linear_acceleration.z);
-  Eigen::Vector3d ang_vel =
-      Eigen::Vector3d(msg->angular_velocity.x, msg->angular_velocity.y,
-                      msg->angular_velocity.z);
+  Eigen::Vector3d acc = Eigen::Vector3d(msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z);
+  Eigen::Vector3d ang_vel = Eigen::Vector3d(msg->angular_velocity.x, msg->angular_velocity.y, msg->angular_velocity.z);
 
   mtx.lock();
   mq_imu_.push(t, acc, ang_vel);
@@ -451,15 +422,19 @@ void VILOFusion::imuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
   return;
 }
 
-void VILOFusion::jointFootCallback(
-    const sensor_msgs::JointState::ConstPtr &msg) {
+void VILOFusion::jointFootCallback(const sensor_msgs::JointState::ConstPtr& msg) {
   double t = msg->header.stamp.toSec();
   Eigen::Matrix<double, 12, 1> joint_pos;
   Eigen::Matrix<double, 12, 1> joint_vel;
+  Eigen::Matrix<double, NUM_LEG, 1> foot_force;
 
   for (int i = 0; i < NUM_DOF; i++) {
     joint_pos(i) = msg->position[i];
     joint_vel(i) = joint_foot_filter_[i].CalculateAverage(msg->velocity[i]);
+  }
+  // TODO: record foot force as well
+  for (int i = 0; i < NUM_LEG; i++) {
+    foot_force(i) = msg->effort[NUM_DOF + i];
   }
 
   mtx.lock();
@@ -473,17 +448,15 @@ void VILOFusion::jointFootCallback(
   return;
 }
 
-void VILOFusion::flImuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
+void VILOFusion::flImuCallback(const sensor_msgs::Imu::ConstPtr& msg) {
   double t = msg->header.stamp.toSec() - FOOT_IMU_DELAY;
   // assemble sensor data
-  Eigen::Vector3d acc = Eigen::Vector3d(
-      fl_imu_acc_filter_[0].CalculateAverage(msg->linear_acceleration.x),
-      fl_imu_acc_filter_[1].CalculateAverage(msg->linear_acceleration.y),
-      fl_imu_acc_filter_[2].CalculateAverage(msg->linear_acceleration.z));
-  Eigen::Vector3d ang_vel = Eigen::Vector3d(
-      fl_imu_gyro_filter_[0].CalculateAverage(msg->angular_velocity.x),
-      fl_imu_gyro_filter_[1].CalculateAverage(msg->angular_velocity.y),
-      fl_imu_gyro_filter_[2].CalculateAverage(msg->angular_velocity.z));
+  Eigen::Vector3d acc = Eigen::Vector3d(fl_imu_acc_filter_[0].CalculateAverage(msg->linear_acceleration.x),
+                                        fl_imu_acc_filter_[1].CalculateAverage(msg->linear_acceleration.y),
+                                        fl_imu_acc_filter_[2].CalculateAverage(msg->linear_acceleration.z));
+  Eigen::Vector3d ang_vel = Eigen::Vector3d(fl_imu_gyro_filter_[0].CalculateAverage(msg->angular_velocity.x),
+                                            fl_imu_gyro_filter_[1].CalculateAverage(msg->angular_velocity.y),
+                                            fl_imu_gyro_filter_[2].CalculateAverage(msg->angular_velocity.z));
 
   mtx.lock();
   mq_fl_imu_.push(t, acc, ang_vel, 0);
@@ -496,17 +469,15 @@ void VILOFusion::flImuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
   return;
 }
 
-void VILOFusion::frImuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
+void VILOFusion::frImuCallback(const sensor_msgs::Imu::ConstPtr& msg) {
   double t = msg->header.stamp.toSec() - FOOT_IMU_DELAY;
   // assemble sensor data
-  Eigen::Vector3d acc = Eigen::Vector3d(
-      fr_imu_acc_filter_[0].CalculateAverage(msg->linear_acceleration.x),
-      fr_imu_acc_filter_[1].CalculateAverage(msg->linear_acceleration.y),
-      fr_imu_acc_filter_[2].CalculateAverage(msg->linear_acceleration.z));
-  Eigen::Vector3d ang_vel = Eigen::Vector3d(
-      fr_imu_gyro_filter_[0].CalculateAverage(msg->angular_velocity.x),
-      fr_imu_gyro_filter_[1].CalculateAverage(msg->angular_velocity.y),
-      fr_imu_gyro_filter_[2].CalculateAverage(msg->angular_velocity.z));
+  Eigen::Vector3d acc = Eigen::Vector3d(fr_imu_acc_filter_[0].CalculateAverage(msg->linear_acceleration.x),
+                                        fr_imu_acc_filter_[1].CalculateAverage(msg->linear_acceleration.y),
+                                        fr_imu_acc_filter_[2].CalculateAverage(msg->linear_acceleration.z));
+  Eigen::Vector3d ang_vel = Eigen::Vector3d(fr_imu_gyro_filter_[0].CalculateAverage(msg->angular_velocity.x),
+                                            fr_imu_gyro_filter_[1].CalculateAverage(msg->angular_velocity.y),
+                                            fr_imu_gyro_filter_[2].CalculateAverage(msg->angular_velocity.z));
 
   mtx.lock();
   mq_fr_imu_.push(t, acc, ang_vel, 1);
@@ -519,17 +490,15 @@ void VILOFusion::frImuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
   return;
 }
 
-void VILOFusion::rlImuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
+void VILOFusion::rlImuCallback(const sensor_msgs::Imu::ConstPtr& msg) {
   double t = msg->header.stamp.toSec() - FOOT_IMU_DELAY;
   // assemble sensor data
-  Eigen::Vector3d acc = Eigen::Vector3d(
-      rl_imu_acc_filter_[0].CalculateAverage(msg->linear_acceleration.x),
-      rl_imu_acc_filter_[1].CalculateAverage(msg->linear_acceleration.y),
-      rl_imu_acc_filter_[2].CalculateAverage(msg->linear_acceleration.z));
-  Eigen::Vector3d ang_vel = Eigen::Vector3d(
-      rl_imu_gyro_filter_[0].CalculateAverage(msg->angular_velocity.x),
-      rl_imu_gyro_filter_[1].CalculateAverage(msg->angular_velocity.y),
-      rl_imu_gyro_filter_[2].CalculateAverage(msg->angular_velocity.z));
+  Eigen::Vector3d acc = Eigen::Vector3d(rl_imu_acc_filter_[0].CalculateAverage(msg->linear_acceleration.x),
+                                        rl_imu_acc_filter_[1].CalculateAverage(msg->linear_acceleration.y),
+                                        rl_imu_acc_filter_[2].CalculateAverage(msg->linear_acceleration.z));
+  Eigen::Vector3d ang_vel = Eigen::Vector3d(rl_imu_gyro_filter_[0].CalculateAverage(msg->angular_velocity.x),
+                                            rl_imu_gyro_filter_[1].CalculateAverage(msg->angular_velocity.y),
+                                            rl_imu_gyro_filter_[2].CalculateAverage(msg->angular_velocity.z));
 
   mtx.lock();
   mq_rl_imu_.push(t, acc, ang_vel, 2);
@@ -542,17 +511,15 @@ void VILOFusion::rlImuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
   return;
 }
 
-void VILOFusion::rrImuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
+void VILOFusion::rrImuCallback(const sensor_msgs::Imu::ConstPtr& msg) {
   double t = msg->header.stamp.toSec() - FOOT_IMU_DELAY;
   // assemble sensor data
-  Eigen::Vector3d acc = Eigen::Vector3d(
-      rr_imu_acc_filter_[0].CalculateAverage(msg->linear_acceleration.x),
-      rr_imu_acc_filter_[1].CalculateAverage(msg->linear_acceleration.y),
-      rr_imu_acc_filter_[2].CalculateAverage(msg->linear_acceleration.z));
-  Eigen::Vector3d ang_vel = Eigen::Vector3d(
-      rr_imu_gyro_filter_[0].CalculateAverage(msg->angular_velocity.x),
-      rr_imu_gyro_filter_[1].CalculateAverage(msg->angular_velocity.y),
-      rr_imu_gyro_filter_[2].CalculateAverage(msg->angular_velocity.z));
+  Eigen::Vector3d acc = Eigen::Vector3d(rr_imu_acc_filter_[0].CalculateAverage(msg->linear_acceleration.x),
+                                        rr_imu_acc_filter_[1].CalculateAverage(msg->linear_acceleration.y),
+                                        rr_imu_acc_filter_[2].CalculateAverage(msg->linear_acceleration.z));
+  Eigen::Vector3d ang_vel = Eigen::Vector3d(rr_imu_gyro_filter_[0].CalculateAverage(msg->angular_velocity.x),
+                                            rr_imu_gyro_filter_[1].CalculateAverage(msg->angular_velocity.y),
+                                            rr_imu_gyro_filter_[2].CalculateAverage(msg->angular_velocity.z));
 
   mtx.lock();
   mq_rr_imu_.push(t, acc, ang_vel, 3);
@@ -566,13 +533,11 @@ void VILOFusion::rrImuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
 }
 
 // also receive and record the ground truth for training/debuging purpose
-void VILOFusion::gtCallback(const geometry_msgs::PoseStamped::ConstPtr &msg) {
+void VILOFusion::gtCallback(const geometry_msgs::PoseStamped::ConstPtr& msg) {
   double t = msg->header.stamp.toSec();
   // get position and orientation
-  Eigen::Vector3d pos = Eigen::Vector3d(
-      msg->pose.position.x, msg->pose.position.y, msg->pose.position.z);
-  Eigen::Quaterniond q(msg->pose.orientation.w, msg->pose.orientation.x,
-                       msg->pose.orientation.y, msg->pose.orientation.z);
+  Eigen::Vector3d pos = Eigen::Vector3d(msg->pose.position.x, msg->pose.position.y, msg->pose.position.z);
+  Eigen::Quaterniond q(msg->pose.orientation.w, msg->pose.orientation.x, msg->pose.orientation.y, msg->pose.orientation.z);
 
   mq_gt_.push(t, pos, q);
   // limit the size of the message queue
@@ -587,12 +552,8 @@ void VILOFusion::gtCallback(const geometry_msgs::PoseStamped::ConstPtr &msg) {
 
 // functions for processing PO data
 bool VILOFusion::isPODataAvailable() {
-  if (mq_imu_.size() > MIN_PO_QUEUE_SIZE &&
-      mq_joint_foot_.size() > MIN_PO_QUEUE_SIZE &&
-      mq_fl_imu_.size() > MIN_PO_QUEUE_SIZE &&
-      mq_fr_imu_.size() > MIN_PO_QUEUE_SIZE &&
-      mq_rl_imu_.size() > MIN_PO_QUEUE_SIZE &&
-      mq_rr_imu_.size() > MIN_PO_QUEUE_SIZE) {
+  if (mq_imu_.size() > MIN_PO_QUEUE_SIZE && mq_joint_foot_.size() > MIN_PO_QUEUE_SIZE && mq_fl_imu_.size() > MIN_PO_QUEUE_SIZE &&
+      mq_fr_imu_.size() > MIN_PO_QUEUE_SIZE && mq_rl_imu_.size() > MIN_PO_QUEUE_SIZE && mq_rr_imu_.size() > MIN_PO_QUEUE_SIZE) {
     return true;
   }
   return false;
@@ -600,9 +561,8 @@ bool VILOFusion::isPODataAvailable() {
 // this function compares all the latest time of all the queues and returns
 // the earliest one
 double VILOFusion::getPOMinLatestTime() {
-  if (mq_imu_.size() == 0 || mq_joint_foot_.size() == 0 ||
-      mq_fl_imu_.size() == 0 || mq_fr_imu_.size() == 0 ||
-      mq_rl_imu_.size() == 0 || mq_rr_imu_.size() == 0) {
+  if (mq_imu_.size() == 0 || mq_joint_foot_.size() == 0 || mq_fl_imu_.size() == 0 || mq_fr_imu_.size() == 0 || mq_rl_imu_.size() == 0 ||
+      mq_rr_imu_.size() == 0) {
     return prev_esti_time;
   }
   double t_imu = mq_imu_.latestTime();
@@ -622,9 +582,8 @@ double VILOFusion::getPOMinLatestTime() {
 }
 
 double VILOFusion::getPOMaxOldestTime() {
-  if (mq_imu_.size() == 0 || mq_joint_foot_.size() == 0 ||
-      mq_fl_imu_.size() == 0 || mq_fr_imu_.size() == 0 ||
-      mq_rl_imu_.size() == 0 || mq_rr_imu_.size() == 0) {
+  if (mq_imu_.size() == 0 || mq_joint_foot_.size() == 0 || mq_fl_imu_.size() == 0 || mq_fr_imu_.size() == 0 || mq_rl_imu_.size() == 0 ||
+      mq_rr_imu_.size() == 0) {
     return prev_esti_time;
   }
   double t_imu = mq_imu_.oldestTime();
@@ -643,8 +602,7 @@ double VILOFusion::getPOMaxOldestTime() {
   return t;
 }
 
-double VILOFusion::interpolatePOData(Eigen::Matrix<double, 55, 1> &sensor_data,
-                                     double dt) {
+double VILOFusion::interpolatePOData(Eigen::Matrix<double, 55, 1>& sensor_data, double dt) {
   const std::lock_guard<std::mutex> lock(mtx);
 
   double queue_time_end = getPOMinLatestTime();
@@ -661,18 +619,12 @@ double VILOFusion::interpolatePOData(Eigen::Matrix<double, 55, 1> &sensor_data,
   prev_esti_time = curr_esti_time;
   // now curr_esti_time must within the range of all the queues
   // we can use it to do interpolation
-  std::shared_ptr<SWE::Measurement> imu_meas =
-      mq_imu_.interpolate(curr_esti_time);
-  std::shared_ptr<SWE::Measurement> joint_meas =
-      mq_joint_foot_.interpolate(curr_esti_time);
-  std::shared_ptr<SWE::Measurement> fl_imu_meas =
-      mq_fl_imu_.interpolate(curr_esti_time);
-  std::shared_ptr<SWE::Measurement> fr_imu_meas =
-      mq_fr_imu_.interpolate(curr_esti_time);
-  std::shared_ptr<SWE::Measurement> rl_imu_meas =
-      mq_rl_imu_.interpolate(curr_esti_time);
-  std::shared_ptr<SWE::Measurement> rr_imu_meas =
-      mq_rr_imu_.interpolate(curr_esti_time);
+  std::shared_ptr<SWE::Measurement> imu_meas = mq_imu_.interpolate(curr_esti_time);
+  std::shared_ptr<SWE::Measurement> joint_meas = mq_joint_foot_.interpolate(curr_esti_time);
+  std::shared_ptr<SWE::Measurement> fl_imu_meas = mq_fl_imu_.interpolate(curr_esti_time);
+  std::shared_ptr<SWE::Measurement> fr_imu_meas = mq_fr_imu_.interpolate(curr_esti_time);
+  std::shared_ptr<SWE::Measurement> rl_imu_meas = mq_rl_imu_.interpolate(curr_esti_time);
+  std::shared_ptr<SWE::Measurement> rr_imu_meas = mq_rr_imu_.interpolate(curr_esti_time);
 
   // input sensor data vectors to the estimator
   Eigen::VectorXd imu_data = imu_meas->getVector();
@@ -682,10 +634,9 @@ double VILOFusion::interpolatePOData(Eigen::Matrix<double, 55, 1> &sensor_data,
   Eigen::VectorXd rl_imu_data = rl_imu_meas->getVector();
   Eigen::VectorXd rr_imu_data = rr_imu_meas->getVector();
 
-  sensor_data.segment<3>(0) = imu_data.segment<3>(3); // gyro
-  sensor_data.segment<3>(3) =
-      imu_data.segment<3>(0); // acc, notice the order defined in
-                              // MIPOEstimatorSensorData::loadFromVec
+  sensor_data.segment<3>(0) = imu_data.segment<3>(3);  // gyro
+  sensor_data.segment<3>(3) = imu_data.segment<3>(0);  // acc, notice the order defined in
+                                                       // MIPOEstimatorSensorData::loadFromVec
   sensor_data.segment<12>(6) = joint_data.segment<12>(0);
   sensor_data.segment<12>(18) = joint_data.segment<12>(12);
   sensor_data.segment<3>(30) = fl_imu_data.segment<3>(0);
@@ -699,7 +650,7 @@ double VILOFusion::interpolatePOData(Eigen::Matrix<double, 55, 1> &sensor_data,
 
   // source of yaw observation
   double yaw_source = 0.0;
-  if (!vilo_estimator->isRunning()) { // vilo not started yet
+  if (!vilo_estimator->isRunning()) {  // vilo not started yet
     // timing of ground truth is not very critical we just use the latest
     if (mq_gt_.size() > 0) {
       std::shared_ptr<SWE::Measurement> gt_meas = mq_gt_.top();
@@ -707,8 +658,7 @@ double VILOFusion::interpolatePOData(Eigen::Matrix<double, 55, 1> &sensor_data,
 
       Eigen::VectorXd gt_data = latest_gt_meas->getVector();
       Eigen::VectorXd gt_quat_vec = gt_data.segment<4>(3);
-      Eigen::Quaterniond gt_quat(gt_quat_vec(0), gt_quat_vec(1), gt_quat_vec(2),
-                                 gt_quat_vec(3));
+      Eigen::Quaterniond gt_quat(gt_quat_vec(0), gt_quat_vec(1), gt_quat_vec(2), gt_quat_vec(3));
       Eigen::Vector3d gt_euler = legged::quat_to_euler<double>(gt_quat);
       // item 54 is the body yaw, set to 0 for now
       yaw_source = gt_euler(2);
@@ -720,17 +670,15 @@ double VILOFusion::interpolatePOData(Eigen::Matrix<double, 55, 1> &sensor_data,
     // use the yaw output from the VILO estimator
     // yaw is observable anyway so timing is not critical
     Eigen::VectorXd x_vilo = vilo_estimator->outputState();
-    Eigen::VectorXd vilo_quat_vec = x_vilo.segment<4>(4); // x y z w
-    Eigen::Quaterniond quat(vilo_quat_vec(3), vilo_quat_vec(0),
-                            vilo_quat_vec(1), vilo_quat_vec(2));
+    Eigen::VectorXd vilo_quat_vec = x_vilo.segment<4>(4);  // x y z w
+    Eigen::Quaterniond quat(vilo_quat_vec(3), vilo_quat_vec(0), vilo_quat_vec(1), vilo_quat_vec(2));
     Eigen::Vector3d euler = legged::quat_to_euler<double>(quat);
     yaw_source = euler(2);
   }
   // wrap the yaw_source to make it continuous
   if (prev_po_input_yaw > M_PI * 0.8 && yaw_source < prev_po_input_yaw - M_PI) {
     yaw_source += 2.0 * M_PI;
-  } else if (prev_po_input_yaw < -M_PI * 0.8 &&
-             yaw_source > prev_po_input_yaw + M_PI) {
+  } else if (prev_po_input_yaw < -M_PI * 0.8 && yaw_source > prev_po_input_yaw + M_PI) {
     yaw_source -= 2.0 * M_PI;
   }
 

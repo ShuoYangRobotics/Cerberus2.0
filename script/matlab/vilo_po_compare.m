@@ -6,10 +6,10 @@ po_type ='mipo';
 vio_type = 'vio';
 vilo_type = 'vilo';
 dataset_name = 'wightman_park_trot_bridge_loop';       % modify this
-has_gt = 0;
+has_gt = 1;
 
 plot_start = 0;
-plot_end = 415;
+plot_end = 41;
 %% read data
 po_csv_file_full_name = strcat(bag_output_path,po_type,'-',dataset_name,'.csv');
 if isfile(po_csv_file_full_name)
@@ -58,7 +58,7 @@ if (has_gt == 1)
 end
 
 figure(1);clf
-subplot(3,1,1)
+subplot(2,1,1)
 if (has_gt == 1)
     p1 = plot3(gt_pos(:,1),gt_pos(:,2),gt_pos(:,3)); hold on;
 end
@@ -73,7 +73,7 @@ else
     legend([p2 p3 p4],{'Multi-IMU PO', 'VIO', 'VILO'})
 end
 
-subplot(3,1,2)
+subplot(2,1,2)
 if (has_gt == 1)
     p1 = plot(gt_time,gt_euler(:,3)); hold on;
 end
