@@ -11,6 +11,8 @@
 
 #include "factor/imu_factor.hpp"
 #include "factor/integration_base.hpp"
+#include "factor/lo_factor.hpp"
+#include "factor/lo_intergration_base.hpp"
 #include "factor/marginalization_factor.h"
 #include "factor/pose_local_parameterization.h"
 #include "factor/projectionOneFrameTwoCamFactor.h"
@@ -67,6 +69,9 @@ private:
       featureBuf;
   int inputImageCnt;
 
+  // leg odometry input buffers
+  queue<pair<double, Eigen::Vector3d>> loBuf;
+
   // the two adjacent camera frame time
   double prevTime, curTime;
 
@@ -104,6 +109,10 @@ private:
   bool first_imu;
   Vector3d acc_0, gyr_0; // save previous imu data
   IntegrationBase *pre_integrations[(WINDOW_SIZE + 1)] = {nullptr};
+  // process LO vel
+  bool first_lo;
+  Vector3d lo_vel_0; // save previous leg odometry data
+  LOIntegrationBase *lo_pre_integrations[(WINDOW_SIZE + 1)] = {nullptr};
 
   bool initFirstPoseFlag;
 
@@ -143,9 +152,15 @@ private:
                           vector<pair<double, Eigen::Vector3d>> &gyrVector);
   bool BodyIMUAvailable(double t);
 
+  bool getLoVelInterval(double t0, double t1,
+                        vector<pair<double, Eigen::Vector3d>> &loVelVector);
+  bool loVelAvailable(double t);
+
   void initFirstIMUPose(vector<pair<double, Eigen::Vector3d>> &accVector);
   void processIMU(double t, double dt, const Vector3d &linear_acceleration,
                   const Vector3d &angular_velocity);
+
+  void processLegOdom(double t, double dt, const Eigen::Vector3d &loVel);
 
   void processImage(
       const map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>> &image,

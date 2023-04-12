@@ -41,6 +41,8 @@ double FOOT_IMU_DELAY =
 double INIT_DEPTH;
 double MIN_PARALLAX;
 int ESTIMATE_EXTRINSIC;
+int VILO_FUSION_TYPE;
+int KF_TYPE;
 
 double ACC_N, ACC_N_Z, ACC_W;
 double GYR_N, GYR_W;
@@ -138,13 +140,30 @@ void Utils::readParametersFile(std::string config_file) {
   MIN_PARALLAX = fsSettings["keyframe_parallax"];
   MIN_PARALLAX = MIN_PARALLAX / FOCAL_LENGTH;
 
+  VILO_FUSION_TYPE = fsSettings["vilo_fusion_type"];
+  KF_TYPE = fsSettings["kf_type"];
+
   fsSettings["output_path"] >> OUTPUT_FOLDER;
-  VILO_RESULT_PATH = OUTPUT_FOLDER + "/vilo" + GetCurrentTimeForFileName() +
-                     "-" + DATASET_NAME + ".csv";
-  PO_RESULT_PATH = OUTPUT_FOLDER + "/po" + GetCurrentTimeForFileName() + "-" +
-                   DATASET_NAME + ".csv";
-  GT_RESULT_PATH = OUTPUT_FOLDER + "/gt" + GetCurrentTimeForFileName() + "-" +
-                   DATASET_NAME + ".csv";
+
+  std::string kf_type_name = "mipo";
+  if (KF_TYPE == 0) {
+    kf_type_name = "mipo";
+  } else {
+    kf_type_name = "sipo";
+  }
+
+  std::string vilo_run_name = "vilo";
+  if (VILO_FUSION_TYPE == 0) {
+    vilo_run_name = "vio";
+  } else if (VILO_FUSION_TYPE == 1) {
+    vilo_run_name = "vilo";
+  }
+
+  VILO_RESULT_PATH =
+      OUTPUT_FOLDER + "/" + vilo_run_name + "-" + DATASET_NAME + ".csv";
+  PO_RESULT_PATH =
+      OUTPUT_FOLDER + "/" + kf_type_name + "-" + DATASET_NAME + ".csv";
+  GT_RESULT_PATH = OUTPUT_FOLDER + "/gt" + "-" + DATASET_NAME + ".csv";
   std::cout << "result path " << VILO_RESULT_PATH << std::endl;
   std::ofstream fout_V(VILO_RESULT_PATH, std::ios::out);
   fout_V.close();
