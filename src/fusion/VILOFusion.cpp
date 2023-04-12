@@ -136,6 +136,10 @@ void VILOFusion::POLoop() {
         // inputPODataToVILO();
         vilo_estimator->inputBodyIMU(curr_esti_time, curr_data->body_acc,
                                      curr_data->body_gyro);
+        // input LO velocity
+        if (VILO_FUSION_TYPE == 1) {
+          vilo_estimator->inputLOVel(curr_esti_time, mipo_x.segment<3>(3));
+        }
       }
     } else {
       prev_esti_time += dt_ros;

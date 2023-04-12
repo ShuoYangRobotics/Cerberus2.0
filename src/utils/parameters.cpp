@@ -41,6 +41,7 @@ double FOOT_IMU_DELAY =
 double INIT_DEPTH;
 double MIN_PARALLAX;
 int ESTIMATE_EXTRINSIC;
+int VILO_FUSION_TYPE;
 
 double ACC_N, ACC_N_Z, ACC_W;
 double GYR_N, GYR_W;
@@ -160,6 +161,8 @@ void Utils::readParametersFile(std::string config_file) {
     ROS_WARN(" Optimize extrinsic param around initial guess!");
     EX_CALIB_RESULT_PATH = OUTPUT_FOLDER + "/extrinsic_parameter.csv";
   }
+
+  VILO_FUSION_TYPE = fsSettings["vilo_fusion_type"];
 
   cv::Mat cv_T;
   fsSettings["body_T_cam0"] >> cv_T;

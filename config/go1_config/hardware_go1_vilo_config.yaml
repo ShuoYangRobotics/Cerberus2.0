@@ -21,7 +21,9 @@ image_height: 480
    
 
 # leg related
-
+vilo_fusion_type: 0  # 0 - do not use leg for preintegration (then this is just VIO)
+                     # 1 - use LO velocity as preintegration
+                     # 2 - average each leg 
 
 # Extrinsic parameter between IMU and Camera.
 estimate_extrinsic: 1   # 0  Have an accurate extrinsic parameters. We will trust the following imu^R_cam, imu^T_cam, don't change it.
@@ -44,9 +46,6 @@ body_T_cam1: !!opencv-matrix
           -1,  0,  0, -0.025, 
            0, -1,  0, 0.1114,  
            0., 0., 0., 1. ]
-
-#Multiple thread support
-multiple_thread: 1
 
 #feature traker paprameters
 max_cnt: 120            # max feature number in feature tracking
