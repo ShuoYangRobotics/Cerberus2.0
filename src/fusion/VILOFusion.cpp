@@ -107,7 +107,7 @@ void VILOFusion::POLoop() {
     if (isPODataAvailable()) {
       Eigen::Matrix<double, 55, 1> sensor_data;
       double curr_esti_time = interpolatePOData(sensor_data, dt_ros);
-
+      std::cout << curr_esti_time << std::endl;
       // run MIPO
       if (prev_data == nullptr) {
         prev_data = std::make_shared<MIPOEstimatorSensorData>();
@@ -154,7 +154,7 @@ void VILOFusion::POLoop() {
     auto loop_end = std::chrono::system_clock::now();
     auto loop_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
         loop_end - loop_start);
-    // std::cout << "total loop time: " << loop_elapsed.count() << std::endl;
+    std::cout << "total loop time: " << loop_elapsed.count() << std::endl;
 
     auto ros_loop_end = ros::Time::now().toSec();
     auto ros_loop_elapsed = ros_loop_end - ros_loop_start;
@@ -592,8 +592,7 @@ bool VILOFusion::isPODataAvailable() {
       mq_fl_imu_.size() > MIN_PO_QUEUE_SIZE &&
       mq_fr_imu_.size() > MIN_PO_QUEUE_SIZE &&
       mq_rl_imu_.size() > MIN_PO_QUEUE_SIZE &&
-      mq_rr_imu_.size() > MIN_PO_QUEUE_SIZE &&
-      mq_gt_.size() > MIN_PO_QUEUE_SIZE) {
+      mq_rr_imu_.size() > MIN_PO_QUEUE_SIZE) {
     return true;
   }
   return false;
@@ -702,8 +701,8 @@ double VILOFusion::interpolatePOData(Eigen::Matrix<double, 55, 1> &sensor_data,
   double yaw_source = 0.0;
   if (!vilo_estimator->isRunning()) { // vilo not started yet
     // timing of ground truth is not very critical we just use the latest
-    std::shared_ptr<SWE::Measurement> gt_meas = mq_gt_.top();
-    if (gt_meas != nullptr) { // if gt is available
+    if (mq_gt_.size() > 0) {
+      std::shared_ptr<SWE::Measurement> gt_meas = mq_gt_.top();
       latest_gt_meas = gt_meas;
 
       Eigen::VectorXd gt_data = latest_gt_meas->getVector();

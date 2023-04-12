@@ -7,9 +7,9 @@
     <arg name="node_start_delay" default="2.0" />
 
 
-    <node pkg="rosbag" type="play" name="player"
+    <node pkg="rosbag" type="play" name="player" required="true"
         launch-prefix="zsh -c 'sleep $(arg node_start_delay); $0 $@' "
-        args="--clock --hz=2000  $(find cerberus2)/bags/legged_robots/20230215_lab_short.bag" />
+        args="--clock --hz=2000  $(find cerberus2)/bags/legged_robots/20230304_wightman_park_trot_bridge_loop.bag" />
 
 
     <!-- cerberus2 config -->
@@ -17,8 +17,8 @@
         value="$(find cerberus2)/config/go1_config/hardware_go1_vilo_config.yaml" />
 
 
-    <!-- <node name="cerberus2_main" pkg="cerberus2"
+    <node name="cerberus2_main" pkg="cerberus2"
         args="$(arg vilo_config_file)"
         type="cerberus2_main"
-        output="screen" /> -->
+        output="screen" />
 </launch>

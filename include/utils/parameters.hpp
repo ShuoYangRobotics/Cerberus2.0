@@ -66,6 +66,7 @@ extern double INIT_DEPTH;
 extern double MIN_PARALLAX;
 extern int ESTIMATE_EXTRINSIC;
 extern int VILO_FUSION_TYPE;
+extern int KF_TYPE;
 
 extern double ACC_N, ACC_N_Z, ACC_W;
 extern double GYR_N, GYR_W;
