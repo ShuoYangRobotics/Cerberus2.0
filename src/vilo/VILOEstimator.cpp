@@ -50,6 +50,11 @@ void VILOEstimator::reset() {
   while (!featureBuf.empty())
     featureBuf.pop();
 
+  if (VILO_FUSION_TYPE == 1) {
+    while (!loBuf.empty())
+      loBuf.pop();
+  }
+
   // frame_count rest, most important
   frame_count = 0;
 
@@ -80,10 +85,14 @@ void VILOEstimator::reset() {
     }
     pre_integrations[i] = nullptr;
 
-    if (lo_pre_integrations[i] != nullptr) {
-      delete lo_pre_integrations[i];
+    if (VILO_FUSION_TYPE == 1) {
+      lo_velocity_buf[i].clear();
+      lo_dt_buf[i].clear();
+      if (lo_pre_integrations[i] != nullptr) {
+        delete lo_pre_integrations[i];
+      }
+      lo_pre_integrations[i] = nullptr;
     }
-    lo_pre_integrations[i] = nullptr;
   }
 
   for (int i = 0; i < NUM_OF_CAM; i++) {
@@ -389,12 +398,10 @@ void VILOEstimator::processLegOdom(double t, double dt,
     lo_velocity_buf[frame_count].push_back(loVel);
 
     // use LO to provide initial guess for P and V
-    if (VILO_FUSION_TYPE == 1) {
-      int j = frame_count;
-      Vector3d un_acc = 0.5 * (lo_vel_0 + loVel);
-      Ps[j] += dt * Vs[j];
-      Vs[j] = 0.5 * Vs[j] + 0.5 * loVel; // world frame velocity from LO
-    }
+    int j = frame_count;
+    Vector3d un_acc = 0.5 * (lo_vel_0 + loVel);
+    Vs[j] = un_acc; // world frame velocity from LO
+    Ps[j] += dt * Vs[j];
   }
   lo_vel_0 = loVel;
   return;
@@ -834,12 +841,14 @@ void VILOEstimator::optimization() {
   }
 
   // lo factor
-  for (int i = 0; i < frame_count; i++) {
-    int j = i + 1;
-    if (lo_pre_integrations[j]->sum_dt > 10.0)
-      continue;
-    LOFactor *lo_factor = new LOFactor(lo_pre_integrations[j]);
-    problem.AddResidualBlock(lo_factor, NULL, para_Pose[i], para_Pose[j]);
+  if (VILO_FUSION_TYPE == 1) {
+    for (int i = 0; i < frame_count; i++) {
+      int j = i + 1;
+      if (lo_pre_integrations[j]->sum_dt > 10.0)
+        continue;
+      LOFactor *lo_factor = new LOFactor(lo_pre_integrations[j]);
+      problem.AddResidualBlock(lo_factor, NULL, para_Pose[i], para_Pose[j]);
+    }
   }
 
   // visual feature variables and factors
@@ -960,16 +969,18 @@ void VILOEstimator::optimization() {
         marginalization_info->addResidualBlockInfo(residual_block_info);
       }
       // lo factor
-      if (lo_pre_integrations[1]->sum_dt < 10.0) {
-        LOFactor *imu_factor = new LOFactor(lo_pre_integrations[1]);
-        ResidualBlockInfo *residual_block_info =
-            new ResidualBlockInfo(imu_factor, NULL,
-                                  vector<double *>{
-                                      para_Pose[0],
-                                      para_Pose[1],
-                                  },
-                                  vector<int>{0});
-        marginalization_info->addResidualBlockInfo(residual_block_info);
+      if (VILO_FUSION_TYPE == 1) {
+        if (lo_pre_integrations[1]->sum_dt < 10.0) {
+          LOFactor *lo_factor = new LOFactor(lo_pre_integrations[1]);
+          ResidualBlockInfo *residual_block_info =
+              new ResidualBlockInfo(lo_factor, NULL,
+                                    vector<double *>{
+                                        para_Pose[0],
+                                        para_Pose[1],
+                                    },
+                                    vector<int>{0});
+          marginalization_info->addResidualBlockInfo(residual_block_info);
+        }
       }
 
       {

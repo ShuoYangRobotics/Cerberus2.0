@@ -139,9 +139,19 @@ void Utils::readParametersFile(std::string config_file) {
   MIN_PARALLAX = fsSettings["keyframe_parallax"];
   MIN_PARALLAX = MIN_PARALLAX / FOCAL_LENGTH;
 
+  VILO_FUSION_TYPE = fsSettings["vilo_fusion_type"];
+
   fsSettings["output_path"] >> OUTPUT_FOLDER;
-  VILO_RESULT_PATH = OUTPUT_FOLDER + "/vilo" + GetCurrentTimeForFileName() +
-                     "-" + DATASET_NAME + ".csv";
+
+  std::string vilo_run_name = "vilo";
+  if (VILO_FUSION_TYPE == 0) {
+    vilo_run_name = "vio";
+  } else if (VILO_FUSION_TYPE == 1) {
+    vilo_run_name = "vilo";
+  }
+
+  VILO_RESULT_PATH = OUTPUT_FOLDER + "/" + vilo_run_name +
+                     GetCurrentTimeForFileName() + "-" + DATASET_NAME + ".csv";
   PO_RESULT_PATH = OUTPUT_FOLDER + "/po" + GetCurrentTimeForFileName() + "-" +
                    DATASET_NAME + ".csv";
   GT_RESULT_PATH = OUTPUT_FOLDER + "/gt" + GetCurrentTimeForFileName() + "-" +
@@ -161,8 +171,6 @@ void Utils::readParametersFile(std::string config_file) {
     ROS_WARN(" Optimize extrinsic param around initial guess!");
     EX_CALIB_RESULT_PATH = OUTPUT_FOLDER + "/extrinsic_parameter.csv";
   }
-
-  VILO_FUSION_TYPE = fsSettings["vilo_fusion_type"];
 
   cv::Mat cv_T;
   fsSettings["body_T_cam0"] >> cv_T;
