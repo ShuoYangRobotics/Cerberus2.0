@@ -156,7 +156,7 @@ SIPOEstimator::ekfInitState(const SIPOEstimatorSensorData &sensor_data_k) {
     Eigen::Matrix<double, -1, 1> param_leg = rho_true_.col(i);
     Eigen::Vector3d foot_pos = legged::fk_pf_pos(joint_ang, param_leg);
 
-    x_k.segment<3>(9 + i * 6) = R_er * foot_pos + init_pos;
+    x_k.segment<3>(9 + i * 3) = R_er * foot_pos + init_pos;
   }
   return x_k;
 }
