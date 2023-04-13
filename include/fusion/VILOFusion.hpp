@@ -26,6 +26,7 @@
 
 // project files
 #include "mipo/MIPOEstimator.hpp"
+#include "sipo/SIPOEstimator.hpp"
 #include "utils/Measurement.hpp"
 #include "utils/MeasurementQueue.hpp"
 #include "utils/MovingWindowFilter.hpp"
@@ -44,8 +45,7 @@ public:
   void POLoop();   // this loop runs MIPO at 400Hz
   void VILOLoop(); // this loop triggers VILO at 15Hz
 
-  void publishMIPOEstimationResult(Eigen::Matrix<double, MS_SIZE, 1> &x,
-                                   Eigen::Matrix<double, MS_SIZE, MS_SIZE> &P);
+  void publishPOEstimationResult(Eigen::VectorXd &x, Eigen::MatrixXd &P);
 
   void publishVILOEstimationResult(Eigen::Matrix<double, VS_OUTSIZE, 1> &state);
 
@@ -76,11 +76,13 @@ private:
 
   // filters
   std::unique_ptr<MIPOEstimator> mipo_estimator;
+  std::unique_ptr<SIPOEstimator> sipo_estimator;
   std::unique_ptr<VILOEstimator> vilo_estimator;
 
   // measurement queues filled by callback functions
   SWE::MeasureQueue mq_imu_;
   SWE::MeasureQueue mq_joint_foot_;
+  SWE::MeasureQueue mq_foot_force_;
   SWE::MeasureQueue mq_fl_imu_;
   SWE::MeasureQueue mq_fr_imu_;
   SWE::MeasureQueue mq_rl_imu_;
@@ -119,6 +121,10 @@ private:
   // save results
   Eigen::Matrix<double, MS_SIZE, 1> mipo_x;       // MIPO state
   Eigen::Matrix<double, MS_SIZE, MS_SIZE> mipo_P; // MIPO covariance
+  Eigen::Matrix<double, SS_SIZE, 1> sipo_x;       // SIPO state
+  Eigen::Matrix<double, SS_SIZE, SS_SIZE> sipo_P; // SIPO covariance
+
+  Eigen::VectorXd po_x; // PO state for recording
 
   Eigen::Matrix<double, 17, 1> vilo_x; // VILO state
 
@@ -140,10 +146,18 @@ private:
   // initialize gt callback
   void gtCallback(const geometry_msgs::PoseStamped::ConstPtr &msg);
 
-  bool isPODataAvailable();
-  double getPOMinLatestTime();
-  double getPOMaxOldestTime();
+  bool isMIPODataAvailable();
+  double getMIPOMinLatestTime();
+  double getMIPOMaxOldestTime();
+  double interpolateMIPOData(Eigen::Matrix<double, 55, 1> &sensor_data,
+                             double dt);
 
-  double interpolatePOData(Eigen::Matrix<double, 55, 1> &sensor_data,
-                           double dt);
+  bool isSIPODataAvailable();
+  double getSIPOMinLatestTime();
+  double getSIPOMaxOldestTime();
+  double interpolateSIPOData(Eigen::Matrix<double, 35, 1> &sensor_data,
+                             double dt);
+
+  // calculate a yaw observation from gt or vilo
+  double getYawObservation();
 };

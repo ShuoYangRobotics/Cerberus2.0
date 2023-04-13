@@ -91,6 +91,7 @@ set(VILO_LIB vilo_fusion) # set library name
 set(${VILO_LIB}_SRC
         src/fusion/VILOFusion.cpp
         src/mipo/MIPOEstimator.cpp
+        src/sipo/SIPOEstimator.cpp
         src/vilo/VILOEstimator.cpp
         src/featureTracker/feature_tracker.cpp
         src/featureTracker/feature_manager.cpp

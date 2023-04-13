@@ -1,5 +1,5 @@
 #pragma once
-struct SIPOParams {
+struct POParams {
   double init_cov = 0.05;
   double init_bias_cov = 1e-2;
   double init_body_height = 0.3;

@@ -9,6 +9,7 @@ enum MeasureType {
   LEG,
   FOOT_IMU,
   FOOT_FORCE,
+  FOOT_FORCE_ALL,
   DIRECT_POSE
 };
 
@@ -203,6 +204,40 @@ public:
   MeasureType type = FOOT_FORCE;
   double t;
 };
+
+// measurement from the foot forces of all feet
+class FootForceALLMeasurement : public Measurement {
+public:
+  FootForceALLMeasurement() {}
+
+  FootForceALLMeasurement(double _t, Eigen::Vector4d _foot_force) {
+    t = _t;
+    foot_force_z = _foot_force;
+  }
+  MeasureType getType() { return type; }
+  double getTime() { return t; }
+  Eigen::VectorXd getVector() { return foot_force_z; }
+
+  // helper function, return a interpolated measurement between two measurements
+  // for brevity we assume t1 < t < t2, caller should make sure this is true
+  static std::shared_ptr<FootForceALLMeasurement>
+  interpolate(std::shared_ptr<FootForceALLMeasurement> m1,
+              std::shared_ptr<FootForceALLMeasurement> m2, double t) {
+    double t1 = m1->t;
+    double t2 = m2->t;
+    double alpha = (t - t1) / (t2 - t1);
+    alpha = std::min(1.0, std::max(0.0, alpha));
+    Eigen::Vector4d interp_force =
+        m1->foot_force_z * (1 - alpha) + m2->foot_force_z * alpha;
+    return std::make_shared<FootForceALLMeasurement>(t, interp_force);
+  }
+
+  int id;
+  Eigen::Vector4d foot_force_z;
+  MeasureType type = FOOT_FORCE_ALL;
+  double t;
+};
+
 // direct pose measurement
 // notice we assume they
 class PoseMeasurement : public Measurement {

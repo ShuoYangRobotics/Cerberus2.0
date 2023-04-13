@@ -399,8 +399,8 @@ void VILOEstimator::processLegOdom(double t, double dt,
 
     // use LO to provide initial guess for P and V
     int j = frame_count;
-    Vector3d un_acc = 0.5 * (lo_vel_0 + loVel);
-    Vs[j] = un_acc; // world frame velocity from LO
+    Vector3d average_vel = 0.5 * (lo_vel_0 + loVel);
+    Vs[j] = average_vel; // world frame velocity from LO
     Ps[j] += dt * Vs[j];
   }
   lo_vel_0 = loVel;
@@ -488,9 +488,9 @@ void VILOEstimator::processImage(
   std::cout << "solver_flag: " << solver_flag << std::endl;
   std::cout << "frame_count: " << frame_count << std::endl;
   Eigen::VectorXd x_vilo = outputState();
-  Eigen::Vector3d pos = x_vilo.head(3);
-  Eigen::Quaterniond quat(x_vilo(3), x_vilo(4), x_vilo(5), x_vilo(6));
-  Eigen::Vector3d vel = x_vilo.segment(7, 3);
+  Eigen::Vector3d pos = x_vilo.segment<3>(1);
+  Eigen::Quaterniond quat(x_vilo(7), x_vilo(4), x_vilo(5), x_vilo(6));
+  Eigen::Vector3d vel = x_vilo.segment(8, 3);
   printf("time: %f, t: %f %f %f q: %f %f %f %f \n", ros::Time::now().toSec(),
          pos(0), pos(1), pos(2), quat.w(), quat.x(), quat.y(), quat.z());
 }

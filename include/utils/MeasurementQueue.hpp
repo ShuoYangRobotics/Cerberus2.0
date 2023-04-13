@@ -184,6 +184,18 @@ public:
     return true;
   }
 
+  // FootForceALLMeasurement
+  bool push(double _t, Eigen::Vector4d _foot_force_z) {
+    std::shared_ptr<Measurement> tmp =
+        std::make_shared<FootForceALLMeasurement>(_t, _foot_force_z);
+    newestElementTime = _t;
+    pq_meas.push(tmp);
+    if (tmp->getType() == main_type) {
+      current_main_size++;
+    }
+    return true;
+  }
+
   // PoseMeasurement
   bool push(double _t, Eigen::Vector3d _pos, Eigen::Quaterniond _quat) {
     std::shared_ptr<Measurement> tmp =
@@ -386,25 +398,32 @@ public:
       return BodyIMUMeasurement::interpolate(
           std::dynamic_pointer_cast<BodyIMUMeasurement>(m1),
           std::dynamic_pointer_cast<BodyIMUMeasurement>(m2), t);
+
     } else if (m1->getType() == LEG) {
       return LegMeasurement::interpolate(
           std::dynamic_pointer_cast<LegMeasurement>(m1),
           std::dynamic_pointer_cast<LegMeasurement>(m2), t);
-      ;
+
     } else if (m1->getType() == FOOT_IMU) {
       return FootIMUMeasurement::interpolate(
           std::dynamic_pointer_cast<FootIMUMeasurement>(m1),
           std::dynamic_pointer_cast<FootIMUMeasurement>(m2), t);
-      ;
+
     } else if (m1->getType() == FOOT_FORCE) {
       return FootForceMeasurement::interpolate(
           std::dynamic_pointer_cast<FootForceMeasurement>(m1),
           std::dynamic_pointer_cast<FootForceMeasurement>(m2), t);
+
+    } else if (m1->getType() == FOOT_FORCE_ALL) {
+      return FootForceALLMeasurement::interpolate(
+          std::dynamic_pointer_cast<FootForceALLMeasurement>(m1),
+          std::dynamic_pointer_cast<FootForceALLMeasurement>(m2), t);
+
     } else if (m1->getType() == DIRECT_POSE) {
       return PoseMeasurement::interpolate(
           std::dynamic_pointer_cast<PoseMeasurement>(m1),
           std::dynamic_pointer_cast<PoseMeasurement>(m2), t);
-      ;
+
     } else {
       std::cout << "measurement type not supported" << std::endl;
       throw 206;
