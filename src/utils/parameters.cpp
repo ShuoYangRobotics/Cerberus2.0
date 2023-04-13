@@ -3,8 +3,8 @@
 /*
  * PO message queue
  */
-int MIN_PO_QUEUE_SIZE = 10;
-int MAX_PO_QUEUE_SIZE = 150;
+int MIN_PO_QUEUE_SIZE = 25;
+int MAX_PO_QUEUE_SIZE = 250;
 
 int BODY_IMU_MOVMEAN_WINDOW_SIZE = 5;
 int FOOT_IMU_MOVMEAN_WINDOW_SIZE = 5;
@@ -156,7 +156,11 @@ void Utils::readParametersFile(std::string config_file) {
   if (VILO_FUSION_TYPE == 0) {
     vilo_run_name = "vio";
   } else if (VILO_FUSION_TYPE == 1) {
-    vilo_run_name = "vilo";
+    if (KF_TYPE == 0) {
+      vilo_run_name = "vilo-m";
+    } else {
+      vilo_run_name = "vilo-s";
+    }
   }
 
   VILO_RESULT_PATH =

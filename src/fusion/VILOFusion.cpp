@@ -66,6 +66,9 @@ VILOFusion::VILOFusion(ros::NodeHandle nh) {
     joint_foot_filter_[i] = MovingWindowFilter(JOINT_MOVMEAN_WINDOW_SIZE);
   }
   yaw_filter_ = MovingWindowFilter(YAW_MOVMEAN_WINDOW_SIZE);
+
+  // init the output state other the write to file logic will segfault
+  po_x = Eigen::VectorXd::Zero(SS_SIZE);
 }
 
 VILOFusion ::~VILOFusion() {
@@ -267,22 +270,41 @@ void VILOFusion::VILOLoop() {
       fout_vilo.close();
 
       // write MIPO
-      double mipo_time = mipo_x(mipo_x.size() - 1);
-      Eigen::Vector3d mipo_pos = mipo_x.segment<3>(0);
-      Eigen::Vector3d mipo_vel = mipo_x.segment<3>(3);
-      Eigen::Vector3d mipo_euler = mipo_x.segment<3>(6);
-      ofstream fout_mipo(PO_RESULT_PATH, ios::app);
-      fout_mipo.setf(ios::fixed, ios::floatfield);
-      fout_mipo.precision(15);
-      fout_mipo << mipo_time << ",";
-      fout_mipo.precision(5);
-      fout_mipo << mipo_pos(0) << "," << mipo_pos(1) << "," << mipo_pos(2)
-                << ",";
-      fout_mipo << mipo_euler(0) << "," << mipo_euler(1) << "," << mipo_euler(2)
-                << ",";
-      fout_mipo << mipo_vel(0) << "," << mipo_vel(1) << "," << mipo_vel(2);
-      fout_mipo << endl;
-      fout_mipo.close();
+      if (KF_TYPE == 0) {
+        double mipo_time = mipo_x(mipo_x.size() - 1);
+        Eigen::Vector3d mipo_pos = mipo_x.segment<3>(0);
+        Eigen::Vector3d mipo_vel = mipo_x.segment<3>(3);
+        Eigen::Vector3d mipo_euler = mipo_x.segment<3>(6);
+        ofstream fout_mipo(PO_RESULT_PATH, ios::app);
+        fout_mipo.setf(ios::fixed, ios::floatfield);
+        fout_mipo.precision(15);
+        fout_mipo << mipo_time << ",";
+        fout_mipo.precision(5);
+        fout_mipo << mipo_pos(0) << "," << mipo_pos(1) << "," << mipo_pos(2)
+                  << ",";
+        fout_mipo << mipo_euler(0) << "," << mipo_euler(1) << ","
+                  << mipo_euler(2) << ",";
+        fout_mipo << mipo_vel(0) << "," << mipo_vel(1) << "," << mipo_vel(2);
+        fout_mipo << endl;
+        fout_mipo.close();
+      } else {
+        double sipo_time = sipo_x(sipo_x.size() - 1);
+        Eigen::Vector3d sipo_pos = sipo_x.segment<3>(0);
+        Eigen::Vector3d sipo_vel = sipo_x.segment<3>(3);
+        Eigen::Vector3d sipo_euler = sipo_x.segment<3>(6);
+        ofstream fout_sipo(PO_RESULT_PATH, ios::app);
+        fout_sipo.setf(ios::fixed, ios::floatfield);
+        fout_sipo.precision(15);
+        fout_sipo << sipo_time << ",";
+        fout_sipo.precision(5);
+        fout_sipo << sipo_pos(0) << "," << sipo_pos(1) << "," << sipo_pos(2)
+                  << ",";
+        fout_sipo << sipo_euler(0) << "," << sipo_euler(1) << ","
+                  << sipo_euler(2) << ",";
+        fout_sipo << sipo_vel(0) << "," << sipo_vel(1) << "," << sipo_vel(2);
+        fout_sipo << endl;
+        fout_sipo.close();
+      }
 
       // write GT is mocap is available
       if (mq_gt_.size() > 0) {

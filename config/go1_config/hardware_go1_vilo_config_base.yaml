@@ -20,7 +20,7 @@ image_width: 640
 image_height: 480
    
 # kf type 
-kf_type:   0  # 0 is MIPO (multi-imu PO)
+kf_type: 0  # 0 is MIPO (multi-imu PO)
               # 1 is SIPO (standard single imu PO)
 
 # leg related

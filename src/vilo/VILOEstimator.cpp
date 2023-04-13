@@ -245,7 +245,7 @@ void VILOEstimator::processMeasurements() {
       std::cout << "process measurments" << std::endl;
       feature = featureBuf.front();
       curTime = feature.first + td;
-      while (1) {
+      while (ros::ok()) {
         if (BodyIMUAvailable(feature.first + td))
           break;
         else {
