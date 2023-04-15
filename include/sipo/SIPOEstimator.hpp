@@ -74,60 +74,46 @@ struct SIPOEstimatorSensorData {
 };
 
 class SIPOEstimator {
-public:
+ public:
   SIPOEstimator();
   ~SIPOEstimator();
-  void ekfUpdate(const Eigen::Matrix<double, SS_SIZE, 1> &x_k,
-                 const Eigen::Matrix<double, SS_SIZE, SS_SIZE> &P_k,
-                 const SIPOEstimatorSensorData &sensor_data_k,
-                 const SIPOEstimatorSensorData &sensor_data_k1, const double dt,
+  void ekfUpdate(const Eigen::Matrix<double, SS_SIZE, 1>& x_k, const Eigen::Matrix<double, SS_SIZE, SS_SIZE>& P_k,
+                 const SIPOEstimatorSensorData& sensor_data_k, const SIPOEstimatorSensorData& sensor_data_k1, const double dt,
                  // output
-                 Eigen::Matrix<double, SS_SIZE, 1> &x_k1,
-                 Eigen::Matrix<double, SS_SIZE, SS_SIZE> &P_k1);
+                 Eigen::Matrix<double, SS_SIZE, 1>& x_k1, Eigen::Matrix<double, SS_SIZE, SS_SIZE>& P_k1);
 
   // given a sensor data k, initialize the state
-  Eigen::Matrix<double, SS_SIZE, 1>
-  ekfInitState(const SIPOEstimatorSensorData &sensor_data_k);
+  Eigen::Matrix<double, SS_SIZE, 1> ekfInitState(const SIPOEstimatorSensorData& sensor_data_k);
   /*
    * following interface functions are called by the external user
    */
   // input and output are Eigen Vector or Matrix
 
-  Eigen::Matrix<double, SS_SIZE, 1>
-  proc_func(const Eigen::Matrix<double, SS_SIZE, 1> x,
-            const Eigen::Matrix<double, SI_SIZE, 1> u, double dt);
+  Eigen::Matrix<double, SS_SIZE, 1> proc_func(const Eigen::Matrix<double, SS_SIZE, 1> x, const Eigen::Matrix<double, SI_SIZE, 1> u,
+                                              double dt);
 
-  Eigen::Matrix<double, SS_SIZE, 1>
-  proc_func(const Eigen::Matrix<double, SS_SIZE, 1> x,
-            const Eigen::Matrix<double, SI_SIZE, 1> u0,
-            const Eigen::Matrix<double, SI_SIZE, 1> u1, double dt);
+  Eigen::Matrix<double, SS_SIZE, 1> proc_func(const Eigen::Matrix<double, SS_SIZE, 1> x, const Eigen::Matrix<double, SI_SIZE, 1> u0,
+                                              const Eigen::Matrix<double, SI_SIZE, 1> u1, double dt);
 
-  Eigen::Matrix<double, SS_SIZE, SS_SIZE>
-  proc_func_x_jac(const Eigen::Matrix<double, SS_SIZE, 1> x,
-                  const Eigen::Matrix<double, SI_SIZE, 1> u, double dt);
-  Eigen::Matrix<double, SS_SIZE, SS_SIZE>
-  proc_func_x_jac(const Eigen::Matrix<double, SS_SIZE, 1> x,
-                  const Eigen::Matrix<double, SI_SIZE, 1> u0,
-                  const Eigen::Matrix<double, SI_SIZE, 1> u1, double dt);
+  Eigen::Matrix<double, SS_SIZE, SS_SIZE> proc_func_x_jac(const Eigen::Matrix<double, SS_SIZE, 1> x,
+                                                          const Eigen::Matrix<double, SI_SIZE, 1> u, double dt);
+  Eigen::Matrix<double, SS_SIZE, SS_SIZE> proc_func_x_jac(const Eigen::Matrix<double, SS_SIZE, 1> x,
+                                                          const Eigen::Matrix<double, SI_SIZE, 1> u0,
+                                                          const Eigen::Matrix<double, SI_SIZE, 1> u1, double dt);
 
-  Eigen::Matrix<double, SS_SIZE, SI_SIZE>
-  proc_func_u_jac(const Eigen::Matrix<double, SS_SIZE, 1> x,
-                  const Eigen::Matrix<double, SI_SIZE, 1> u, double dt);
-  Eigen::Matrix<double, SS_SIZE, SI_SIZE>
-  proc_func_u_jac(const Eigen::Matrix<double, SS_SIZE, 1> x,
-                  const Eigen::Matrix<double, SI_SIZE, 1> u0,
-                  const Eigen::Matrix<double, SI_SIZE, 1> u1, double dt);
+  Eigen::Matrix<double, SS_SIZE, SI_SIZE> proc_func_u_jac(const Eigen::Matrix<double, SS_SIZE, 1> x,
+                                                          const Eigen::Matrix<double, SI_SIZE, 1> u, double dt);
+  Eigen::Matrix<double, SS_SIZE, SI_SIZE> proc_func_u_jac(const Eigen::Matrix<double, SS_SIZE, 1> x,
+                                                          const Eigen::Matrix<double, SI_SIZE, 1> u0,
+                                                          const Eigen::Matrix<double, SI_SIZE, 1> u1, double dt);
 
   // interface functions to evaluate measurement functions numerically
-  Eigen::Matrix<double, SY_SIZE, 1>
-  meas_func(const Eigen::Matrix<double, SS_SIZE, 1> x,
-            const Eigen::Matrix<double, SZ_SIZE, 1> z);
+  Eigen::Matrix<double, SY_SIZE, 1> meas_func(const Eigen::Matrix<double, SS_SIZE, 1> x, const Eigen::Matrix<double, SZ_SIZE, 1> z);
 
-  Eigen::Matrix<double, SY_SIZE, SS_SIZE>
-  meas_func_jac(const Eigen::Matrix<double, SS_SIZE, 1> x,
-                const Eigen::Matrix<double, SZ_SIZE, 1> z);
+  Eigen::Matrix<double, SY_SIZE, SS_SIZE> meas_func_jac(const Eigen::Matrix<double, SS_SIZE, 1> x,
+                                                        const Eigen::Matrix<double, SZ_SIZE, 1> z);
 
-private:
+ private:
   bool is_initialized_;
 
   bool sipo_use_foot_ang_contact_model_;
@@ -140,28 +126,22 @@ private:
    */
   // process dynamics - eigen/casadi
   template <typename SCALAR_T>
-  Eigen::Matrix<SCALAR_T, SS_SIZE, 1>
-  sipo_process_dyn_casadi(const Eigen::Matrix<SCALAR_T, SS_SIZE, 1> x,
-                          const Eigen::Matrix<SCALAR_T, SI_SIZE, 1> u);
+  Eigen::Matrix<SCALAR_T, SS_SIZE, 1> sipo_process_dyn_casadi(const Eigen::Matrix<SCALAR_T, SS_SIZE, 1> x,
+                                                              const Eigen::Matrix<SCALAR_T, SI_SIZE, 1> u);
 
   // discrete process dynamics - eigen/casadi
-  Eigen::Matrix<double, SS_SIZE, 1>
-  sipo_xk1_eigen(const Eigen::Matrix<double, SS_SIZE, 1> x,
-                 const Eigen::Matrix<double, SI_SIZE, 1> u0,
-                 const Eigen::Matrix<double, SI_SIZE, 1> u1, double dt);
+  Eigen::Matrix<double, SS_SIZE, 1> sipo_xk1_eigen(const Eigen::Matrix<double, SS_SIZE, 1> x, const Eigen::Matrix<double, SI_SIZE, 1> u0,
+                                                   const Eigen::Matrix<double, SI_SIZE, 1> u1, double dt);
 
-  Eigen::Matrix<casadi::SX, SS_SIZE, 1>
-  sipo_xk1_casadi(const Eigen::Matrix<casadi::SX, SS_SIZE, 1> x,
-                  const Eigen::Matrix<casadi::SX, SI_SIZE, 1> u0,
-                  const Eigen::Matrix<casadi::SX, SI_SIZE, 1> u1,
-                  casadi::SX dt);
+  Eigen::Matrix<casadi::SX, SS_SIZE, 1> sipo_xk1_casadi(const Eigen::Matrix<casadi::SX, SS_SIZE, 1> x,
+                                                        const Eigen::Matrix<casadi::SX, SI_SIZE, 1> u0,
+                                                        const Eigen::Matrix<casadi::SX, SI_SIZE, 1> u1, casadi::SX dt);
 
   // measurement functions - eigen/casadi
   template <typename SCALAR_T>
-  Eigen::Matrix<SCALAR_T, SY_SIZE, 1> sipo_measurement_casadi(
-      const Eigen::Matrix<SCALAR_T, SS_SIZE, 1> x,
-      const Eigen::Matrix<SCALAR_T, SZ_SIZE, 1> z,
-      const Eigen::Matrix<SCALAR_T, Eigen::Dynamic, NUM_LEG> param);
+  Eigen::Matrix<SCALAR_T, SY_SIZE, 1> sipo_measurement_casadi(const Eigen::Matrix<SCALAR_T, SS_SIZE, 1> x,
+                                                              const Eigen::Matrix<SCALAR_T, SZ_SIZE, 1> z,
+                                                              const Eigen::Matrix<SCALAR_T, Eigen::Dynamic, NUM_LEG> param);
 
   // measurement function and their jacobians as casadi::Function(s)
   // create four casadi functions for 1. process dynamics 2. measurement 3.

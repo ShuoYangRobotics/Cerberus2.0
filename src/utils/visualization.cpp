@@ -32,24 +32,17 @@ static Vector3d last_path(0.0, 0.0, 0.0);
 
 size_t pub_counter = 0;
 
-void Utils::registerPub(ros::NodeHandle &n) {
-  pub_latest_odometry =
-      n.advertise<nav_msgs::Odometry>("/vilo/imu_propagate", 1000);
+void Utils::registerPub(ros::NodeHandle& n) {
+  pub_latest_odometry = n.advertise<nav_msgs::Odometry>("/vilo/imu_propagate", 1000);
   pub_path = n.advertise<nav_msgs::Path>("/vilo/path", 1000);
   pub_odometry = n.advertise<nav_msgs::Odometry>("/vilo/odometry", 1000);
-  pub_point_cloud =
-      n.advertise<sensor_msgs::PointCloud>("/vilo/point_cloud", 1000);
-  pub_margin_cloud =
-      n.advertise<sensor_msgs::PointCloud>("/vilo/margin_cloud", 1000);
-  pub_key_poses =
-      n.advertise<visualization_msgs::Marker>("/vilo/key_poses", 1000);
+  pub_point_cloud = n.advertise<sensor_msgs::PointCloud>("/vilo/point_cloud", 1000);
+  pub_margin_cloud = n.advertise<sensor_msgs::PointCloud>("/vilo/margin_cloud", 1000);
+  pub_key_poses = n.advertise<visualization_msgs::Marker>("/vilo/key_poses", 1000);
   pub_camera_pose = n.advertise<nav_msgs::Odometry>("/vilo/camera_pose", 1000);
-  pub_camera_pose_visual = n.advertise<visualization_msgs::MarkerArray>(
-      "/vilo/camera_pose_visual", 1000);
-  pub_keyframe_pose =
-      n.advertise<nav_msgs::Odometry>("/vilo/keyframe_pose", 1000);
-  pub_keyframe_point =
-      n.advertise<sensor_msgs::PointCloud>("/vilo/keyframe_point", 1000);
+  pub_camera_pose_visual = n.advertise<visualization_msgs::MarkerArray>("/vilo/camera_pose_visual", 1000);
+  pub_keyframe_pose = n.advertise<nav_msgs::Odometry>("/vilo/keyframe_pose", 1000);
+  pub_keyframe_point = n.advertise<sensor_msgs::PointCloud>("/vilo/keyframe_point", 1000);
   pub_extrinsic = n.advertise<nav_msgs::Odometry>("/vilo/extrinsic", 1000);
   pub_image_track = n.advertise<sensor_msgs::Image>("/vilo/image_track", 1000);
 
@@ -75,12 +68,11 @@ void Utils::registerPub(ros::NodeHandle &n) {
 //   pub_latest_odometry.publish(odometry);
 // }
 
-void Utils::pubTrackImage(const cv::Mat &imgTrack, const double t) {
+void Utils::pubTrackImage(const cv::Mat& imgTrack, const double t) {
   std_msgs::Header header;
   header.frame_id = "world";
   header.stamp = ros::Time(t);
-  sensor_msgs::ImagePtr imgTrackMsg =
-      cv_bridge::CvImage(header, "bgr8", imgTrack).toImageMsg();
+  sensor_msgs::ImagePtr imgTrackMsg = cv_bridge::CvImage(header, "bgr8", imgTrack).toImageMsg();
   pub_image_track.publish(imgTrackMsg);
 }
 

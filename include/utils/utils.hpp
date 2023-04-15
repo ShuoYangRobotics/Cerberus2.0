@@ -12,14 +12,14 @@ typedef Eigen::Matrix<casadi::MX, -1, 1> VectorXm;
 typedef Eigen::Matrix<casadi::MX, -1, -1> MatrixXm;
 typedef Eigen::SparseMatrix<casadi::MX, Eigen::RowMajor> SpMatrixXm;
 
-static casadi::SX eig_to_cas(const VectorXs &eig) {
+static casadi::SX eig_to_cas(const VectorXs& eig) {
   auto sx = casadi::SX(casadi::Sparsity::dense(eig.size()));
   for (int i = 0; i < eig.size(); i++) {
     sx(i) = eig(i);
   }
   return sx;
 }
-static casadi::MX eig_to_cas_MX(const VectorXm &eig) {
+static casadi::MX eig_to_cas_MX(const VectorXm& eig) {
   auto sx = casadi::MX(casadi::Sparsity::dense(eig.size()));
   for (int i = 0; i < eig.size(); i++) {
     sx(i) = eig(i);
@@ -27,7 +27,7 @@ static casadi::MX eig_to_cas_MX(const VectorXm &eig) {
   return sx;
 }
 
-static casadi::SX eigmat_to_cas(const MatrixXs &eig) {
+static casadi::SX eigmat_to_cas(const MatrixXs& eig) {
   auto sx = casadi::SX(casadi::Sparsity::dense(eig.rows(), eig.cols()));
   for (int i = 0; i < eig.rows(); i++) {
     for (int j = 0; j < eig.cols(); j++) {
@@ -37,31 +37,27 @@ static casadi::SX eigmat_to_cas(const MatrixXs &eig) {
   return sx;
 }
 
-static casadi::SX eig_spmat_to_cas(const SpMatrixXs &eig) {
+static casadi::SX eig_spmat_to_cas(const SpMatrixXs& eig) {
   auto sx = casadi::SX(eig.rows(), eig.cols());
   for (int k = 0; k < eig.outerSize(); ++k) {
-    for (Eigen::SparseMatrix<casadi::SX, Eigen::RowMajor>::InnerIterator it(eig,
-                                                                            k);
-         it; ++it) {
+    for (Eigen::SparseMatrix<casadi::SX, Eigen::RowMajor>::InnerIterator it(eig, k); it; ++it) {
       sx(it.row(), it.col()) = it.value();
     }
   }
   return sx;
 }
 
-static casadi::MX eig_spmat_to_cas_MX(const SpMatrixXm &eig) {
+static casadi::MX eig_spmat_to_cas_MX(const SpMatrixXm& eig) {
   auto sx = casadi::MX(eig.rows(), eig.cols());
   for (int k = 0; k < eig.outerSize(); ++k) {
-    for (Eigen::SparseMatrix<casadi::MX, Eigen::RowMajor>::InnerIterator it(eig,
-                                                                            k);
-         it; ++it) {
+    for (Eigen::SparseMatrix<casadi::MX, Eigen::RowMajor>::InnerIterator it(eig, k); it; ++it) {
       sx(it.row(), it.col()) = it.value();
     }
   }
   return sx;
 }
 
-static VectorXs cas_to_eig(const casadi::SX &cas) {
+static VectorXs cas_to_eig(const casadi::SX& cas) {
   VectorXs eig(cas.size1());
   for (int i = 0; i < eig.size(); i++) {
     eig(i) = cas(i);
@@ -70,7 +66,7 @@ static VectorXs cas_to_eig(const casadi::SX &cas) {
 }
 
 template <int s1, int s2>
-static Eigen::Matrix<casadi::SX, s1, s2> cas_to_eigmat(const casadi::SX &cas) {
+static Eigen::Matrix<casadi::SX, s1, s2> cas_to_eigmat(const casadi::SX& cas) {
   Eigen::Matrix<casadi::SX, s1, s2> eigmat;
   for (int i = 0; i < s1; i++) {
     for (int j = 0; j < s2; j++) {
@@ -80,7 +76,7 @@ static Eigen::Matrix<casadi::SX, s1, s2> cas_to_eigmat(const casadi::SX &cas) {
   return eigmat;
 }
 
-static VectorXm cas_to_eig_MX(const casadi::MX &cas) {
+static VectorXm cas_to_eig_MX(const casadi::MX& cas) {
   VectorXm eig(cas.size1());
   for (int i = 0; i < eig.size(); i++) {
     eig(i) = cas(i);
@@ -88,7 +84,7 @@ static VectorXm cas_to_eig_MX(const casadi::MX &cas) {
   return eig;
 }
 
-static Eigen::SparseMatrix<double> cas_DM_to_eig_sp(const casadi::DM &Matrx) {
+static Eigen::SparseMatrix<double> cas_DM_to_eig_sp(const casadi::DM& Matrx) {
   casadi::Sparsity SpA = Matrx.get_sparsity();
   // std::cout << "Nonzeros in rows: " << SpA.get_row() << "\n";
   // std::cout << "Nonzeros in columns: " << SpA.get_colind() << "\n";
@@ -104,11 +100,9 @@ static Eigen::SparseMatrix<double> cas_DM_to_eig_sp(const casadi::DM &Matrx) {
   using T = Eigen::Triplet<double>;
   std::vector<T> TripletList;
   TripletList.resize(values.size());
-  for (int k = 0; k < values.size(); ++k)
-    TripletList[k] = T(output_row[k], output_col[k], values[k]);
+  for (int k = 0; k < values.size(); ++k) TripletList[k] = T(output_row[k], output_col[k], values[k]);
 
-  for (std::vector<T>::const_iterator it = TripletList.begin();
-       it != TripletList.end(); ++it) {
+  for (std::vector<T>::const_iterator it = TripletList.begin(); it != TripletList.end(); ++it) {
     // std::cout << "triplet: " << (*it).row() << " " << (*it).col() << " "
     //           << (*it).value() << "\n";
   }
@@ -122,14 +116,14 @@ static Eigen::SparseMatrix<double> cas_DM_to_eig_sp(const casadi::DM &Matrx) {
 
 // convert casadi::DM to Eigen::MatrixXd
 template <int s1, int s2>
-static Eigen::MatrixXd cas_DM_to_eig_mat(const casadi::DM &Matrx) {
+static Eigen::MatrixXd cas_DM_to_eig_mat(const casadi::DM& Matrx) {
   auto vector_x = static_cast<std::vector<double>>(Matrx);
   Eigen::Matrix<double, s1, s2> eigMatrx(vector_x.data());
   return eigMatrx;
 }
 
 template <int s1, int s2>
-static casadi::DM eig_to_cas_DM(const Eigen::Matrix<double, s1, s2> &eig) {
+static casadi::DM eig_to_cas_DM(const Eigen::Matrix<double, s1, s2>& eig) {
   casadi::DM cas = casadi::DM::zeros(s1, s2);
   for (int i = 0; i < s1; i++) {
     for (int j = 0; j < s2; j++) {
@@ -140,8 +134,7 @@ static casadi::DM eig_to_cas_DM(const Eigen::Matrix<double, s1, s2> &eig) {
 }
 
 template <int s1, int s2>
-static Eigen::Matrix<double, s1, s2>
-read_eig_mat_from_csv(std::string file_name) {
+static Eigen::Matrix<double, s1, s2> read_eig_mat_from_csv(std::string file_name) {
   // Load the CSV file saved by MATLAB
   std::ifstream file(file_name);
 
@@ -169,4 +162,4 @@ read_eig_mat_from_csv(std::string file_name) {
   return A;
 }
 
-} // namespace Utils
+}  // namespace Utils

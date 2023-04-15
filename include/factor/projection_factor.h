@@ -10,21 +10,19 @@
 
 #pragma once
 
-#include <Eigen/Dense>
 #include <ceres/ceres.h>
 #include <ros/assert.h>
+#include <Eigen/Dense>
 
 #include "utils/parameters.hpp"
 #include "utils/tic_toc.h"
 #include "utils/vins_utility.h"
 
 class ProjectionFactor : public ceres::SizedCostFunction<2, 7, 7, 7, 1> {
-public:
-  ProjectionFactor(const Eigen::Vector3d &_pts_i,
-                   const Eigen::Vector3d &_pts_j);
-  virtual bool Evaluate(double const *const *parameters, double *residuals,
-                        double **jacobians) const;
-  void check(double **parameters);
+ public:
+  ProjectionFactor(const Eigen::Vector3d& _pts_i, const Eigen::Vector3d& _pts_j);
+  virtual bool Evaluate(double const* const* parameters, double* residuals, double** jacobians) const;
+  void check(double** parameters);
 
   Eigen::Vector3d pts_i, pts_j;
   Eigen::Matrix<double, 2, 3> tangent_base;

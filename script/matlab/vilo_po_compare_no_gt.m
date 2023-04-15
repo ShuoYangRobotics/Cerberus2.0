@@ -2,7 +2,8 @@
 
 bag_output_path = '../../bags/output/';
 
-dataset_name = '20230304_wightman_park_trot_bridge_loop';       % modify this
+% dataset_name = '20230304_wightman_park_trot_bridge_loop';       % modify this
+dataset_name = '20230304_wightman_park_flying_trot_right_loop';       % modify this
 
 % look at src/utils/parameters.cpp for possible types
 % traj_types = {'gt','mipo','sipo','vio','vilo-m','vilo-s'};

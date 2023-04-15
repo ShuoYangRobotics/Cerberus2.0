@@ -1,11 +1,11 @@
 #pragma once
 
-#include "Measurement.hpp"
 #include <Eigen/Dense>
 #include <iostream>
 #include <memory>
 #include <queue>
 #include <stdexcept>
+#include "Measurement.hpp"
 
 namespace SWE {
 /*
@@ -15,12 +15,9 @@ namespace SWE {
  * use getMainHorizon(), popMain(), they counter numbers of main sensor
  * measurements
  */
-typedef std::priority_queue<std::shared_ptr<Measurement>,
-                            std::vector<std::shared_ptr<Measurement>>,
-                            MeasurementCompare>
-    pq_meas_type;
+typedef std::priority_queue<std::shared_ptr<Measurement>, std::vector<std::shared_ptr<Measurement>>, MeasurementCompare> pq_meas_type;
 class MeasureQueue {
-public:
+ public:
   MeasureQueue() {}
   MeasureQueue(MeasureType type) {
     main_type = type;
@@ -80,8 +77,7 @@ public:
    */
   // BodyIMUMeasurement
   bool push(double _t, Eigen::Vector3d _imu_acc, Eigen::Vector3d _imu_gyro) {
-    std::shared_ptr<Measurement> tmp =
-        std::make_shared<BodyIMUMeasurement>(_t, _imu_acc, _imu_gyro);
+    std::shared_ptr<Measurement> tmp = std::make_shared<BodyIMUMeasurement>(_t, _imu_acc, _imu_gyro);
     newestElementTime = _t;
     pq_meas.push(tmp);
 
@@ -92,10 +88,8 @@ public:
   }
 
   // LegMeasurement
-  bool push(double _t, Eigen::Matrix<double, 12, 1> _joint_pos,
-            Eigen::Matrix<double, 12, 1> _joint_vel) {
-    std::shared_ptr<Measurement> tmp =
-        std::make_shared<LegMeasurement>(_t, _joint_pos, _joint_vel);
+  bool push(double _t, Eigen::Matrix<double, 12, 1> _joint_pos, Eigen::Matrix<double, 12, 1> _joint_vel) {
+    std::shared_ptr<Measurement> tmp = std::make_shared<LegMeasurement>(_t, _joint_pos, _joint_vel);
     newestElementTime = _t;
     pq_meas.push(tmp);
     if (tmp->getType() == main_type) {
@@ -105,13 +99,10 @@ public:
   }
 
   // BodyIMUMeasurement & LegMeasurement
-  bool push(double _t, Eigen::Vector3d _imu_acc, Eigen::Vector3d _imu_gyro,
-            Eigen::Matrix<double, 12, 1> _joint_pos,
+  bool push(double _t, Eigen::Vector3d _imu_acc, Eigen::Vector3d _imu_gyro, Eigen::Matrix<double, 12, 1> _joint_pos,
             Eigen::Matrix<double, 12, 1> _joint_vel) {
-    std::shared_ptr<Measurement> tmp1 =
-        std::make_shared<BodyIMUMeasurement>(_t, _imu_acc, _imu_gyro);
-    std::shared_ptr<Measurement> tmp2 =
-        std::make_shared<LegMeasurement>(_t, _joint_pos, _joint_vel);
+    std::shared_ptr<Measurement> tmp1 = std::make_shared<BodyIMUMeasurement>(_t, _imu_acc, _imu_gyro);
+    std::shared_ptr<Measurement> tmp2 = std::make_shared<LegMeasurement>(_t, _joint_pos, _joint_vel);
     newestElementTime = _t;
     pq_meas.push(tmp1);
     if (tmp1->getType() == main_type) {
@@ -125,11 +116,9 @@ public:
   }
 
   // LegMeasurement with tau
-  bool push(double _t, Eigen::Matrix<double, 12, 1> _joint_pos,
-            Eigen::Matrix<double, 12, 1> _joint_vel,
+  bool push(double _t, Eigen::Matrix<double, 12, 1> _joint_pos, Eigen::Matrix<double, 12, 1> _joint_vel,
             Eigen::Matrix<double, 12, 1> _joint_tau) {
-    std::shared_ptr<Measurement> tmp = std::make_shared<LegMeasurement>(
-        _t, _joint_pos, _joint_vel, _joint_tau);
+    std::shared_ptr<Measurement> tmp = std::make_shared<LegMeasurement>(_t, _joint_pos, _joint_vel, _joint_tau);
     newestElementTime = _t;
     pq_meas.push(tmp);
     if (tmp->getType() == main_type) {
@@ -139,14 +128,10 @@ public:
   }
 
   // BodyIMUMeasurement & LegMeasurement with tau
-  bool push(double _t, Eigen::Vector3d _imu_acc, Eigen::Vector3d _imu_gyro,
-            Eigen::Matrix<double, 12, 1> _joint_pos,
-            Eigen::Matrix<double, 12, 1> _joint_vel,
-            Eigen::Matrix<double, 12, 1> _joint_tau) {
-    std::shared_ptr<Measurement> tmp1 =
-        std::make_shared<BodyIMUMeasurement>(_t, _imu_acc, _imu_gyro);
-    std::shared_ptr<Measurement> tmp2 = std::make_shared<LegMeasurement>(
-        _t, _joint_pos, _joint_vel, _joint_tau);
+  bool push(double _t, Eigen::Vector3d _imu_acc, Eigen::Vector3d _imu_gyro, Eigen::Matrix<double, 12, 1> _joint_pos,
+            Eigen::Matrix<double, 12, 1> _joint_vel, Eigen::Matrix<double, 12, 1> _joint_tau) {
+    std::shared_ptr<Measurement> tmp1 = std::make_shared<BodyIMUMeasurement>(_t, _imu_acc, _imu_gyro);
+    std::shared_ptr<Measurement> tmp2 = std::make_shared<LegMeasurement>(_t, _joint_pos, _joint_vel, _joint_tau);
     newestElementTime = _t;
     pq_meas.push(tmp1);
     if (tmp1->getType() == main_type) {
@@ -160,10 +145,8 @@ public:
   }
 
   // FootIMUMeasurement
-  bool push(double _t, Eigen::Vector3d _imu_acc, Eigen::Vector3d _imu_gyro,
-            int _id) {
-    std::shared_ptr<Measurement> tmp =
-        std::make_shared<FootIMUMeasurement>(_t, _imu_acc, _imu_gyro, _id);
+  bool push(double _t, Eigen::Vector3d _imu_acc, Eigen::Vector3d _imu_gyro, int _id) {
+    std::shared_ptr<Measurement> tmp = std::make_shared<FootIMUMeasurement>(_t, _imu_acc, _imu_gyro, _id);
     newestElementTime = _t;
     pq_meas.push(tmp);
     if (tmp->getType() == main_type) {
@@ -174,8 +157,7 @@ public:
 
   // FootForceMeasurement
   bool push(double _t, Eigen::Vector3d _foot_force_xyz, int _id) {
-    std::shared_ptr<Measurement> tmp =
-        std::make_shared<FootForceMeasurement>(_t, _foot_force_xyz, _id);
+    std::shared_ptr<Measurement> tmp = std::make_shared<FootForceMeasurement>(_t, _foot_force_xyz, _id);
     newestElementTime = _t;
     pq_meas.push(tmp);
     if (tmp->getType() == main_type) {
@@ -186,8 +168,7 @@ public:
 
   // FootForceALLMeasurement
   bool push(double _t, Eigen::Vector4d _foot_force_z) {
-    std::shared_ptr<Measurement> tmp =
-        std::make_shared<FootForceALLMeasurement>(_t, _foot_force_z);
+    std::shared_ptr<Measurement> tmp = std::make_shared<FootForceALLMeasurement>(_t, _foot_force_z);
     newestElementTime = _t;
     pq_meas.push(tmp);
     if (tmp->getType() == main_type) {
@@ -198,8 +179,7 @@ public:
 
   // PoseMeasurement
   bool push(double _t, Eigen::Vector3d _pos, Eigen::Quaterniond _quat) {
-    std::shared_ptr<Measurement> tmp =
-        std::make_shared<PoseMeasurement>(_t, _pos, _quat);
+    std::shared_ptr<Measurement> tmp = std::make_shared<PoseMeasurement>(_t, _pos, _quat);
     newestElementTime = _t;
     pq_meas.push(tmp);
     if (tmp->getType() == main_type) {
@@ -216,8 +196,7 @@ public:
   std::vector<std::shared_ptr<Measurement>> getHorizon(int horizon_length) {
     if (horizon_length > pq_meas.size()) {
       // something is wrong, throw error
-      std::cout << "horizon cannot be longer than the pq_meas.size()"
-                << std::endl;
+      std::cout << "horizon cannot be longer than the pq_meas.size()" << std::endl;
       throw 203;
     }
     if (horizon_length < 2) {
@@ -228,7 +207,7 @@ public:
     std::vector<std::shared_ptr<Measurement>> tmp_vec_meas;
     tmp_vec_meas.clear();
 
-    pq_meas_type tmp_pq_meas(pq_meas); // copy a pq_meas_type
+    pq_meas_type tmp_pq_meas(pq_meas);  // copy a pq_meas_type
     // pop until only horizon_length elements left
     while (tmp_pq_meas.size() > horizon_length) {
       tmp_pq_meas.pop();
@@ -291,8 +270,7 @@ public:
   std::vector<std::shared_ptr<Measurement>> getHorizonMain(int horizon_length) {
     if (horizon_length > pq_meas.size()) {
       // something is wrong, throw error
-      std::cout << "horizon cannot be longer than the pq_meas.size()"
-                << std::endl;
+      std::cout << "horizon cannot be longer than the pq_meas.size()" << std::endl;
       throw 203;
     }
     if (horizon_length < 2) {
@@ -302,13 +280,12 @@ public:
     }
     if (horizon_length > current_main_size) {
       // something is wrong, throw error
-      std::cout << "horizon cannot be longer than the current_main_size"
-                << std::endl;
+      std::cout << "horizon cannot be longer than the current_main_size" << std::endl;
       throw 205;
     }
     std::vector<std::shared_ptr<Measurement>> tmp_vec_meas;
     tmp_vec_meas.clear();
-    pq_meas_type tmp_pq_meas = pq_meas; // copy a pq_meas_type
+    pq_meas_type tmp_pq_meas = pq_meas;  // copy a pq_meas_type
 
     // use a counter to keep track how many main element left
     int left_main_number = current_main_size;
@@ -344,7 +321,7 @@ public:
   // dump elements to vec_meas with
   void dump_vec() {
     vec_meas.clear();
-    pq_meas_type tmp_pq_meas(pq_meas); // copy a pq_meas_type
+    pq_meas_type tmp_pq_meas(pq_meas);  // copy a pq_meas_type
     while (!tmp_pq_meas.empty()) {
       std::shared_ptr<Measurement> tmp = tmp_pq_meas.top();
       vec_meas.push_back(tmp);
@@ -355,8 +332,7 @@ public:
   int print_queue() {
     dump_vec();
     for (std::shared_ptr<Measurement> element : vec_meas) {
-      std::cout << "(" << std::setprecision(15) << element->getTime() << "\t,"
-                << element->getType() << ") ";
+      std::cout << "(" << std::setprecision(15) << element->getTime() << "\t," << element->getType() << ") ";
     }
     std::cout << std::endl;
     return vec_meas.size();
@@ -369,17 +345,14 @@ public:
         std::cout << "nullptr" << std::endl;
         throw 208;
       }
-      std::cout << "(" << std::setprecision(15) << element->getTime() << "\t,"
-                << element->getType() << ") ";
+      std::cout << "(" << std::setprecision(15) << element->getTime() << "\t," << element->getType() << ") ";
     }
     std::cout << std::endl;
     return vec.size();
   }
 
   // helper function intepolate between two measurements
-  std::shared_ptr<Measurement>
-  interpolate_two(double t, std::shared_ptr<Measurement> m1,
-                  std::shared_ptr<Measurement> m2) {
+  std::shared_ptr<Measurement> interpolate_two(double t, std::shared_ptr<Measurement> m1, std::shared_ptr<Measurement> m2) {
     // first make sure the time is within the range
     if (t < m1->getTime() || t > m2->getTime()) {
       std::cout << "time is out of range" << std::endl;
@@ -395,34 +368,27 @@ public:
     // otherwise interpolate, here we need to cast m1 and m2 to the correct
     // measurement type and call the interpolate function
     if (m1->getType() == BODY_IMU) {
-      return BodyIMUMeasurement::interpolate(
-          std::dynamic_pointer_cast<BodyIMUMeasurement>(m1),
-          std::dynamic_pointer_cast<BodyIMUMeasurement>(m2), t);
+      return BodyIMUMeasurement::interpolate(std::dynamic_pointer_cast<BodyIMUMeasurement>(m1),
+                                             std::dynamic_pointer_cast<BodyIMUMeasurement>(m2), t);
 
     } else if (m1->getType() == LEG) {
-      return LegMeasurement::interpolate(
-          std::dynamic_pointer_cast<LegMeasurement>(m1),
-          std::dynamic_pointer_cast<LegMeasurement>(m2), t);
+      return LegMeasurement::interpolate(std::dynamic_pointer_cast<LegMeasurement>(m1), std::dynamic_pointer_cast<LegMeasurement>(m2), t);
 
     } else if (m1->getType() == FOOT_IMU) {
-      return FootIMUMeasurement::interpolate(
-          std::dynamic_pointer_cast<FootIMUMeasurement>(m1),
-          std::dynamic_pointer_cast<FootIMUMeasurement>(m2), t);
+      return FootIMUMeasurement::interpolate(std::dynamic_pointer_cast<FootIMUMeasurement>(m1),
+                                             std::dynamic_pointer_cast<FootIMUMeasurement>(m2), t);
 
     } else if (m1->getType() == FOOT_FORCE) {
-      return FootForceMeasurement::interpolate(
-          std::dynamic_pointer_cast<FootForceMeasurement>(m1),
-          std::dynamic_pointer_cast<FootForceMeasurement>(m2), t);
+      return FootForceMeasurement::interpolate(std::dynamic_pointer_cast<FootForceMeasurement>(m1),
+                                               std::dynamic_pointer_cast<FootForceMeasurement>(m2), t);
 
     } else if (m1->getType() == FOOT_FORCE_ALL) {
-      return FootForceALLMeasurement::interpolate(
-          std::dynamic_pointer_cast<FootForceALLMeasurement>(m1),
-          std::dynamic_pointer_cast<FootForceALLMeasurement>(m2), t);
+      return FootForceALLMeasurement::interpolate(std::dynamic_pointer_cast<FootForceALLMeasurement>(m1),
+                                                  std::dynamic_pointer_cast<FootForceALLMeasurement>(m2), t);
 
     } else if (m1->getType() == DIRECT_POSE) {
-      return PoseMeasurement::interpolate(
-          std::dynamic_pointer_cast<PoseMeasurement>(m1),
-          std::dynamic_pointer_cast<PoseMeasurement>(m2), t);
+      return PoseMeasurement::interpolate(std::dynamic_pointer_cast<PoseMeasurement>(m1), std::dynamic_pointer_cast<PoseMeasurement>(m2),
+                                          t);
 
     } else {
       std::cout << "measurement type not supported" << std::endl;
@@ -431,8 +397,7 @@ public:
   }
 
   // helper function, intepolate among a vector of measurements
-  std::shared_ptr<Measurement>
-  interpolate_list(double t, std::vector<std::shared_ptr<Measurement>> &vec) {
+  std::shared_ptr<Measurement> interpolate_list(double t, std::vector<std::shared_ptr<Measurement>>& vec) {
     // first make sure the time is within the range
     if (t < vec.front()->getTime() || t > vec.back()->getTime()) {
       std::cout << "time is out of range" << std::endl;
@@ -461,7 +426,7 @@ public:
     return interpolate_list(t, vec_meas);
   }
 
-private:
+ private:
   pq_meas_type pq_meas;
   // only help print queue and construct SWE
   std::vector<std::shared_ptr<Measurement>> vec_meas;
@@ -479,4 +444,4 @@ private:
   MeasureType main_type = BODY_IMU;
 };
 
-} // namespace SWE
+}  // namespace SWE

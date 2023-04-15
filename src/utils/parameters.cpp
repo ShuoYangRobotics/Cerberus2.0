@@ -25,10 +25,9 @@ std::string IMAGE1_TOPIC;
 // this variable means the estimator actually always estimates the state at the
 // current time - LAG_TIME. We do so to account for potential delays and sensor
 // information mistaches
-double LAG_TIME = 0.0; // 100ms
+double LAG_TIME = 0.0;  // 100ms
 
-double FOOT_IMU_DELAY =
-    0.023; // 23ms, this is estimated from analysing data in Matlab
+double FOOT_IMU_DELAY = 0.023;  // 23ms, this is estimated from analysing data in Matlab
 
 /*
  * VINS Fusion parameters
@@ -47,8 +46,8 @@ int KF_TYPE;
 double ACC_N, ACC_N_Z, ACC_W;
 double GYR_N, GYR_W;
 
-std::vector<Eigen::Matrix3d> RIC; // num of cam, imu to camera rotation
-std::vector<Eigen::Vector3d> TIC; // num of cam, imu to camera position
+std::vector<Eigen::Matrix3d> RIC;  // num of cam, imu to camera rotation
+std::vector<Eigen::Vector3d> TIC;  // num of cam, imu to camera position
 Eigen::Vector3d G;
 
 double BIAS_ACC_THRESHOLD;
@@ -76,7 +75,7 @@ double F_THRESHOLD;
 int SHOW_TRACK;
 int FLOW_BACK;
 
-void Utils::readParametersROS(ros::NodeHandle &nh_) {
+void Utils::readParametersROS(ros::NodeHandle& nh_) {
   // default values
   IMU_TOPIC = "/unitree_hardware/imu";
   LEG_TOPIC = "/unitree_hardware/joint_foot";
@@ -91,8 +90,7 @@ void Utils::readParametersROS(ros::NodeHandle &nh_) {
   // read from rosparam
   // read parameters from ros server
   nh_.param<std::string>("IMU_TOPIC", IMU_TOPIC, "/unitree_hardware/imu");
-  nh_.param<std::string>("LEG_TOPIC", LEG_TOPIC,
-                         "/unitree_hardware/joint_foot");
+  nh_.param<std::string>("LEG_TOPIC", LEG_TOPIC, "/unitree_hardware/joint_foot");
   nh_.param<std::string>("FL_IMU_TOPIC", FL_IMU_TOPIC, "/WT901_49_Data");
   nh_.param<std::string>("FR_IMU_TOPIC", FR_IMU_TOPIC, "/WT901_48_Data");
   nh_.param<std::string>("RL_IMU_TOPIC", RL_IMU_TOPIC, "/WT901_50_Data");
@@ -101,7 +99,7 @@ void Utils::readParametersROS(ros::NodeHandle &nh_) {
 }
 
 void Utils::readParametersFile(std::string config_file) {
-  FILE *fh = fopen(config_file.c_str(), "r");
+  FILE* fh = fopen(config_file.c_str(), "r");
   if (fh == NULL) {
     ROS_WARN("config_file dosen't exist; wrong config_file path");
     ROS_BREAK();
@@ -163,10 +161,8 @@ void Utils::readParametersFile(std::string config_file) {
     }
   }
 
-  VILO_RESULT_PATH =
-      OUTPUT_FOLDER + "/" + vilo_run_name + "-" + DATASET_NAME + ".csv";
-  PO_RESULT_PATH =
-      OUTPUT_FOLDER + "/" + kf_type_name + "-" + DATASET_NAME + ".csv";
+  VILO_RESULT_PATH = OUTPUT_FOLDER + "/" + vilo_run_name + "-" + DATASET_NAME + ".csv";
+  PO_RESULT_PATH = OUTPUT_FOLDER + "/" + kf_type_name + "-" + DATASET_NAME + ".csv";
   GT_RESULT_PATH = OUTPUT_FOLDER + "/gt" + "-" + DATASET_NAME + ".csv";
   std::cout << "result path " << VILO_RESULT_PATH << std::endl;
   std::ofstream fout_V(VILO_RESULT_PATH, std::ios::out);
@@ -230,9 +226,7 @@ void Utils::readParametersFile(std::string config_file) {
   TD = fsSettings["td"];
   ESTIMATE_TD = fsSettings["estimate_td"];
   if (ESTIMATE_TD)
-    ROS_INFO_STREAM(
-        "Unsynchronized sensors, online estimate time offset, initial td: "
-        << TD);
+    ROS_INFO_STREAM("Unsynchronized sensors, online estimate time offset, initial td: " << TD);
   else
     ROS_INFO_STREAM("Synchronized sensors, fix time offset: " << TD);
 

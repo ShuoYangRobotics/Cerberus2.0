@@ -198,6 +198,9 @@ class MIPOEstimator {
 
   Eigen::Matrix<double, 5, NUM_LEG> rho_true_;
 
+  // new feature: auto tuning Q matrix
+  // https://towardsdatascience.com/tuning-q-matrix-for-cv-and-ca-models-in-kalman-filter-67084185d08c
+
   // internal symbolic variables and functions, save discrete dynamics,
   /* following functions should not be called from external
    * we currently expose them for debugging purpose

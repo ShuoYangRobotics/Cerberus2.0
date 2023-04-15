@@ -11,8 +11,6 @@
 #pragma once
 
 #include <cv_bridge/cv_bridge.h>
-#include <eigen3/Eigen/Dense>
-#include <fstream>
 #include <geometry_msgs/PointStamped.h>
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
@@ -26,6 +24,8 @@
 #include <std_msgs/Header.h>
 #include <tf/transform_broadcaster.h>
 #include <visualization_msgs/Marker.h>
+#include <eigen3/Eigen/Dense>
+#include <fstream>
 
 #include "utils/CameraPoseVisualization.h"
 #include "utils/parameters.hpp"
@@ -42,12 +42,12 @@ extern int IMAGE_ROW, IMAGE_COL;
 
 namespace Utils {
 
-void registerPub(ros::NodeHandle &n);
+void registerPub(ros::NodeHandle& n);
 
 // void pubLatestOdometry(const Eigen::Vector3d &P, const Eigen::Quaterniond &Q,
 // const Eigen::Vector3d &V, double t);
 
-void pubTrackImage(const cv::Mat &imgTrack, const double t);
+void pubTrackImage(const cv::Mat& imgTrack, const double t);
 
 // void printStatistics(const Estimator &estimator, double t);
 
@@ -72,4 +72,4 @@ void pubTrackImage(const cv::Mat &imgTrack, const double t);
 
 // void pubCar(const Estimator &estimator, const std_msgs::Header &header);
 
-} // namespace Utils
+}  // namespace Utils

@@ -5,7 +5,7 @@
 
 namespace SWE {
 enum MeasureType {
-  BODY_IMU, // might further decompose this into BODY_ACC and BODY_GYRO
+  BODY_IMU,  // might further decompose this into BODY_ACC and BODY_GYRO
   LEG,
   FOOT_IMU,
   FOOT_FORCE,
@@ -17,7 +17,7 @@ enum MeasureType {
 // https://stackoverflow.com/questions/19678011/c-multiple-type-array
 // time is the only common variable
 class Measurement {
-public:
+ public:
   Measurement() {}
   virtual MeasureType getType() = 0;
   virtual double getTime() = 0;
@@ -31,11 +31,10 @@ public:
 
 // measurement from the robot hardaware IMU or gazebo sim
 class BodyIMUMeasurement : public Measurement {
-public:
+ public:
   BodyIMUMeasurement() {}
 
-  BodyIMUMeasurement(double _t, Eigen::Vector3d _imu_acc,
-                     Eigen::Vector3d _imu_gyro) {
+  BodyIMUMeasurement(double _t, Eigen::Vector3d _imu_acc, Eigen::Vector3d _imu_gyro) {
     t = _t;
     imu_acc = _imu_acc;
     imu_gyro = _imu_gyro;
@@ -52,16 +51,14 @@ public:
   // for brevity we assume t1 < t < t2, caller should make sure this is true
   // return a smart pointer to a BodyIMUMeasurement so if no one is using it, it
   // will be deleted authomatically
-  static std::shared_ptr<BodyIMUMeasurement>
-  interpolate(std::shared_ptr<BodyIMUMeasurement> m1,
-              std::shared_ptr<BodyIMUMeasurement> m2, double t) {
+  static std::shared_ptr<BodyIMUMeasurement> interpolate(std::shared_ptr<BodyIMUMeasurement> m1, std::shared_ptr<BodyIMUMeasurement> m2,
+                                                         double t) {
     double t1 = m1->t;
     double t2 = m2->t;
     double alpha = (t - t1) / (t2 - t1);
     alpha = std::min(1.0, std::max(0.0, alpha));
     Eigen::Vector3d imu_acc = m1->imu_acc * (1 - alpha) + m2->imu_acc * alpha;
-    Eigen::Vector3d imu_gyro =
-        m1->imu_gyro * (1 - alpha) + m2->imu_gyro * alpha;
+    Eigen::Vector3d imu_gyro = m1->imu_gyro * (1 - alpha) + m2->imu_gyro * alpha;
     return std::make_shared<BodyIMUMeasurement>(t, imu_acc, imu_gyro);
   }
 
@@ -75,18 +72,16 @@ public:
 // measurement from the robot hardware joint encoders or gazebo sim
 // notice we do not assume each leg is individual
 class LegMeasurement : public Measurement {
-public:
+ public:
   LegMeasurement() {}
 
-  LegMeasurement(double _t, Eigen::Matrix<double, 12, 1> _joint_pos,
-                 Eigen::Matrix<double, 12, 1> _joint_vel) {
+  LegMeasurement(double _t, Eigen::Matrix<double, 12, 1> _joint_pos, Eigen::Matrix<double, 12, 1> _joint_vel) {
     t = _t;
     joint_pos = _joint_pos;
     joint_vel = _joint_vel;
   }
 
-  LegMeasurement(double _t, Eigen::Matrix<double, 12, 1> _joint_pos,
-                 Eigen::Matrix<double, 12, 1> _joint_vel,
+  LegMeasurement(double _t, Eigen::Matrix<double, 12, 1> _joint_pos, Eigen::Matrix<double, 12, 1> _joint_vel,
                  Eigen::Matrix<double, 12, 1> _joint_tau) {
     t = _t;
     joint_pos = _joint_pos;
@@ -103,19 +98,14 @@ public:
 
   // helper function, return a interpolated measurement between two measurements
   // for brevity we assume t1 < t < t2, caller should make sure this is true
-  static std::shared_ptr<LegMeasurement>
-  interpolate(std::shared_ptr<LegMeasurement> m1,
-              std::shared_ptr<LegMeasurement> m2, double t) {
+  static std::shared_ptr<LegMeasurement> interpolate(std::shared_ptr<LegMeasurement> m1, std::shared_ptr<LegMeasurement> m2, double t) {
     double t1 = m1->t;
     double t2 = m2->t;
     double alpha = (t - t1) / (t2 - t1);
     alpha = std::min(1.0, std::max(0.0, alpha));
-    Eigen::Matrix<double, 12, 1> joint_pos =
-        m1->joint_pos * (1 - alpha) + m2->joint_pos * alpha;
-    Eigen::Matrix<double, 12, 1> joint_vel =
-        m1->joint_vel * (1 - alpha) + m2->joint_vel * alpha;
-    Eigen::Matrix<double, 12, 1> joint_tau =
-        m1->joint_tau * (1 - alpha) + m2->joint_tau * alpha;
+    Eigen::Matrix<double, 12, 1> joint_pos = m1->joint_pos * (1 - alpha) + m2->joint_pos * alpha;
+    Eigen::Matrix<double, 12, 1> joint_vel = m1->joint_vel * (1 - alpha) + m2->joint_vel * alpha;
+    Eigen::Matrix<double, 12, 1> joint_tau = m1->joint_tau * (1 - alpha) + m2->joint_tau * alpha;
     return std::make_shared<LegMeasurement>(t, joint_pos, joint_vel, joint_tau);
   }
 
@@ -130,11 +120,10 @@ public:
 // measurement from the foot IMUs
 // notice we DO assume each leg is an individual IMU package
 class FootIMUMeasurement : public Measurement {
-public:
+ public:
   FootIMUMeasurement() {}
 
-  FootIMUMeasurement(double _t, Eigen::Vector3d _imu_acc,
-                     Eigen::Vector3d _imu_gyro, int _id) {
+  FootIMUMeasurement(double _t, Eigen::Vector3d _imu_acc, Eigen::Vector3d _imu_gyro, int _id) {
     t = _t;
     imu_acc = _imu_acc;
     imu_gyro = _imu_gyro;
@@ -150,16 +139,14 @@ public:
 
   // helper function, return a interpolated measurement between two measurements
   // for brevity we assume t1 < t < t2, caller should make sure this is true
-  static std::shared_ptr<FootIMUMeasurement>
-  interpolate(std::shared_ptr<FootIMUMeasurement> m1,
-              std::shared_ptr<FootIMUMeasurement> m2, double t) {
+  static std::shared_ptr<FootIMUMeasurement> interpolate(std::shared_ptr<FootIMUMeasurement> m1, std::shared_ptr<FootIMUMeasurement> m2,
+                                                         double t) {
     double t1 = m1->t;
     double t2 = m2->t;
     double alpha = (t - t1) / (t2 - t1);
     alpha = std::min(1.0, std::max(0.0, alpha));
     Eigen::Vector3d imu_acc = m1->imu_acc * (1 - alpha) + m2->imu_acc * alpha;
-    Eigen::Vector3d imu_gyro =
-        m1->imu_gyro * (1 - alpha) + m2->imu_gyro * alpha;
+    Eigen::Vector3d imu_gyro = m1->imu_gyro * (1 - alpha) + m2->imu_gyro * alpha;
     return std::make_shared<FootIMUMeasurement>(t, imu_acc, imu_gyro, m1->id);
   }
 
@@ -173,7 +160,7 @@ public:
 // measurement from the foot forces
 // notice we assume they  are individual
 class FootForceMeasurement : public Measurement {
-public:
+ public:
   FootForceMeasurement() {}
 
   FootForceMeasurement(double _t, Eigen::Vector3d _foot_force_xyz, int _id) {
@@ -187,15 +174,13 @@ public:
 
   // helper function, return a interpolated measurement between two measurements
   // for brevity we assume t1 < t < t2, caller should make sure this is true
-  static std::shared_ptr<FootForceMeasurement>
-  interpolate(std::shared_ptr<FootForceMeasurement> m1,
-              std::shared_ptr<FootForceMeasurement> m2, double t) {
+  static std::shared_ptr<FootForceMeasurement> interpolate(std::shared_ptr<FootForceMeasurement> m1,
+                                                           std::shared_ptr<FootForceMeasurement> m2, double t) {
     double t1 = m1->t;
     double t2 = m2->t;
     double alpha = (t - t1) / (t2 - t1);
     alpha = std::min(1.0, std::max(0.0, alpha));
-    Eigen::Vector3d foot_force_xyz =
-        m1->foot_force_xyz * (1 - alpha) + m2->foot_force_xyz * alpha;
+    Eigen::Vector3d foot_force_xyz = m1->foot_force_xyz * (1 - alpha) + m2->foot_force_xyz * alpha;
     return std::make_shared<FootForceMeasurement>(t, foot_force_xyz, m1->id);
   }
 
@@ -207,7 +192,7 @@ public:
 
 // measurement from the foot forces of all feet
 class FootForceALLMeasurement : public Measurement {
-public:
+ public:
   FootForceALLMeasurement() {}
 
   FootForceALLMeasurement(double _t, Eigen::Vector4d _foot_force) {
@@ -220,15 +205,13 @@ public:
 
   // helper function, return a interpolated measurement between two measurements
   // for brevity we assume t1 < t < t2, caller should make sure this is true
-  static std::shared_ptr<FootForceALLMeasurement>
-  interpolate(std::shared_ptr<FootForceALLMeasurement> m1,
-              std::shared_ptr<FootForceALLMeasurement> m2, double t) {
+  static std::shared_ptr<FootForceALLMeasurement> interpolate(std::shared_ptr<FootForceALLMeasurement> m1,
+                                                              std::shared_ptr<FootForceALLMeasurement> m2, double t) {
     double t1 = m1->t;
     double t2 = m2->t;
     double alpha = (t - t1) / (t2 - t1);
     alpha = std::min(1.0, std::max(0.0, alpha));
-    Eigen::Vector4d interp_force =
-        m1->foot_force_z * (1 - alpha) + m2->foot_force_z * alpha;
+    Eigen::Vector4d interp_force = m1->foot_force_z * (1 - alpha) + m2->foot_force_z * alpha;
     return std::make_shared<FootForceALLMeasurement>(t, interp_force);
   }
 
@@ -241,7 +224,7 @@ public:
 // direct pose measurement
 // notice we assume they
 class PoseMeasurement : public Measurement {
-public:
+ public:
   PoseMeasurement() {}
 
   PoseMeasurement(double _t, Eigen::Vector3d _pos, Eigen::Quaterniond _quat) {
@@ -262,9 +245,7 @@ public:
   // note that we need to interpolate the quaternion, we do so by get the lie
   // algebra of the differnce of the two quaternions and then interpolate the
   // lie algebra and then convert it back to quaternion
-  static std::shared_ptr<PoseMeasurement>
-  interpolate(std::shared_ptr<PoseMeasurement> m1,
-              std::shared_ptr<PoseMeasurement> m2, double t) {
+  static std::shared_ptr<PoseMeasurement> interpolate(std::shared_ptr<PoseMeasurement> m1, std::shared_ptr<PoseMeasurement> m2, double t) {
     double t1 = m1->t;
     double t2 = m2->t;
     double alpha = (t - t1) / (t2 - t1);
@@ -285,10 +266,8 @@ public:
 // are elements in the container, shall return true if a is considered to go
 // before b in the strict weak ordering the function defines.
 class MeasurementCompare {
-public:
-  bool operator()(std::shared_ptr<Measurement> a,
-                  std::shared_ptr<Measurement> b) {
-
+ public:
+  bool operator()(std::shared_ptr<Measurement> a, std::shared_ptr<Measurement> b) {
     if (a == nullptr || b == nullptr) {
       return false;
     }
@@ -300,4 +279,4 @@ public:
   }
 };
 
-} // namespace SWE
+}  // namespace SWE
