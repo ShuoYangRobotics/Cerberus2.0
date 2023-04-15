@@ -1,8 +1,8 @@
 #pragma once
+#include <ros/ros.h>
 #include <Eigen/Dense>
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/opencv.hpp>
-#include <ros/ros.h>
 #include <string>
 
 // robot constant
@@ -16,8 +16,8 @@
 // size and state order definitions
 
 enum SIZE_PARAMETERIZATION {
-  SIZE_POSE = 7,      // position, quaternion
-  SIZE_SPEEDBIAS = 9, // velocity, bias acc, bias gyr
+  SIZE_POSE = 7,       // position, quaternion
+  SIZE_SPEEDBIAS = 9,  // velocity, bias acc, bias gyr
   SIZE_FEATURE = 1
 };
 
@@ -49,10 +49,9 @@ extern std::string IMAGE1_TOPIC;
 // this variable means the estimator actually always estimates the state at the
 // current time - LAG_TIME. We do so to account for potential delays and sensor
 // information mistaches
-extern double LAG_TIME; // 100ms
+extern double LAG_TIME;  // 100ms
 
-extern double
-    FOOT_IMU_DELAY; // 23ms, this is estimated from analysing data in Matlab
+extern double FOOT_IMU_DELAY;  // 23ms, this is estimated from analysing data in Matlab
 
 /*
  * VINS Fusion parameters
@@ -71,8 +70,8 @@ extern int KF_TYPE;
 extern double ACC_N, ACC_N_Z, ACC_W;
 extern double GYR_N, GYR_W;
 
-extern std::vector<Eigen::Matrix3d> RIC; // num of cam, imu to camera rotation
-extern std::vector<Eigen::Vector3d> TIC; // num of cam, imu to camera position
+extern std::vector<Eigen::Matrix3d> RIC;  // num of cam, imu to camera rotation
+extern std::vector<Eigen::Vector3d> TIC;  // num of cam, imu to camera position
 extern Eigen::Vector3d G;
 
 extern double BIAS_ACC_THRESHOLD;
@@ -102,17 +101,17 @@ extern int FLOW_BACK;
 
 namespace Utils {
 
-void readParametersROS(ros::NodeHandle &nh_);
+void readParametersROS(ros::NodeHandle& nh_);
 void readParametersFile(std::string config_file);
 
 static std::string GetCurrentTimeForFileName() {
   auto time = std::time(nullptr);
   std::stringstream ss;
   ss << std::put_time(std::localtime(&time),
-                      "%F_%T"); // ISO 8601 without timezone information.
+                      "%F_%T");  // ISO 8601 without timezone information.
   auto s = ss.str();
   std::replace(s.begin(), s.end(), ':', '-');
   return s;
 }
 
-} // namespace Utils
+}  // namespace Utils

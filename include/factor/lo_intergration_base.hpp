@@ -6,11 +6,12 @@
 #define LO_NOISE_SIZE 6
 
 class LOIntegrationBase {
-public:
+ public:
   LOIntegrationBase() = delete;
 
-  LOIntegrationBase(const Eigen::Vector3d &_vel_0) {
+  LOIntegrationBase(const Eigen::Vector3d& _vel_0, const Eigen::Matrix3d& _cov_0) {
     vel_0 = _vel_0;
+    cov_0 = _cov_0;
     sum_dt = 0.0;
     delta_p.setZero();
     jacobian.setIdentity();
@@ -18,27 +19,30 @@ public:
 
     // set noise
     noise.setZero();
-    noise(0, 0) = 0.01;
-    noise(1, 1) = 0.01;
-    noise(2, 2) = 0.1;
+    noise.block<3, 3>(0, 0) = _cov_0;
     noise(3, 3) = 0.01;
     noise(4, 4) = 0.01;
     noise(5, 5) = 0.1;
   }
 
-  void push_back(double dt, const Eigen::Vector3d &vel) {
+  void push_back(double dt, const Eigen::Vector3d& vel, const Eigen::Matrix3d& cov) {
     dt_buf.push_back(dt);
     vel_buf.push_back(vel);
 
-    propagate(dt, vel);
+    propagate(dt, vel, cov);
   }
 
   // do not need to repropagate if no velocity bias is involved
 
-  void propagate(double _dt, const Eigen::Vector3d &_vel_1) {
+  void propagate(double _dt, const Eigen::Vector3d& _vel_1, const Eigen::Matrix3d& _cov_1) {
     dt = _dt;
     vel_1 = _vel_1;
+    cov_1 = _cov_1;
     Vector3d result_delta_p;
+
+    noise.setZero();
+    noise.block<3, 3>(0, 0) = cov_0;
+    noise.block<3, 3>(3, 3) = cov_1;
 
     midPointIntegration(dt, vel_0, vel_1, delta_p, result_delta_p, true);
 
@@ -46,21 +50,17 @@ public:
 
     sum_dt += dt;
     vel_0 = vel_1;
+    cov_0 = cov_1;
   }
 
-  Eigen::Matrix<double, LO_RESIDUAL_SIZE, 1>
-  evaluate(const Eigen::Vector3d &Pi, const Eigen::Vector3d &Pj) {
+  Eigen::Matrix<double, LO_RESIDUAL_SIZE, 1> evaluate(const Eigen::Vector3d& Pi, const Eigen::Vector3d& Pj) {
     Eigen::Matrix<double, LO_RESIDUAL_SIZE, 1> residuals;
     residuals = Pj - (Pi + delta_p);
     return residuals;
   }
 
-  void midPointIntegration(double _dt, const Eigen::Vector3d &_vel_0,
-                           const Eigen::Vector3d &_vel_1,
-                           const Eigen::Vector3d &delta_p,
-                           Eigen::Vector3d &result_delta_p,
-                           bool update_jacobian) {
-
+  void midPointIntegration(double _dt, const Eigen::Vector3d& _vel_0, const Eigen::Vector3d& _vel_1, const Eigen::Vector3d& delta_p,
+                           Eigen::Vector3d& result_delta_p, bool update_jacobian) {
     Vector3d average_vel = 0.5 * (_vel_0 + _vel_1);
     result_delta_p = delta_p + average_vel * _dt;
 
@@ -78,16 +78,16 @@ public:
   }
 
   double sum_dt;
-  Eigen::Vector3d delta_p; // integration of lo velocity
-  Eigen::Matrix<double, LO_RESIDUAL_SIZE, LO_RESIDUAL_SIZE> jacobian,
-      covariance;
+  Eigen::Vector3d delta_p;  // integration of lo velocity
+  Eigen::Matrix<double, LO_RESIDUAL_SIZE, LO_RESIDUAL_SIZE> jacobian, covariance;
 
-private:
+ private:
   double dt;
   Eigen::Vector3d vel_0, vel_1;
+  Eigen::Matrix3d cov_0, cov_1;
 
   std::vector<double> dt_buf;
   std::vector<Eigen::Vector3d> vel_buf;
 
-  Eigen::Matrix<double, LO_NOISE_SIZE, LO_NOISE_SIZE> noise; // vel0 and vel1
+  Eigen::Matrix<double, LO_NOISE_SIZE, LO_NOISE_SIZE> noise;  // vel0 and vel1
 };

@@ -12,7 +12,7 @@
 // Neumaier's algorithm to calculate the moving window average,
 // which is numerically stable.
 class MovingWindowFilter {
-public:
+ public:
   MovingWindowFilter() {}
 
   MovingWindowFilter(int window_size) : window_size_(window_size) {
@@ -39,7 +39,7 @@ public:
 
   std::deque<double> GetValueQueue() { return value_deque_; }
 
-private:
+ private:
   int window_size_;
   double sum_, correction_;
   std::deque<double> value_deque_;

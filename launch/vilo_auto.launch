@@ -6,15 +6,17 @@
 
     <arg name="node_start_delay" default="2.0" />
 
+    <arg name="dataset_name" default="20230215_lab_short" />
+    <arg name="dataset_duration" default="45.0" />
 
     <node pkg="rosbag" type="play" name="player" required="true"
         launch-prefix="zsh -c 'sleep $(arg node_start_delay); $0 $@' "
-        args="--clock --hz=2000 -u 197 $(find cerberus2)/bags/legged_robots/20230304_wightman_park_flying_trot_right_loop.bag" />
+        args="--clock --hz=2000 -u $(arg dataset_duration) $(find cerberus2)/bags/legged_robots/$(arg dataset_name).bag" />
 
 
     <!-- cerberus2 config -->
     <arg name="vilo_config_file"
-        value="$(find cerberus2)/config/go1_config/hardware_go1_vilo_config.yaml" />
+        value="/tmp/temp_run.yaml" />
 
 
     <node name="cerberus2_main" pkg="cerberus2"

@@ -34,14 +34,10 @@ torch::Tensor euler_to_quat(const torch::Tensor euler) {
   auto sin_half_roll = torch::sin(roll);
 
   torch::Tensor quat = torch::zeros({4});
-  quat[0] = cos_half_roll * cos_half_pitch * cos_half_yaw +
-            sin_half_roll * sin_half_pitch * sin_half_yaw;
-  quat[1] = sin_half_roll * cos_half_pitch * cos_half_yaw -
-            cos_half_roll * sin_half_pitch * sin_half_yaw;
-  quat[2] = cos_half_roll * sin_half_pitch * cos_half_yaw +
-            sin_half_roll * cos_half_pitch * sin_half_yaw;
-  quat[3] = cos_half_roll * cos_half_pitch * sin_half_yaw -
-            sin_half_roll * sin_half_pitch * cos_half_yaw;
+  quat[0] = cos_half_roll * cos_half_pitch * cos_half_yaw + sin_half_roll * sin_half_pitch * sin_half_yaw;
+  quat[1] = sin_half_roll * cos_half_pitch * cos_half_yaw - cos_half_roll * sin_half_pitch * sin_half_yaw;
+  quat[2] = cos_half_roll * sin_half_pitch * cos_half_yaw + sin_half_roll * cos_half_pitch * sin_half_yaw;
+  quat[3] = cos_half_roll * cos_half_pitch * sin_half_yaw - sin_half_roll * sin_half_pitch * cos_half_yaw;
 
   return quat;
 }
@@ -129,11 +125,8 @@ torch::Tensor mtx_w_to_euler_dot(const torch::Tensor euler) {
   return mtx;
 }
 
-torch::Tensor dyn_rk4(
-    const torch::Tensor &xn, const torch::Tensor &un, const torch::Tensor &un1,
-    double dt,
-    std::function<torch::Tensor(const torch::Tensor &, const torch::Tensor &)>
-        dynfunc) {
+torch::Tensor dyn_rk4(const torch::Tensor& xn, const torch::Tensor& un, const torch::Tensor& un1, double dt,
+                      std::function<torch::Tensor(const torch::Tensor&, const torch::Tensor&)> dynfunc) {
   torch::Tensor k1 = dynfunc(xn, un);
   torch::Tensor k2 = dynfunc(xn + dt * k1 / 2, (un + un1) / 2);
   torch::Tensor k3 = dynfunc(xn + dt * k2 / 2, (un + un1) / 2);
@@ -143,4 +136,4 @@ torch::Tensor dyn_rk4(
   return xn1;
 }
 
-} // namespace legged
+}  // namespace legged

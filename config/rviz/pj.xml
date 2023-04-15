@@ -1,66 +1,57 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <root>
- <tabbed_widget name="Main Window" parent="main_window">
-  <Tab tab_name="tab1" containers="1">
+ <tabbed_widget parent="main_window" name="Main Window">
+  <Tab containers="1" tab_name="tab1">
    <Container>
-    <DockSplitter orientation="-" sizes="0.333333;0.339869;0.326797" count="3">
-     <DockSplitter orientation="|" sizes="0.5;0.5" count="2">
+    <DockSplitter orientation="-" sizes="0.332606;0.34133;0.326063" count="3">
+     <DockSplitter orientation="|" sizes="0.500652;0.499348" count="2">
       <DockArea name="...">
-       <plot flip_y="false" style="Lines" mode="TimeSeries" flip_x="false">
-        <range right="-32.345468" bottom="2.816670" top="2.848319" left="-36.522448"/>
+       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
+        <range left="-1465676.163759" top="176.224655" bottom="-7171.448496" right="-1465671.163984"/>
         <limitY/>
-        <curve name="/mocap_node/Go1_body/pose/pose/position/x" color="#1f77b4"/>
-        <curve name="/mipo/estimate_pose/pose/pose/position/x" color="#ff7f0e"/>
-        <curve name="/vilo/estimate_pose/pose/pose/position/x" color="#17becf"/>
+        <curve color="#17becf" name="/vilo/estimate_pose/pose/pose/position/x"/>
+        <curve color="#1f77b4" name="/mipo/estimate_pose/pose/pose/position/x"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_y="false" style="Lines" mode="TimeSeries" flip_x="false">
-        <range right="-32.345468" bottom="-0.281154" top="3.569104" left="-36.522448"/>
+       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
+        <range left="-1465676.163759" top="-0.114845" bottom="-52.566981" right="-1465671.163984"/>
         <limitY/>
-        <curve name="/mipo/estimate_pose/pose/pose/orientation/pitch_deg" color="#d62728"/>
-        <curve name="/mocap_node/Go1_body/pose/pose/orientation/pitch_deg" color="#f14cc1"/>
-        <curve name="/vilo/estimate_pose/pose/pose/orientation/pitch_deg" color="#bcbd22"/>
+        <curve color="#bcbd22" name="/vilo/estimate_pose/pose/pose/orientation/pitch_deg"/>
        </plot>
       </DockArea>
      </DockSplitter>
-     <DockSplitter orientation="|" sizes="0.5;0.5" count="2">
+     <DockSplitter orientation="|" sizes="0.500652;0.499348" count="2">
       <DockArea name="...">
-       <plot flip_y="false" style="Lines" mode="TimeSeries" flip_x="false">
-        <range right="-32.345468" bottom="-0.482532" top="-0.462577" left="-36.522448"/>
+       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
+        <range left="-1465676.163759" top="90.577430" bottom="-3692.975791" right="-1465671.163984"/>
         <limitY/>
-        <curve name="/mocap_node/Go1_body/pose/pose/position/y" color="#d62728"/>
-        <curve name="/mipo/estimate_pose/pose/pose/position/y" color="#f14cc1"/>
-        <curve name="/vilo/estimate_pose/pose/pose/position/y" color="#bcbd22"/>
+        <curve color="#bcbd22" name="/vilo/estimate_pose/pose/pose/position/y"/>
+        <curve color="#d62728" name="/mipo/estimate_pose/pose/pose/position/y"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_y="false" style="Lines" mode="TimeSeries" flip_x="false">
-        <range right="-32.345468" bottom="-0.148001" top="1.120285" left="-36.522448"/>
+       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
+        <range left="-1465676.163759" top="138.355349" bottom="-2.569300" right="-1465671.163984"/>
         <limitY/>
-        <curve name="/mipo/estimate_pose/pose/pose/orientation/roll_deg" color="#1ac938"/>
-        <curve name="/mocap_node/Go1_body/pose/pose/orientation/roll_deg" color="#9467bd"/>
-        <curve name="/vilo/estimate_pose/pose/pose/orientation/roll_deg" color="#1f77b4"/>
+        <curve color="#1f77b4" name="/vilo/estimate_pose/pose/pose/orientation/roll_deg"/>
        </plot>
       </DockArea>
      </DockSplitter>
-     <DockSplitter orientation="|" sizes="0.5;0.5" count="2">
+     <DockSplitter orientation="|" sizes="0.500652;0.499348" count="2">
       <DockArea name="...">
-       <plot flip_y="false" style="Lines" mode="TimeSeries" flip_x="false">
-        <range right="-32.345468" bottom="0.139934" top="0.352337" left="-36.522448"/>
+       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
+        <range left="-1465676.163759" top="173.835578" bottom="-7113.860801" right="-1465671.163984"/>
         <limitY/>
-        <curve name="/mocap_node/Go1_body/pose/pose/position/z" color="#1ac938"/>
-        <curve name="/mipo/estimate_pose/pose/pose/position/z" color="#9467bd"/>
-        <curve name="/vilo/estimate_pose/pose/pose/position/z" color="#1f77b4"/>
+        <curve color="#1f77b4" name="/vilo/estimate_pose/pose/pose/position/z"/>
+        <curve color="#1ac938" name="/mipo/estimate_pose/pose/pose/position/z"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_y="false" style="Lines" mode="TimeSeries" flip_x="false">
-        <range right="-32.345468" bottom="-0.100000" top="0.100000" left="-36.522448"/>
+       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
+        <range left="-1465676.163759" top="4458.745574" bottom="4301.431483" right="-1465671.163984"/>
         <limitY/>
-        <curve name="/mipo/estimate_pose/pose/pose/orientation/yaw_deg" color="#ff7f0e"/>
-        <curve name="/mocap_node/Go1_body/pose/pose/orientation/yaw_deg" color="#17becf"/>
-        <curve name="/vilo/estimate_pose/pose/pose/orientation/yaw_deg" color="#d62728"/>
+        <curve color="#d62728" name="/vilo/estimate_pose/pose/pose/orientation/yaw_deg"/>
        </plot>
       </DockArea>
      </DockSplitter>
@@ -74,7 +65,7 @@
  <!-- - - - - - - - - - - - - - - -->
  <Plugins>
   <plugin ID="DataLoad CSV">
-   <default time_axis="" delimiter="0"/>
+   <default delimiter="0" time_axis=""/>
   </plugin>
   <plugin ID="DataLoad MCAP"/>
   <plugin ID="DataLoad ROS bags">
@@ -107,6 +98,7 @@
  </Plugins>
  <!-- - - - - - - - - - - - - - - -->
  <previouslyLoaded_Datafiles/>
+ <previouslyLoaded_Streamer name="ROS Topic Subscriber"/>
  <!-- - - - - - - - - - - - - - - -->
  <customMathEquations/>
  <snippets/>

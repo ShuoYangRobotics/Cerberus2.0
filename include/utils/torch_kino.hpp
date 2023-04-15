@@ -19,10 +19,7 @@ torch::Tensor euler_to_rot(const torch::Tensor euler);
 
 torch::Tensor mtx_w_to_euler_dot(const torch::Tensor euler);
 
-torch::Tensor dyn_rk4(
-    const torch::Tensor &xn, const torch::Tensor &un, const torch::Tensor &un1,
-    double dt,
-    std::function<torch::Tensor(const torch::Tensor &, const torch::Tensor &)>
-        dynfunc);
+torch::Tensor dyn_rk4(const torch::Tensor& xn, const torch::Tensor& un, const torch::Tensor& un1, double dt,
+                      std::function<torch::Tensor(const torch::Tensor&, const torch::Tensor&)> dynfunc);
 
-} // namespace legged
+}  // namespace legged

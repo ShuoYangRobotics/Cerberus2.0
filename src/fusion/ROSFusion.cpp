@@ -11,16 +11,11 @@ ROSFusion::ROSFusion(ros::NodeHandle nh) {
 
   // initialize callback functions
   imu_sub_ = nh_.subscribe(IMU_TOPIC, 1000, &ROSFusion::imuCallback, this);
-  joint_foot_sub_ =
-      nh_.subscribe(LEG_TOPIC, 1000, &ROSFusion::jointFootCallback, this);
-  fl_imu_sub_ =
-      nh_.subscribe(FL_IMU_TOPIC, 1000, &ROSFusion::flImuCallback, this);
-  fr_imu_sub_ =
-      nh_.subscribe(FR_IMU_TOPIC, 1000, &ROSFusion::frImuCallback, this);
-  rl_imu_sub_ =
-      nh_.subscribe(RL_IMU_TOPIC, 1000, &ROSFusion::rlImuCallback, this);
-  rr_imu_sub_ =
-      nh_.subscribe(RR_IMU_TOPIC, 1000, &ROSFusion::rrImuCallback, this);
+  joint_foot_sub_ = nh_.subscribe(LEG_TOPIC, 1000, &ROSFusion::jointFootCallback, this);
+  fl_imu_sub_ = nh_.subscribe(FL_IMU_TOPIC, 1000, &ROSFusion::flImuCallback, this);
+  fr_imu_sub_ = nh_.subscribe(FR_IMU_TOPIC, 1000, &ROSFusion::frImuCallback, this);
+  rl_imu_sub_ = nh_.subscribe(RL_IMU_TOPIC, 1000, &ROSFusion::rlImuCallback, this);
+  rr_imu_sub_ = nh_.subscribe(RR_IMU_TOPIC, 1000, &ROSFusion::rrImuCallback, this);
   gt_sub_ = nh_.subscribe(GT_TOPIC, 1000, &ROSFusion::gtCallback, this);
 
   // initialize queues and specify their main types
@@ -33,8 +28,7 @@ ROSFusion::ROSFusion(ros::NodeHandle nh) {
   mq_gt_ = SWE::MeasureQueue(SWE::MeasureType::DIRECT_POSE);
 
   // initialize publishers
-  pose_pub_ = nh_.advertise<geometry_msgs::PoseWithCovarianceStamped>(
-      "/mipo/estimate_pose", 1000);
+  pose_pub_ = nh_.advertise<geometry_msgs::PoseWithCovarianceStamped>("/mipo/estimate_pose", 1000);
 
   // initialize the filter
   for (int i = 0; i < 3; i++) {
@@ -64,8 +58,7 @@ void ROSFusion::readParameters() {
 
   // read parameters from ros server
   nh_.param<std::string>("IMU_TOPIC", IMU_TOPIC, "/unitree_hardware/imu");
-  nh_.param<std::string>("LEG_TOPIC", LEG_TOPIC,
-                         "/unitree_hardware/joint_foot");
+  nh_.param<std::string>("LEG_TOPIC", LEG_TOPIC, "/unitree_hardware/joint_foot");
   nh_.param<std::string>("FL_IMU_TOPIC", FL_IMU_TOPIC, "/WT901_49_Data");
   nh_.param<std::string>("FR_IMU_TOPIC", FR_IMU_TOPIC, "/WT901_48_Data");
   nh_.param<std::string>("RL_IMU_TOPIC", RL_IMU_TOPIC, "/WT901_50_Data");
@@ -78,7 +71,7 @@ void ROSFusion::readParameters() {
 // but we also calculate the loop time using chrono so we know how long the EKF
 // update takes
 void ROSFusion::loop() {
-  const double LOOP_DT = 5.0; // 5ms
+  const double LOOP_DT = 5.0;  // 5ms
   prev_loop_time = ros::Time::now().toSec();
   prev_esti_time = ros::Time::now().toSec();
 
@@ -87,8 +80,8 @@ void ROSFusion::loop() {
 
   // initialize the estimator
   MIPOEstimator mipo_estimator;
-  Eigen::Matrix<double, MS_SIZE, 1> x;       // state
-  Eigen::Matrix<double, MS_SIZE, MS_SIZE> P; // covariance
+  Eigen::Matrix<double, MS_SIZE, 1> x;        // state
+  Eigen::Matrix<double, MS_SIZE, MS_SIZE> P;  // covariance
 
   while (1) {
     /* record start time */
@@ -125,24 +118,16 @@ void ROSFusion::loop() {
       }
       prev_esti_time = curr_esti_time;
 
-      std::cout << "queue_time_end t: " << std::setprecision(15)
-                << queue_time_end << std::endl;
-      std::cout << "curr_esti_time t: " << std::setprecision(15)
-                << curr_esti_time << std::endl;
+      std::cout << "queue_time_end t: " << std::setprecision(15) << queue_time_end << std::endl;
+      std::cout << "curr_esti_time t: " << std::setprecision(15) << curr_esti_time << std::endl;
       // now curr_esti_time must within the range of all the queues
       // we can use it to do interpolation
-      std::shared_ptr<SWE::Measurement> imu_meas =
-          mq_imu_.interpolate(curr_esti_time);
-      std::shared_ptr<SWE::Measurement> joint_meas =
-          mq_joint_foot_.interpolate(curr_esti_time);
-      std::shared_ptr<SWE::Measurement> fl_imu_meas =
-          mq_fl_imu_.interpolate(curr_esti_time);
-      std::shared_ptr<SWE::Measurement> fr_imu_meas =
-          mq_fr_imu_.interpolate(curr_esti_time);
-      std::shared_ptr<SWE::Measurement> rl_imu_meas =
-          mq_rl_imu_.interpolate(curr_esti_time);
-      std::shared_ptr<SWE::Measurement> rr_imu_meas =
-          mq_rr_imu_.interpolate(curr_esti_time);
+      std::shared_ptr<SWE::Measurement> imu_meas = mq_imu_.interpolate(curr_esti_time);
+      std::shared_ptr<SWE::Measurement> joint_meas = mq_joint_foot_.interpolate(curr_esti_time);
+      std::shared_ptr<SWE::Measurement> fl_imu_meas = mq_fl_imu_.interpolate(curr_esti_time);
+      std::shared_ptr<SWE::Measurement> fr_imu_meas = mq_fr_imu_.interpolate(curr_esti_time);
+      std::shared_ptr<SWE::Measurement> rl_imu_meas = mq_rl_imu_.interpolate(curr_esti_time);
+      std::shared_ptr<SWE::Measurement> rr_imu_meas = mq_rr_imu_.interpolate(curr_esti_time);
 
       // timing of ground truth is not very critical we just use the latest
       std::shared_ptr<SWE::Measurement> gt_meas = mq_gt_.top();
@@ -160,8 +145,7 @@ void ROSFusion::loop() {
       Eigen::VectorXd rr_imu_data = rr_imu_meas->getVector();
       Eigen::VectorXd gt_data = latest_gt_meas->getVector();
       Eigen::VectorXd gt_quat_vec = gt_data.segment<4>(3);
-      Eigen::Quaterniond gt_quat(gt_quat_vec(0), gt_quat_vec(1), gt_quat_vec(2),
-                                 gt_quat_vec(3));
+      Eigen::Quaterniond gt_quat(gt_quat_vec(0), gt_quat_vec(1), gt_quat_vec(2), gt_quat_vec(3));
       Eigen::Vector3d gt_euler = legged::quat_to_euler<double>(gt_quat);
       // print out the data to see if they are correct
       // std::cout << "imu_data: " << imu_data.transpose() << std::endl;
@@ -174,10 +158,9 @@ void ROSFusion::loop() {
 
       std::cout << "stage 2" << std::endl;
       Eigen::Matrix<double, 55, 1> sensor_data;
-      sensor_data.segment<3>(0) = imu_data.segment<3>(3); // gyro
-      sensor_data.segment<3>(3) =
-          imu_data.segment<3>(0); // acc, notice the order defined in
-                                  // MIPOEstimatorSensorData::loadFromVec
+      sensor_data.segment<3>(0) = imu_data.segment<3>(3);  // gyro
+      sensor_data.segment<3>(3) = imu_data.segment<3>(0);  // acc, notice the order defined in
+                                                           // MIPOEstimatorSensorData::loadFromVec
       sensor_data.segment<12>(6) = joint_data.segment<12>(0);
       sensor_data.segment<12>(18) = joint_data.segment<12>(12);
       sensor_data.segment<3>(30) = fl_imu_data.segment<3>(0);
@@ -213,8 +196,7 @@ void ROSFusion::loop() {
         // do estimation
         Eigen::Matrix<double, MS_SIZE, 1> x_k1_est;
         Eigen::Matrix<double, MS_SIZE, MS_SIZE> P_k1_est;
-        mipo_estimator.ekfUpdate(x, P, *prev_data, *curr_data, dt_ros, x_k1_est,
-                                 P_k1_est);
+        mipo_estimator.ekfUpdate(x, P, *prev_data, *curr_data, dt_ros, x_k1_est, P_k1_est);
 
         x = x_k1_est;
         // std::cout << "x: " << x.transpose() << std::endl;
@@ -239,8 +221,7 @@ void ROSFusion::loop() {
 
     /* record end time */
     auto loop_end = std::chrono::system_clock::now();
-    auto loop_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(
-        loop_end - loop_start);
+    auto loop_elapsed = std::chrono::duration_cast<std::chrono::microseconds>(loop_end - loop_start);
     std::cout << "EKF solve time: " << loop_elapsed.count() << std::endl;
 
     auto ros_loop_end = ros::Time::now().toSec();
@@ -267,12 +248,8 @@ void ROSFusion::loop() {
 
 //
 bool ROSFusion::isDataAvailable() {
-  if (mq_imu_.size() > MIN_PO_QUEUE_SIZE &&
-      mq_joint_foot_.size() > MIN_PO_QUEUE_SIZE &&
-      mq_fl_imu_.size() > MIN_PO_QUEUE_SIZE &&
-      mq_fr_imu_.size() > MIN_PO_QUEUE_SIZE &&
-      mq_rl_imu_.size() > MIN_PO_QUEUE_SIZE &&
-      mq_rr_imu_.size() > MIN_PO_QUEUE_SIZE &&
+  if (mq_imu_.size() > MIN_PO_QUEUE_SIZE && mq_joint_foot_.size() > MIN_PO_QUEUE_SIZE && mq_fl_imu_.size() > MIN_PO_QUEUE_SIZE &&
+      mq_fr_imu_.size() > MIN_PO_QUEUE_SIZE && mq_rl_imu_.size() > MIN_PO_QUEUE_SIZE && mq_rr_imu_.size() > MIN_PO_QUEUE_SIZE &&
       mq_gt_.size() > MIN_PO_QUEUE_SIZE) {
     return true;
   }
@@ -281,9 +258,8 @@ bool ROSFusion::isDataAvailable() {
 // this function compares all the latest time of all the queues and returns the
 // earliest one
 double ROSFusion::getMinLatestTime() {
-  if (mq_imu_.size() == 0 || mq_joint_foot_.size() == 0 ||
-      mq_fl_imu_.size() == 0 || mq_fr_imu_.size() == 0 ||
-      mq_rl_imu_.size() == 0 || mq_rr_imu_.size() == 0) {
+  if (mq_imu_.size() == 0 || mq_joint_foot_.size() == 0 || mq_fl_imu_.size() == 0 || mq_fr_imu_.size() == 0 || mq_rl_imu_.size() == 0 ||
+      mq_rr_imu_.size() == 0) {
     return prev_esti_time;
   }
   double t_imu = mq_imu_.latestTime();
@@ -311,9 +287,8 @@ double ROSFusion::getMinLatestTime() {
 }
 
 double ROSFusion::getMaxOldestTime() {
-  if (mq_imu_.size() == 0 || mq_joint_foot_.size() == 0 ||
-      mq_fl_imu_.size() == 0 || mq_fr_imu_.size() == 0 ||
-      mq_rl_imu_.size() == 0 || mq_rr_imu_.size() == 0) {
+  if (mq_imu_.size() == 0 || mq_joint_foot_.size() == 0 || mq_fl_imu_.size() == 0 || mq_fr_imu_.size() == 0 || mq_rl_imu_.size() == 0 ||
+      mq_rr_imu_.size() == 0) {
     return prev_esti_time;
   }
   double t_imu = mq_imu_.oldestTime();
@@ -340,9 +315,7 @@ double ROSFusion::getMaxOldestTime() {
   return t;
 }
 
-void ROSFusion::publishEstimationResult(
-    Eigen::Matrix<double, MS_SIZE, 1> &x,
-    Eigen::Matrix<double, MS_SIZE, MS_SIZE> &P, double cur_time) {
+void ROSFusion::publishEstimationResult(Eigen::Matrix<double, MS_SIZE, 1>& x, Eigen::Matrix<double, MS_SIZE, MS_SIZE>& P, double cur_time) {
   // extract position from the first 3 elements of x
   Eigen::Vector3d pos = x.segment<3>(0);
   // extract position uncertainty from the first 3 elements of P
@@ -389,15 +362,11 @@ void ROSFusion::publishEstimationResult(
 }
 
 // callback functions
-void ROSFusion::imuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
+void ROSFusion::imuCallback(const sensor_msgs::Imu::ConstPtr& msg) {
   double t = msg->header.stamp.toSec();
   // assemble sensor data
-  Eigen::Vector3d acc =
-      Eigen::Vector3d(msg->linear_acceleration.x, msg->linear_acceleration.y,
-                      msg->linear_acceleration.z);
-  Eigen::Vector3d ang_vel =
-      Eigen::Vector3d(msg->angular_velocity.x, msg->angular_velocity.y,
-                      msg->angular_velocity.z);
+  Eigen::Vector3d acc = Eigen::Vector3d(msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z);
+  Eigen::Vector3d ang_vel = Eigen::Vector3d(msg->angular_velocity.x, msg->angular_velocity.y, msg->angular_velocity.z);
 
   mtx.lock();
   mq_imu_.push(t, acc, ang_vel);
@@ -411,8 +380,7 @@ void ROSFusion::imuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
   return;
 }
 
-void ROSFusion::jointFootCallback(
-    const sensor_msgs::JointState::ConstPtr &msg) {
+void ROSFusion::jointFootCallback(const sensor_msgs::JointState::ConstPtr& msg) {
   double t = msg->header.stamp.toSec();
   Eigen::Matrix<double, 12, 1> joint_pos;
   Eigen::Matrix<double, 12, 1> joint_vel;
@@ -433,17 +401,15 @@ void ROSFusion::jointFootCallback(
   return;
 }
 
-void ROSFusion::flImuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
+void ROSFusion::flImuCallback(const sensor_msgs::Imu::ConstPtr& msg) {
   double t = msg->header.stamp.toSec() - FOOT_IMU_DELAY;
   // assemble sensor data
-  Eigen::Vector3d acc = Eigen::Vector3d(
-      fl_imu_acc_filter_[0].CalculateAverage(msg->linear_acceleration.x),
-      fl_imu_acc_filter_[1].CalculateAverage(msg->linear_acceleration.y),
-      fl_imu_acc_filter_[2].CalculateAverage(msg->linear_acceleration.z));
-  Eigen::Vector3d ang_vel = Eigen::Vector3d(
-      fl_imu_gyro_filter_[0].CalculateAverage(msg->angular_velocity.x),
-      fl_imu_gyro_filter_[1].CalculateAverage(msg->angular_velocity.y),
-      fl_imu_gyro_filter_[2].CalculateAverage(msg->angular_velocity.z));
+  Eigen::Vector3d acc = Eigen::Vector3d(fl_imu_acc_filter_[0].CalculateAverage(msg->linear_acceleration.x),
+                                        fl_imu_acc_filter_[1].CalculateAverage(msg->linear_acceleration.y),
+                                        fl_imu_acc_filter_[2].CalculateAverage(msg->linear_acceleration.z));
+  Eigen::Vector3d ang_vel = Eigen::Vector3d(fl_imu_gyro_filter_[0].CalculateAverage(msg->angular_velocity.x),
+                                            fl_imu_gyro_filter_[1].CalculateAverage(msg->angular_velocity.y),
+                                            fl_imu_gyro_filter_[2].CalculateAverage(msg->angular_velocity.z));
 
   mtx.lock();
   mq_fl_imu_.push(t, acc, ang_vel, 0);
@@ -456,17 +422,15 @@ void ROSFusion::flImuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
   return;
 }
 
-void ROSFusion::frImuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
+void ROSFusion::frImuCallback(const sensor_msgs::Imu::ConstPtr& msg) {
   double t = msg->header.stamp.toSec() - FOOT_IMU_DELAY;
   // assemble sensor data
-  Eigen::Vector3d acc = Eigen::Vector3d(
-      fr_imu_acc_filter_[0].CalculateAverage(msg->linear_acceleration.x),
-      fr_imu_acc_filter_[1].CalculateAverage(msg->linear_acceleration.y),
-      fr_imu_acc_filter_[2].CalculateAverage(msg->linear_acceleration.z));
-  Eigen::Vector3d ang_vel = Eigen::Vector3d(
-      fr_imu_gyro_filter_[0].CalculateAverage(msg->angular_velocity.x),
-      fr_imu_gyro_filter_[1].CalculateAverage(msg->angular_velocity.y),
-      fr_imu_gyro_filter_[2].CalculateAverage(msg->angular_velocity.z));
+  Eigen::Vector3d acc = Eigen::Vector3d(fr_imu_acc_filter_[0].CalculateAverage(msg->linear_acceleration.x),
+                                        fr_imu_acc_filter_[1].CalculateAverage(msg->linear_acceleration.y),
+                                        fr_imu_acc_filter_[2].CalculateAverage(msg->linear_acceleration.z));
+  Eigen::Vector3d ang_vel = Eigen::Vector3d(fr_imu_gyro_filter_[0].CalculateAverage(msg->angular_velocity.x),
+                                            fr_imu_gyro_filter_[1].CalculateAverage(msg->angular_velocity.y),
+                                            fr_imu_gyro_filter_[2].CalculateAverage(msg->angular_velocity.z));
 
   mtx.lock();
   mq_fr_imu_.push(t, acc, ang_vel, 1);
@@ -479,17 +443,15 @@ void ROSFusion::frImuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
   return;
 }
 
-void ROSFusion::rlImuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
+void ROSFusion::rlImuCallback(const sensor_msgs::Imu::ConstPtr& msg) {
   double t = msg->header.stamp.toSec() - FOOT_IMU_DELAY;
   // assemble sensor data
-  Eigen::Vector3d acc = Eigen::Vector3d(
-      rl_imu_acc_filter_[0].CalculateAverage(msg->linear_acceleration.x),
-      rl_imu_acc_filter_[1].CalculateAverage(msg->linear_acceleration.y),
-      rl_imu_acc_filter_[2].CalculateAverage(msg->linear_acceleration.z));
-  Eigen::Vector3d ang_vel = Eigen::Vector3d(
-      rl_imu_gyro_filter_[0].CalculateAverage(msg->angular_velocity.x),
-      rl_imu_gyro_filter_[1].CalculateAverage(msg->angular_velocity.y),
-      rl_imu_gyro_filter_[2].CalculateAverage(msg->angular_velocity.z));
+  Eigen::Vector3d acc = Eigen::Vector3d(rl_imu_acc_filter_[0].CalculateAverage(msg->linear_acceleration.x),
+                                        rl_imu_acc_filter_[1].CalculateAverage(msg->linear_acceleration.y),
+                                        rl_imu_acc_filter_[2].CalculateAverage(msg->linear_acceleration.z));
+  Eigen::Vector3d ang_vel = Eigen::Vector3d(rl_imu_gyro_filter_[0].CalculateAverage(msg->angular_velocity.x),
+                                            rl_imu_gyro_filter_[1].CalculateAverage(msg->angular_velocity.y),
+                                            rl_imu_gyro_filter_[2].CalculateAverage(msg->angular_velocity.z));
 
   mtx.lock();
   mq_rl_imu_.push(t, acc, ang_vel, 2);
@@ -502,17 +464,15 @@ void ROSFusion::rlImuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
   return;
 }
 
-void ROSFusion::rrImuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
+void ROSFusion::rrImuCallback(const sensor_msgs::Imu::ConstPtr& msg) {
   double t = msg->header.stamp.toSec() - FOOT_IMU_DELAY;
   // assemble sensor data
-  Eigen::Vector3d acc = Eigen::Vector3d(
-      rr_imu_acc_filter_[0].CalculateAverage(msg->linear_acceleration.x),
-      rr_imu_acc_filter_[1].CalculateAverage(msg->linear_acceleration.y),
-      rr_imu_acc_filter_[2].CalculateAverage(msg->linear_acceleration.z));
-  Eigen::Vector3d ang_vel = Eigen::Vector3d(
-      rr_imu_gyro_filter_[0].CalculateAverage(msg->angular_velocity.x),
-      rr_imu_gyro_filter_[1].CalculateAverage(msg->angular_velocity.y),
-      rr_imu_gyro_filter_[2].CalculateAverage(msg->angular_velocity.z));
+  Eigen::Vector3d acc = Eigen::Vector3d(rr_imu_acc_filter_[0].CalculateAverage(msg->linear_acceleration.x),
+                                        rr_imu_acc_filter_[1].CalculateAverage(msg->linear_acceleration.y),
+                                        rr_imu_acc_filter_[2].CalculateAverage(msg->linear_acceleration.z));
+  Eigen::Vector3d ang_vel = Eigen::Vector3d(rr_imu_gyro_filter_[0].CalculateAverage(msg->angular_velocity.x),
+                                            rr_imu_gyro_filter_[1].CalculateAverage(msg->angular_velocity.y),
+                                            rr_imu_gyro_filter_[2].CalculateAverage(msg->angular_velocity.z));
 
   mtx.lock();
   mq_rr_imu_.push(t, acc, ang_vel, 3);
@@ -526,13 +486,11 @@ void ROSFusion::rrImuCallback(const sensor_msgs::Imu::ConstPtr &msg) {
 }
 
 // also receive and record the ground truth for training/debuging purpose
-void ROSFusion::gtCallback(const geometry_msgs::PoseStamped::ConstPtr &msg) {
+void ROSFusion::gtCallback(const geometry_msgs::PoseStamped::ConstPtr& msg) {
   double t = msg->header.stamp.toSec();
   // get position and orientation
-  Eigen::Vector3d pos = Eigen::Vector3d(
-      msg->pose.position.x, msg->pose.position.y, msg->pose.position.z);
-  Eigen::Quaterniond q(msg->pose.orientation.w, msg->pose.orientation.x,
-                       msg->pose.orientation.y, msg->pose.orientation.z);
+  Eigen::Vector3d pos = Eigen::Vector3d(msg->pose.position.x, msg->pose.position.y, msg->pose.position.z);
+  Eigen::Quaterniond q(msg->pose.orientation.w, msg->pose.orientation.x, msg->pose.orientation.y, msg->pose.orientation.z);
 
   mq_gt_.push(t, pos, q);
   // limit the size of the message queue

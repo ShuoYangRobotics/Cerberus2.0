@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 
+#include "utils/POParams.hpp"
 /*
  * MIPO contains a differentiable EKF to estimate the robot state
  * The state is defined as
@@ -54,13 +55,18 @@
        - foot4 acc
        - hk
  */
-#define MS_SIZE 52    // state size
-#define MI_SIZE 19    // input size
-#define MY_SIZE 45    // measurement size NUM_LEG*MY_PER_LEG+1
-#define MZ_SIZE 40    // sensor data size
-#define NUM_LEG 4     // NUM of legs
-#define NUM_DOF 12    // NUM of leg motors
-#define MY_PER_LEG 11 // measurement size per leg
+#define MS_SIZE 52     // state size
+#define MI_SIZE 19     // input size
+#define MY_SIZE 45     // measurement size NUM_LEG*MY_PER_LEG+1
+#define MZ_SIZE 40     // sensor data size
+#define MY_PER_LEG 11  // measurement size per leg
+
+#ifndef NUM_LEG
+#define NUM_LEG 4
+#endif
+#ifndef NUM_DOF
+#define NUM_DOF 12
+#endif
 
 // a sensor data structure, all vectors are fixed size Eigen Vectors
 //[body IMU gyro (3), body IMU acc (3), joint angles
@@ -128,41 +134,8 @@ struct MIPOEstimatorSensorData {
   std::vector<Eigen::Matrix3d> R_fi_list;
 };
 
-struct MIPOParams {
-  double init_cov = 0.05;
-  double init_bias_cov = 1e-2;
-  double init_body_height = 0.3;
-
-  int data_start_idx = 200;
-
-  double proc_n_pos = 0.0005;
-  double proc_n_vel_xy = 0.005;
-  double proc_n_vel_z = 0.005;
-  double proc_n_ang = 1e-7;
-  double proc_n_foot_pos = 1e-4;
-  double proc_n_foot_vel = 2;
-  double proc_n_ba = 1e-4;
-  double proc_n_bg = 1e-5;
-  double proc_n_foot1_ba = 1e-4;
-  double proc_n_foot2_ba = 1e-4;
-  double proc_n_foot3_ba = 1e-4;
-  double proc_n_foot4_ba = 1e-4;
-
-  double ctrl_n_acc = 1e-1;
-  double ctrl_n_gyro = 1e-3;
-  double ctrl_n_foot1_acc = 1e-1;
-  double ctrl_n_foot2_acc = 1e-1;
-  double ctrl_n_foot3_acc = 1e-1;
-  double ctrl_n_foot4_acc = 1e-1;
-
-  double meas_n_fk_pos = 0.001;
-  double meas_n_fk_vel = 0.01;
-  double meas_n_foot_height = 0.001;
-  double meas_n_rolling_vel = 0.01;
-};
-
 class MIPOEstimator {
-public:
+ public:
   MIPOEstimator();
   ~MIPOEstimator();
 
@@ -181,63 +154,52 @@ public:
      6:17, 18:29, 30:32, 33:35, 36:38, 39:41, 42:44, 45:47, 48:50, 51:53 54]
 
    */
-  void ekfUpdate(const Eigen::Matrix<double, MS_SIZE, 1> &x_k,
-                 const Eigen::Matrix<double, MS_SIZE, MS_SIZE> &P_k,
-                 const MIPOEstimatorSensorData &sensor_data_k,
-                 const MIPOEstimatorSensorData &sensor_data_k1, const double dt,
+  void ekfUpdate(const Eigen::Matrix<double, MS_SIZE, 1>& x_k, const Eigen::Matrix<double, MS_SIZE, MS_SIZE>& P_k,
+                 const MIPOEstimatorSensorData& sensor_data_k, const MIPOEstimatorSensorData& sensor_data_k1, const double dt,
                  // output
-                 Eigen::Matrix<double, MS_SIZE, 1> &x_k1,
-                 Eigen::Matrix<double, MS_SIZE, MS_SIZE> &P_k1);
+                 Eigen::Matrix<double, MS_SIZE, 1>& x_k1, Eigen::Matrix<double, MS_SIZE, MS_SIZE>& P_k1);
 
   // given a sensor data k, initialize the state
-  Eigen::Matrix<double, MS_SIZE, 1>
-  ekfInitState(const MIPOEstimatorSensorData &sensor_data_k);
+  Eigen::Matrix<double, MS_SIZE, 1> ekfInitState(const MIPOEstimatorSensorData& sensor_data_k);
 
   /*
    * following interface functions are called by the external user
    */
   // input and output are Eigen Vector or Matrix
 
-  Eigen::Matrix<double, MS_SIZE, 1>
-  proc_func(const Eigen::Matrix<double, MS_SIZE, 1> x,
-            const Eigen::Matrix<double, MI_SIZE, 1> u, double dt);
+  Eigen::Matrix<double, MS_SIZE, 1> proc_func(const Eigen::Matrix<double, MS_SIZE, 1> x, const Eigen::Matrix<double, MI_SIZE, 1> u,
+                                              double dt);
 
-  Eigen::Matrix<double, MS_SIZE, 1>
-  proc_func(const Eigen::Matrix<double, MS_SIZE, 1> x,
-            const Eigen::Matrix<double, MI_SIZE, 1> u0,
-            const Eigen::Matrix<double, MI_SIZE, 1> u1, double dt);
+  Eigen::Matrix<double, MS_SIZE, 1> proc_func(const Eigen::Matrix<double, MS_SIZE, 1> x, const Eigen::Matrix<double, MI_SIZE, 1> u0,
+                                              const Eigen::Matrix<double, MI_SIZE, 1> u1, double dt);
 
-  Eigen::Matrix<double, MS_SIZE, MS_SIZE>
-  proc_func_x_jac(const Eigen::Matrix<double, MS_SIZE, 1> x,
-                  const Eigen::Matrix<double, MI_SIZE, 1> u, double dt);
-  Eigen::Matrix<double, MS_SIZE, MS_SIZE>
-  proc_func_x_jac(const Eigen::Matrix<double, MS_SIZE, 1> x,
-                  const Eigen::Matrix<double, MI_SIZE, 1> u0,
-                  const Eigen::Matrix<double, MI_SIZE, 1> u1, double dt);
+  Eigen::Matrix<double, MS_SIZE, MS_SIZE> proc_func_x_jac(const Eigen::Matrix<double, MS_SIZE, 1> x,
+                                                          const Eigen::Matrix<double, MI_SIZE, 1> u, double dt);
+  Eigen::Matrix<double, MS_SIZE, MS_SIZE> proc_func_x_jac(const Eigen::Matrix<double, MS_SIZE, 1> x,
+                                                          const Eigen::Matrix<double, MI_SIZE, 1> u0,
+                                                          const Eigen::Matrix<double, MI_SIZE, 1> u1, double dt);
 
-  Eigen::Matrix<double, MS_SIZE, MI_SIZE>
-  proc_func_u_jac(const Eigen::Matrix<double, MS_SIZE, 1> x,
-                  const Eigen::Matrix<double, MI_SIZE, 1> u, double dt);
-  Eigen::Matrix<double, MS_SIZE, MI_SIZE>
-  proc_func_u_jac(const Eigen::Matrix<double, MS_SIZE, 1> x,
-                  const Eigen::Matrix<double, MI_SIZE, 1> u0,
-                  const Eigen::Matrix<double, MI_SIZE, 1> u1, double dt);
+  Eigen::Matrix<double, MS_SIZE, MI_SIZE> proc_func_u_jac(const Eigen::Matrix<double, MS_SIZE, 1> x,
+                                                          const Eigen::Matrix<double, MI_SIZE, 1> u, double dt);
+  Eigen::Matrix<double, MS_SIZE, MI_SIZE> proc_func_u_jac(const Eigen::Matrix<double, MS_SIZE, 1> x,
+                                                          const Eigen::Matrix<double, MI_SIZE, 1> u0,
+                                                          const Eigen::Matrix<double, MI_SIZE, 1> u1, double dt);
 
   // interface functions to evaluate measurement functions numerically
-  Eigen::Matrix<double, MY_SIZE, 1>
-  meas_func(const Eigen::Matrix<double, MS_SIZE, 1> x,
-            const Eigen::Matrix<double, MZ_SIZE, 1> z);
+  Eigen::Matrix<double, MY_SIZE, 1> meas_func(const Eigen::Matrix<double, MS_SIZE, 1> x, const Eigen::Matrix<double, MZ_SIZE, 1> z);
 
-  Eigen::Matrix<double, MY_SIZE, MS_SIZE>
-  meas_func_jac(const Eigen::Matrix<double, MS_SIZE, 1> x,
-                const Eigen::Matrix<double, MZ_SIZE, 1> z);
+  Eigen::Matrix<double, MY_SIZE, MS_SIZE> meas_func_jac(const Eigen::Matrix<double, MS_SIZE, 1> x,
+                                                        const Eigen::Matrix<double, MZ_SIZE, 1> z);
 
-private:
+ private:
   bool is_initialized_;
 
   bool mipo_use_foot_ang_contact_model_;
 
   Eigen::Matrix<double, 5, NUM_LEG> rho_true_;
+
+  // new feature: auto tuning Q matrix
+  // https://towardsdatascience.com/tuning-q-matrix-for-cv-and-ca-models-in-kalman-filter-67084185d08c
 
   // internal symbolic variables and functions, save discrete dynamics,
   /* following functions should not be called from external
@@ -245,28 +207,22 @@ private:
    */
   // process dynamics - eigen/casadi
   template <typename SCALAR_T>
-  Eigen::Matrix<SCALAR_T, MS_SIZE, 1>
-  mipo_process_dyn_casadi(const Eigen::Matrix<SCALAR_T, MS_SIZE, 1> x,
-                          const Eigen::Matrix<SCALAR_T, MI_SIZE, 1> u);
+  Eigen::Matrix<SCALAR_T, MS_SIZE, 1> mipo_process_dyn_casadi(const Eigen::Matrix<SCALAR_T, MS_SIZE, 1> x,
+                                                              const Eigen::Matrix<SCALAR_T, MI_SIZE, 1> u);
 
   // discrete process dynamics - eigen/casadi
-  Eigen::Matrix<double, MS_SIZE, 1>
-  mipo_xk1_eigen(const Eigen::Matrix<double, MS_SIZE, 1> x,
-                 const Eigen::Matrix<double, MI_SIZE, 1> u0,
-                 const Eigen::Matrix<double, MI_SIZE, 1> u1, double dt);
+  Eigen::Matrix<double, MS_SIZE, 1> mipo_xk1_eigen(const Eigen::Matrix<double, MS_SIZE, 1> x, const Eigen::Matrix<double, MI_SIZE, 1> u0,
+                                                   const Eigen::Matrix<double, MI_SIZE, 1> u1, double dt);
 
-  Eigen::Matrix<casadi::SX, MS_SIZE, 1>
-  mipo_xk1_casadi(const Eigen::Matrix<casadi::SX, MS_SIZE, 1> x,
-                  const Eigen::Matrix<casadi::SX, MI_SIZE, 1> u0,
-                  const Eigen::Matrix<casadi::SX, MI_SIZE, 1> u1,
-                  casadi::SX dt);
+  Eigen::Matrix<casadi::SX, MS_SIZE, 1> mipo_xk1_casadi(const Eigen::Matrix<casadi::SX, MS_SIZE, 1> x,
+                                                        const Eigen::Matrix<casadi::SX, MI_SIZE, 1> u0,
+                                                        const Eigen::Matrix<casadi::SX, MI_SIZE, 1> u1, casadi::SX dt);
 
   // measurement functions - eigen/casadi
   template <typename SCALAR_T>
-  Eigen::Matrix<SCALAR_T, MY_SIZE, 1> mipo_measurement_casadi(
-      const Eigen::Matrix<SCALAR_T, MS_SIZE, 1> x,
-      const Eigen::Matrix<SCALAR_T, MZ_SIZE, 1> z,
-      const Eigen::Matrix<SCALAR_T, Eigen::Dynamic, NUM_LEG> param);
+  Eigen::Matrix<SCALAR_T, MY_SIZE, 1> mipo_measurement_casadi(const Eigen::Matrix<SCALAR_T, MS_SIZE, 1> x,
+                                                              const Eigen::Matrix<SCALAR_T, MZ_SIZE, 1> z,
+                                                              const Eigen::Matrix<SCALAR_T, Eigen::Dynamic, NUM_LEG> param);
 
   // measurement function and their jacobians as casadi::Function(s)
   // create four casadi functions for 1. process dynamics 2. measurement 3.
@@ -285,6 +241,6 @@ private:
   Eigen::DiagonalMatrix<double, MS_SIZE> Q1;
   Eigen::DiagonalMatrix<double, MI_SIZE> Q2;
   Eigen::DiagonalMatrix<double, MY_SIZE> R;
-  const MIPOParams param;
+  const POParams param;
   void mipo_init_noise();
 };

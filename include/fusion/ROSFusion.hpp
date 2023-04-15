@@ -26,7 +26,7 @@
 // as the robot estimator so that the robot estimator is ros free
 
 class ROSFusion {
-public:
+ public:
   ROSFusion(ros::NodeHandle nh);
   ~ROSFusion(){};
 
@@ -37,20 +37,18 @@ public:
   double getMinLatestTime();
   double getMaxOldestTime();
 
-  void publishEstimationResult(Eigen::Matrix<double, MS_SIZE, 1> &x,
-                               Eigen::Matrix<double, MS_SIZE, MS_SIZE> &P,
-                               double cur_time);
+  void publishEstimationResult(Eigen::Matrix<double, MS_SIZE, 1>& x, Eigen::Matrix<double, MS_SIZE, MS_SIZE>& P, double cur_time);
 
   // initialize callback functions
-  void imuCallback(const sensor_msgs::Imu::ConstPtr &msg);
-  void jointFootCallback(const sensor_msgs::JointState::ConstPtr &msg);
-  void flImuCallback(const sensor_msgs::Imu::ConstPtr &msg);
-  void frImuCallback(const sensor_msgs::Imu::ConstPtr &msg);
-  void rlImuCallback(const sensor_msgs::Imu::ConstPtr &msg);
-  void rrImuCallback(const sensor_msgs::Imu::ConstPtr &msg);
-  void gtCallback(const geometry_msgs::PoseStamped::ConstPtr &msg);
+  void imuCallback(const sensor_msgs::Imu::ConstPtr& msg);
+  void jointFootCallback(const sensor_msgs::JointState::ConstPtr& msg);
+  void flImuCallback(const sensor_msgs::Imu::ConstPtr& msg);
+  void frImuCallback(const sensor_msgs::Imu::ConstPtr& msg);
+  void rlImuCallback(const sensor_msgs::Imu::ConstPtr& msg);
+  void rrImuCallback(const sensor_msgs::Imu::ConstPtr& msg);
+  void gtCallback(const geometry_msgs::PoseStamped::ConstPtr& msg);
 
-private:
+ private:
   // ros handle
   ros::NodeHandle nh_;
 
@@ -85,7 +83,7 @@ private:
   SWE::MeasureQueue mq_rl_imu_;
   SWE::MeasureQueue mq_rr_imu_;
   SWE::MeasureQueue mq_gt_;
-  bool is_gt_available_; // maybe gt is not available, we need to check this
+  bool is_gt_available_;  // maybe gt is not available, we need to check this
   std::shared_ptr<SWE::Measurement> latest_gt_meas;
   // foot imu filter
   MovingWindowFilter joint_foot_filter_[12];
