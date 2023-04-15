@@ -2,8 +2,9 @@
 
 bag_output_path = '../../bags/output/';
 
-% dataset_name = '20230304_wightman_park_trot_bridge_loop';       % modify this
-dataset_name = '20230304_wightman_park_flying_trot_right_loop';       % modify this
+dataset_name = '20230304_wightman_park_trot_bridge_loop';       % modify this
+% dataset_name = '20230304_wightman_park_flying_trot_right_loop';       % modify this
+
 
 % look at src/utils/parameters.cpp for possible types
 % traj_types = {'gt','mipo','sipo','vio','vilo-m','vilo-s'};
@@ -12,7 +13,7 @@ traj_types = {'mipo','sipo','vio','vilo-m','vilo-s'};
 total_types = size(traj_types,2);
 
 plot_start = 0;
-plot_end = 415;
+plot_end = 416.5;
 %% read data
 traj_data = cell(1, total_types);
 for i=1:total_types

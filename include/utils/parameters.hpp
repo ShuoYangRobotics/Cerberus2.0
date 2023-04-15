@@ -99,6 +99,8 @@ extern double F_THRESHOLD;
 extern int SHOW_TRACK;
 extern int FLOW_BACK;
 
+// MIPO and SIPO parameters
+
 namespace Utils {
 
 void readParametersROS(ros::NodeHandle& nh_);
