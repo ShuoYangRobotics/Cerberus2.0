@@ -42,7 +42,10 @@ class LOIntegrationBase {
 
     noise.setZero();
     noise.block<3, 3>(0, 0) = cov_0;
+    noise(2, 2) *= 100;  // do not use LO z velocity
+
     noise.block<3, 3>(3, 3) = cov_1;
+    noise(5, 5) *= 100;  // do not use LO z velocity
 
     midPointIntegration(dt, vel_0, vel_1, delta_p, result_delta_p, true);
 
