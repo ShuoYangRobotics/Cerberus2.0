@@ -16,16 +16,18 @@ cp /home/EstimationUser/estimation_ws/src/cerberus2/config/go1_config/hardware_g
 
 sed -i "s/\(dataset_name: \)\"lab\"/\1\"$dataset_name\"/" "$temp_config"
 
-# launch the vilo node with kf_type and vilo_fusion_type:           0 0
-roslaunch cerberus2 vilo_auto.launch dataset_name:="$dataset_name" dataset_duration:="$dataset_duration"
-# launch the vilo node with different kf_type and vilo_fusion_type: 1 0
+# # launch the vilo node with kf_type and vilo_fusion_type:           0 0
+# roslaunch cerberus2 vilo_auto.launch dataset_name:="$dataset_name" dataset_duration:="$dataset_duration"
+
+# # launch the vilo node with different kf_type and vilo_fusion_type: 1 0
 # sed -i 's/\(kf_type: \)0/\11/' "$temp_config"
 # roslaunch cerberus2 vilo_auto.launch dataset_name:="$dataset_name" dataset_duration:="$dataset_duration"
 
-# launch the vilo node with different kf_type and vilo_fusion_type: 1 1
+# # launch the vilo node with different kf_type and vilo_fusion_type: 1 1
 sed -i 's/\(vilo_fusion_type: \)0/\11/' "$temp_config"
 roslaunch cerberus2 vilo_auto.launch dataset_name:="$dataset_name" dataset_duration:="$dataset_duration"
-# launch the vilo node with different kf_type and vilo_fusion_type: 0 1
+
+# # launch the vilo node with different kf_type and vilo_fusion_type: 0 1
 # sed -i 's/\(kf_type: \)1/\10/' "$temp_config"
 # roslaunch cerberus2 vilo_auto.launch dataset_name:="$dataset_name" dataset_duration:="$dataset_duration"
 

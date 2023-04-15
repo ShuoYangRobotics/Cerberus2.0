@@ -46,6 +46,7 @@ void VILOEstimator::reset() {
 
   if (VILO_FUSION_TYPE == 1) {
     while (!loBuf.empty()) loBuf.pop();
+    while (!loCovBuf.empty()) loCovBuf.pop();
   }
 
   // frame_count rest, most important
@@ -80,6 +81,7 @@ void VILOEstimator::reset() {
 
     if (VILO_FUSION_TYPE == 1) {
       lo_velocity_buf[i].clear();
+      lo_velocity_cov_buf[i].clear();
       lo_dt_buf[i].clear();
       if (lo_pre_integrations[i] != nullptr) {
         delete lo_pre_integrations[i];
@@ -149,9 +151,10 @@ void VILOEstimator::inputBodyIMU(double t, const Vector3d& linearAcceleration, c
   // printf("input imu with time %f \n", t);
 }
 
-void VILOEstimator::inputLOVel(double t, const Vector3d& linearVelocity) {
+void VILOEstimator::inputLOVel(double t, const Vector3d& linearVelocity, const Matrix3d& linearVelocityCov) {
   const std::lock_guard<std::mutex> lock(mBuf);
   loBuf.push(make_pair(t, linearVelocity));
+  loCovBuf.push(make_pair(t, linearVelocityCov));
 }
 
 bool VILOEstimator::getBodyIMUInterval(double t0, double t1, vector<pair<double, Eigen::Vector3d>>& accVector,
@@ -183,7 +186,8 @@ bool VILOEstimator::getBodyIMUInterval(double t0, double t1, vector<pair<double,
   return true;
 }
 
-bool VILOEstimator::getLoVelInterval(double t0, double t1, vector<pair<double, Eigen::Vector3d>>& loVelVector) {
+bool VILOEstimator::getLoVelInterval(double t0, double t1, vector<pair<double, Eigen::Vector3d>>& loVelVector,
+                                     vector<pair<double, Eigen::Matrix3d>>& loCovVector) {
   if (loBuf.empty()) {
     printf("not receive loVel\n");
     return false;
@@ -197,6 +201,16 @@ bool VILOEstimator::getLoVelInterval(double t0, double t1, vector<pair<double, E
       loBuf.pop();
     }
     loVelVector.push_back(loBuf.front());
+    // do the same thing of loCovBuf using loCovVector
+    while (loCovBuf.front().first <= t0) {
+      loCovBuf.pop();
+    }
+    while (loCovBuf.front().first < t1) {
+      loCovVector.push_back(loCovBuf.front());
+      loCovBuf.pop();
+    }
+    loCovVector.push_back(loCovBuf.front());
+
   } else {
     printf("wait for loVel\n");
     return false;
@@ -224,6 +238,7 @@ void VILOEstimator::processMeasurements() {
     pair<double, map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>>> feature;
     vector<pair<double, Eigen::Vector3d>> accVector, gyrVector;
     vector<pair<double, Eigen::Vector3d>> loVelVector;
+    vector<pair<double, Eigen::Matrix3d>> loCovVector;
 
     if (!featureBuf.empty()) {
       std::cout << "process measurments" << std::endl;
@@ -265,7 +280,7 @@ void VILOEstimator::processMeasurements() {
       if (VILO_FUSION_TYPE == 1) {
         // obtain mBuf lock
         std::lock_guard<std::mutex> lock(mBuf);
-        getLoVelInterval(prevTime, curTime, loVelVector);
+        getLoVelInterval(prevTime, curTime, loVelVector, loCovVector);
         for (size_t i = 0; i < loVelVector.size(); i++) {
           double dt;
           if (i == 0)
@@ -274,7 +289,7 @@ void VILOEstimator::processMeasurements() {
             dt = curTime - loVelVector[i - 1].first;
           else
             dt = loVelVector[i].first - loVelVector[i - 1].first;
-          processLegOdom(loVelVector[i].first, dt, loVelVector[i].second);
+          processLegOdom(loVelVector[i].first, dt, loVelVector[i].second, loCovVector[i].second);
         }
       }
 
@@ -358,21 +373,24 @@ void VILOEstimator::processIMU(double t, double dt, const Vector3d& linear_accel
   gyr_0 = angular_velocity;
 }
 
-void VILOEstimator::processLegOdom(double t, double dt, const Eigen::Vector3d& loVel) {
+void VILOEstimator::processLegOdom(double t, double dt, const Eigen::Vector3d& loVel, const Eigen::Matrix3d& loCov) {
   if (!first_lo) {
     first_lo = true;
     lo_vel_0 = loVel;
+    lo_vel_cov_0 = loCov;
+    ;
   }
 
   // contact preintegration
   if (!lo_pre_integrations[frame_count]) {
-    lo_pre_integrations[frame_count] = new LOIntegrationBase{lo_vel_0};
+    lo_pre_integrations[frame_count] = new LOIntegrationBase{lo_vel_0, lo_vel_cov_0};
   }
 
   if (frame_count != 0) {
-    lo_pre_integrations[frame_count]->push_back(dt, loVel);
+    lo_pre_integrations[frame_count]->push_back(dt, loVel, loCov);
     lo_dt_buf[frame_count].push_back(dt);
     lo_velocity_buf[frame_count].push_back(loVel);
+    lo_velocity_cov_buf[frame_count].push_back(loCov);
 
     // use LO to provide initial guess for P and V
     int j = frame_count;
@@ -381,6 +399,7 @@ void VILOEstimator::processLegOdom(double t, double dt, const Eigen::Vector3d& l
     Ps[j] += dt * Vs[j];
   }
   lo_vel_0 = loVel;
+  lo_vel_cov_0 = loCov;
   return;
 }
 
@@ -617,6 +636,7 @@ void VILOEstimator::slideWindow() {
           std::swap(lo_pre_integrations[i], lo_pre_integrations[i + 1]);
           lo_dt_buf[i].swap(lo_dt_buf[i + 1]);
           lo_velocity_buf[i].swap(lo_velocity_buf[i + 1]);
+          lo_velocity_cov_buf[i].swap(lo_velocity_cov_buf[i + 1]);
         }
 
         Vs[i].swap(Vs[i + 1]);
@@ -640,9 +660,10 @@ void VILOEstimator::slideWindow() {
 
       if (VILO_FUSION_TYPE == 1) {
         delete lo_pre_integrations[WINDOW_SIZE];
-        lo_pre_integrations[WINDOW_SIZE] = new LOIntegrationBase(lo_vel_0);
+        lo_pre_integrations[WINDOW_SIZE] = new LOIntegrationBase(lo_vel_0, lo_vel_cov_0);
         lo_dt_buf[WINDOW_SIZE].clear();
         lo_velocity_buf[WINDOW_SIZE].clear();
+        lo_velocity_cov_buf[WINDOW_SIZE].clear();
       }
 
       if (true || solver_flag == INITIAL) {
@@ -686,14 +707,17 @@ void VILOEstimator::slideWindow() {
         for (unsigned int i = 0; i < lo_dt_buf[frame_count].size(); i++) {
           double tmp_dt = lo_dt_buf[frame_count][i];
           Vector3d tmp_lo_vel = lo_velocity_buf[frame_count][i];
-          lo_pre_integrations[frame_count - 1]->push_back(tmp_dt, tmp_lo_vel);
+          Matrix3d tmp_lo_vel_cov = lo_velocity_cov_buf[frame_count][i];
+          lo_pre_integrations[frame_count - 1]->push_back(tmp_dt, tmp_lo_vel, tmp_lo_vel_cov);
           lo_dt_buf[frame_count - 1].push_back(tmp_dt);
           lo_velocity_buf[frame_count - 1].push_back(tmp_lo_vel);
+          lo_velocity_cov_buf[frame_count - 1].push_back(tmp_lo_vel_cov);
         }
         delete lo_pre_integrations[WINDOW_SIZE];
-        lo_pre_integrations[WINDOW_SIZE] = new LOIntegrationBase{lo_vel_0};
+        lo_pre_integrations[WINDOW_SIZE] = new LOIntegrationBase{lo_vel_0, lo_vel_cov_0};
         lo_dt_buf[WINDOW_SIZE].clear();
         lo_velocity_buf[WINDOW_SIZE].clear();
+        lo_velocity_cov_buf[WINDOW_SIZE].clear();
       }
 
       slideWindowNew();

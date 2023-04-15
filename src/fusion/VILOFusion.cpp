@@ -137,7 +137,7 @@ void VILOFusion::POLoop() {
           vilo_estimator->inputBodyIMU(curr_esti_time, curr_data->body_acc, curr_data->body_gyro);
           // input LO velocity
           if (VILO_FUSION_TYPE == 1) {
-            vilo_estimator->inputLOVel(curr_esti_time, mipo_x.segment<3>(3));
+            vilo_estimator->inputLOVel(curr_esti_time, mipo_x.segment<3>(3), mipo_P.block<3, 3>(3, 3));
           }
         }
         po_x = mipo_x;
@@ -180,7 +180,7 @@ void VILOFusion::POLoop() {
           vilo_estimator->inputBodyIMU(curr_esti_time, sipo_curr_data->body_acc, sipo_curr_data->body_gyro);
           // input LO velocity
           if (VILO_FUSION_TYPE == 1) {
-            vilo_estimator->inputLOVel(curr_esti_time, sipo_x.segment<3>(3));
+            vilo_estimator->inputLOVel(curr_esti_time, sipo_x.segment<3>(3), sipo_P.block<3, 3>(3, 3));
           }
         }
         po_x = sipo_x;

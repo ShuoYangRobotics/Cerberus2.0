@@ -9,7 +9,7 @@
     <arg name="dataset_name" default="20230215_lab_short" />
     <arg name="dataset_duration" default="45.0" />
 
-    <node pkg="rosbag" type="play" name="player" required="true" output="screen"
+    <node pkg="rosbag" type="play" name="player" required="true"
         launch-prefix="zsh -c 'sleep $(arg node_start_delay); $0 $@' "
         args="--clock --hz=2000 -u $(arg dataset_duration) $(find cerberus2)/bags/legged_robots/$(arg dataset_name).bag" />
 
