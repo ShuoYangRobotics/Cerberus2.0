@@ -21,25 +21,111 @@ class LOTightUtils {
                              const Eigen::Vector3d& foot_gyr, const Eigen::Vector3d& linearized_bg, const Eigen::Vector3d& linearized_bf,
                              const Eigen::Vector3d& linearized_bv, const double d0) {
     // convert input to casadi::DM and call casadi function v_fun
-    casadi::DM jang_dm = Utils::eig_to_cas_DM<3, 1>(jang);
-    casadi::DM jvel_dm = Utils::eig_to_cas_DM<3, 1>(jvel);
-    casadi::DM body_gyr_dm = Utils::eig_to_cas_DM<3, 1>(body_gyr);
-    casadi::DM foot_gyr_dm = Utils::eig_to_cas_DM<3, 1>(foot_gyr);
-    casadi::DM linearized_bg_dm = Utils::eig_to_cas_DM<3, 1>(linearized_bg);
-    casadi::DM linearized_bf_dm = Utils::eig_to_cas_DM<3, 1>(linearized_bf);
-    casadi::DM linearized_bv_dm = Utils::eig_to_cas_DM<3, 1>(linearized_bv);
-    casadi::DM d0_dm = d0;
+    std::vector<casadi::DM> arg = eig_args_asm(leg_id, jang, jvel, body_gyr, foot_gyr, linearized_bg, linearized_bf, linearized_bv, d0);
 
-    casadi::DM kin_dm = Utils::eig_to_cas_DM<5, NUM_LEG>(kin_true_);
-    casadi::DM R_fi_dm = Utils::eig_to_cas_DM<3, 3>(mipo_utils.R_fi_list[leg_id]);
-
-    std::vector<casadi::DM> arg = {jang_dm, jvel_dm, body_gyr_dm, linearized_bg_dm, foot_gyr_dm, linearized_bf_dm,
-                                   kin_dm,  R_fi_dm, d0_dm,       linearized_bv_dm};
     std::vector<casadi::DM> res = v_fun[leg_id](arg);
 
     Eigen::Matrix<double, 3, 1> body_v = Utils::cas_DM_to_eig_mat<3, 1>(res[0]);
 
     return body_v;
+  }
+
+  // similar functions to get derivatives, could define some macros for this
+  Eigen::Matrix3d calBodyVelDjang(const int leg_id, const Eigen::Vector3d& jang, const Eigen::Vector3d& jvel,
+                                  const Eigen::Vector3d& body_gyr, const Eigen::Vector3d& foot_gyr, const Eigen::Vector3d& linearized_bg,
+                                  const Eigen::Vector3d& linearized_bf, const Eigen::Vector3d& linearized_bv, const double d0) {
+    std::vector<casadi::DM> arg = eig_args_asm(leg_id, jang, jvel, body_gyr, foot_gyr, linearized_bg, linearized_bf, linearized_bv, d0);
+
+    std::vector<casadi::DM> res = dvdphi_fun[leg_id](arg);
+
+    Eigen::Matrix<double, 3, 3> dvdphi_jac = Utils::cas_DM_to_eig_mat<3, 3>(res[0]);
+
+    return dvdphi_jac;
+  }
+
+  Eigen::Matrix3d calBodyVelDjvel(const int leg_id, const Eigen::Vector3d& jang, const Eigen::Vector3d& jvel,
+                                  const Eigen::Vector3d& body_gyr, const Eigen::Vector3d& foot_gyr, const Eigen::Vector3d& linearized_bg,
+                                  const Eigen::Vector3d& linearized_bf, const Eigen::Vector3d& linearized_bv, const double d0) {
+    std::vector<casadi::DM> arg = eig_args_asm(leg_id, jang, jvel, body_gyr, foot_gyr, linearized_bg, linearized_bf, linearized_bv, d0);
+
+    std::vector<casadi::DM> res = dvddphi_fun[leg_id](arg);
+
+    Eigen::Matrix<double, 3, 3> dvddphi_jac = Utils::cas_DM_to_eig_mat<3, 3>(res[0]);
+
+    return dvddphi_jac;
+  }
+
+  Eigen::Matrix3d calBodyVelDbodyGyr(const int leg_id, const Eigen::Vector3d& jang, const Eigen::Vector3d& jvel,
+                                     const Eigen::Vector3d& body_gyr, const Eigen::Vector3d& foot_gyr, const Eigen::Vector3d& linearized_bg,
+                                     const Eigen::Vector3d& linearized_bf, const Eigen::Vector3d& linearized_bv, const double d0) {
+    std::vector<casadi::DM> arg = eig_args_asm(leg_id, jang, jvel, body_gyr, foot_gyr, linearized_bg, linearized_bf, linearized_bv, d0);
+
+    std::vector<casadi::DM> res = dvdw_fun[leg_id](arg);
+
+    Eigen::Matrix<double, 3, 3> dvdw_jac = Utils::cas_DM_to_eig_mat<3, 3>(res[0]);
+
+    return dvdw_jac;
+  }
+
+  Eigen::Matrix3d calBodyVelDfootGyr(const int leg_id, const Eigen::Vector3d& jang, const Eigen::Vector3d& jvel,
+                                     const Eigen::Vector3d& body_gyr, const Eigen::Vector3d& foot_gyr, const Eigen::Vector3d& linearized_bg,
+                                     const Eigen::Vector3d& linearized_bf, const Eigen::Vector3d& linearized_bv, const double d0) {
+    std::vector<casadi::DM> arg = eig_args_asm(leg_id, jang, jvel, body_gyr, foot_gyr, linearized_bg, linearized_bf, linearized_bv, d0);
+
+    std::vector<casadi::DM> res = dvdwf_fun[leg_id](arg);
+
+    Eigen::Matrix<double, 3, 3> dvdwf_jac = Utils::cas_DM_to_eig_mat<3, 3>(res[0]);
+
+    return dvdwf_jac;
+  }
+
+  Eigen::Matrix3d calBodyVelDbg(const int leg_id, const Eigen::Vector3d& jang, const Eigen::Vector3d& jvel, const Eigen::Vector3d& body_gyr,
+                                const Eigen::Vector3d& foot_gyr, const Eigen::Vector3d& linearized_bg, const Eigen::Vector3d& linearized_bf,
+                                const Eigen::Vector3d& linearized_bv, const double d0) {
+    std::vector<casadi::DM> arg = eig_args_asm(leg_id, jang, jvel, body_gyr, foot_gyr, linearized_bg, linearized_bf, linearized_bv, d0);
+
+    std::vector<casadi::DM> res = dvdbg_fun[leg_id](arg);
+
+    Eigen::Matrix<double, 3, 3> dvdbg_jac = Utils::cas_DM_to_eig_mat<3, 3>(res[0]);
+
+    return dvdbg_jac;
+  }
+
+  Eigen::Matrix3d calBodyVelDbf(const int leg_id, const Eigen::Vector3d& jang, const Eigen::Vector3d& jvel, const Eigen::Vector3d& body_gyr,
+                                const Eigen::Vector3d& foot_gyr, const Eigen::Vector3d& linearized_bg, const Eigen::Vector3d& linearized_bf,
+                                const Eigen::Vector3d& linearized_bv, const double d0) {
+    std::vector<casadi::DM> arg = eig_args_asm(leg_id, jang, jvel, body_gyr, foot_gyr, linearized_bg, linearized_bf, linearized_bv, d0);
+
+    std::vector<casadi::DM> res = dvdbf_fun[leg_id](arg);
+
+    Eigen::Matrix<double, 3, 3> dvdbf_jac = Utils::cas_DM_to_eig_mat<3, 3>(res[0]);
+
+    return dvdbf_jac;
+  }
+
+  Eigen::Matrix3d calBodyVelDbv(const int leg_id, const Eigen::Vector3d& jang, const Eigen::Vector3d& jvel, const Eigen::Vector3d& body_gyr,
+                                const Eigen::Vector3d& foot_gyr, const Eigen::Vector3d& linearized_bg, const Eigen::Vector3d& linearized_bf,
+                                const Eigen::Vector3d& linearized_bv, const double d0) {
+    std::vector<casadi::DM> arg = eig_args_asm(leg_id, jang, jvel, body_gyr, foot_gyr, linearized_bg, linearized_bf, linearized_bv, d0);
+
+    std::vector<casadi::DM> res = dvdbv_fun[leg_id](arg);
+
+    Eigen::Matrix<double, 3, 3> dvdbv_jac = Utils::cas_DM_to_eig_mat<3, 3>(res[0]);
+
+    return dvdbv_jac;
+  }
+
+  Eigen::Matrix<double, 3, 1> calBodyVelDd0(const int leg_id, const Eigen::Vector3d& jang, const Eigen::Vector3d& jvel,
+                                            const Eigen::Vector3d& body_gyr, const Eigen::Vector3d& foot_gyr,
+                                            const Eigen::Vector3d& linearized_bg, const Eigen::Vector3d& linearized_bf,
+                                            const Eigen::Vector3d& linearized_bv, const double d0) {
+    std::vector<casadi::DM> arg = eig_args_asm(leg_id, jang, jvel, body_gyr, foot_gyr, linearized_bg, linearized_bf, linearized_bv, d0);
+
+    std::vector<casadi::DM> res = dvdd0_fun[leg_id](arg);
+
+    Eigen::Matrix<double, 3, 1> dvdd0_jac = Utils::cas_DM_to_eig_mat<3, 1>(res[0]);
+
+    return dvdd0_jac;
   }
 
  private:
@@ -102,7 +188,31 @@ class LOTightUtils {
     }
   }
 
+  // helper function, convert Eigen arguments into casadi::DM array
+  std::vector<casadi::DM> eig_args_asm(const int leg_id, const Eigen::Vector3d& jang, const Eigen::Vector3d& jvel,
+                                       const Eigen::Vector3d& body_gyr, const Eigen::Vector3d& foot_gyr,
+                                       const Eigen::Vector3d& linearized_bg, const Eigen::Vector3d& linearized_bf,
+                                       const Eigen::Vector3d& linearized_bv, const double d0) {
+    // convert input to casadi::DM and call casadi function v_fun
+    casadi::DM jang_dm = Utils::eig_to_cas_DM<3, 1>(jang);
+    casadi::DM jvel_dm = Utils::eig_to_cas_DM<3, 1>(jvel);
+    casadi::DM body_gyr_dm = Utils::eig_to_cas_DM<3, 1>(body_gyr);
+    casadi::DM foot_gyr_dm = Utils::eig_to_cas_DM<3, 1>(foot_gyr);
+    casadi::DM linearized_bg_dm = Utils::eig_to_cas_DM<3, 1>(linearized_bg);
+    casadi::DM linearized_bf_dm = Utils::eig_to_cas_DM<3, 1>(linearized_bf);
+    casadi::DM linearized_bv_dm = Utils::eig_to_cas_DM<3, 1>(linearized_bv);
+    casadi::DM d0_dm = d0;
+
+    casadi::DM kin_dm = Utils::eig_to_cas_DM<5, NUM_LEG>(kin_true_);
+    casadi::DM R_fi_dm = Utils::eig_to_cas_DM<3, 3>(mipo_utils.R_fi_list[leg_id]);
+
+    std::vector<casadi::DM> arg = {jang_dm, jvel_dm, body_gyr_dm, linearized_bg_dm, foot_gyr_dm, linearized_bf_dm,
+                                   kin_dm,  R_fi_dm, d0_dm,       linearized_bv_dm};
+    return arg;
+  }
+
   // get body velocity from leg joint angle and velocity, and foot gyro, the body velocity is expressed in body frame
+  // core function, everything else in this file depends on this
   Eigen::Matrix<casadi::SX, 3, 1> getBodyVel(int leg_id, const Eigen::Matrix<casadi::SX, 3, 1>& j_ang,
                                              const Eigen::Matrix<casadi::SX, 3, 1>& j_vel, const Eigen::Matrix<casadi::SX, 3, 1>& body_w,
                                              const Eigen::Matrix<casadi::SX, 3, 1>& bg, const Eigen::Matrix<casadi::SX, 3, 1>& foot_w,
@@ -149,6 +259,7 @@ class LOTightUtils {
   casadi::Function dvddphi_fun[NUM_LEG];
   casadi::Function dvdw_fun[NUM_LEG];
   casadi::Function dvdwf_fun[NUM_LEG];
+
   casadi::Function dvdbg_fun[NUM_LEG];
   casadi::Function dvdbf_fun[NUM_LEG];
   casadi::Function dvdbv_fun[NUM_LEG];
