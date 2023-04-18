@@ -103,11 +103,13 @@ class VILOEstimator {
   bool first_imu;
   Vector3d acc_0, gyr_0;  // save previous imu data
   IntegrationBase* pre_integrations[(WINDOW_SIZE + 1)] = {nullptr};
-  // process LO vel
+  // process LO vel, loosely couple
   bool first_lo;
   Vector3d lo_vel_0;  // save previous leg odometry data
   Matrix3d lo_vel_cov_0;
   LOIntegrationBase* lo_pre_integrations[(WINDOW_SIZE + 1)] = {nullptr};
+
+  // process LO vel, tightly couple
 
   bool initFirstPoseFlag;
 

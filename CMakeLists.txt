@@ -128,4 +128,11 @@ target_link_libraries(cerberus2_main
         ${VILO_LIB}
 )
 
-
+# ##
+# ## tests
+# ##
+add_executable(test_LOTightFactor test/test_LOTightFactor.cpp)
+target_link_libraries(test_LOTightFactor
+        PRIVATE
+        casadi
+)
