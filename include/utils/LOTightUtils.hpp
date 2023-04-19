@@ -17,6 +17,7 @@ class LOTightUtils {
   LOTightUtils() { init(); }
   ~LOTightUtils();
 
+  // notice that the body velocity is in the body frame
   Eigen::Vector3d calBodyVel(const int leg_id, const Eigen::Vector3d& jang, const Eigen::Vector3d& jvel, const Eigen::Vector3d& body_gyr,
                              const Eigen::Vector3d& foot_gyr, const Eigen::Vector3d& linearized_bg, const Eigen::Vector3d& linearized_bf,
                              const Eigen::Vector3d& linearized_bv, const double d0) {

@@ -136,3 +136,9 @@ target_link_libraries(test_LOTightFactor
         PRIVATE
         casadi
 )
+
+add_executable(test_LOTightIntegration test/test_LOTightIntegration.cpp)
+target_link_libraries(test_LOTightIntegration
+        PRIVATE
+        casadi
+)

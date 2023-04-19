@@ -15,7 +15,7 @@ int main(int argc, char** argv) {
   Eigen::Vector3d linearized_bv = {0, 0, 0};
   double d0 = 0.05;
 
-  // body velocity calculation
+  // body velocity calculation notice that the body velocity is in the body frame
   Eigen::Vector3d body_v = tightUtils->calBodyVel(0, jang, jvel, body_gyr, foot_gyr, linearized_bg, linearized_bf, linearized_bv, d0);
   std::cout << body_v << std::endl;
 
