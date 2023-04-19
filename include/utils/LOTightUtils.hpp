@@ -230,8 +230,9 @@ class LOTightUtils {
     // velocity from joints
     Eigen::Matrix<casadi::SX, 3, 1> leg_v = -(J_rf * j_vel + legged::skewSymmetric<casadi::SX>(body_w_no_bias) * p_rf);
     // velocity from foot pivoting model
-    Eigen::Matrix<casadi::SX, 3, 1> foot_v_pivoting =
-        R_bf * R_fi * legged::skewSymmetric<casadi::SX>(foot_w_no_bias) * (-d0 * p_rf / p_rf.norm());
+    Eigen::Matrix<casadi::SX, 3, 1> foot_w_body = R_bf * R_fi * foot_w_no_bias;
+    Eigen::Matrix<casadi::SX, 3, 1> foot_support_vec = -d0 * p_rf / p_rf.norm();
+    Eigen::Matrix<casadi::SX, 3, 1> foot_v_pivoting = legged::skewSymmetric<casadi::SX>(foot_w_body) * foot_support_vec;
 
     // be careful about the sign of terms
     return leg_v + foot_v_pivoting - bv;
