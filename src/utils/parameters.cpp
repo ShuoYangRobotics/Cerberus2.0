@@ -46,6 +46,9 @@ int KF_TYPE;
 double ACC_N, ACC_N_Z, ACC_W;
 double GYR_N, GYR_W;
 
+double JOINT_ANG_N, JOINT_VEL_N;
+double FOOT_GYR_N, FOOT_GYR_W, FOOT_VEL_W, RHO_W;
+
 std::vector<Eigen::Matrix3d> RIC;  // num of cam, imu to camera rotation
 std::vector<Eigen::Vector3d> TIC;  // num of cam, imu to camera position
 Eigen::Vector3d G;
@@ -126,6 +129,13 @@ void Utils::readParametersFile(std::string config_file) {
 
   fsSettings["leg_topic"] >> LEG_TOPIC;
   printf("LEG_TOPIC: %s\n", LEG_TOPIC.c_str());
+
+  JOINT_ANG_N = fsSettings["joint_angle_n"];
+  JOINT_VEL_N = fsSettings["joint_vel_n"];
+  FOOT_GYR_N = fsSettings["foot_gyro_n"];
+  FOOT_GYR_W = fsSettings["foot_gyro_w"];
+  FOOT_VEL_W = fsSettings["foot_vel_w"];
+  RHO_W = fsSettings["rho_w"];
 
   ACC_N = fsSettings["acc_n"];
   ACC_W = fsSettings["acc_w"];

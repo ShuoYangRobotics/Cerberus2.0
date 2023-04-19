@@ -137,8 +137,13 @@ target_link_libraries(test_LOTightFactor
         casadi
 )
 
-add_executable(test_LOTightIntegration test/test_LOTightIntegration.cpp)
+add_executable(test_LOTightIntegration 
+        test/test_LOTightIntegration.cpp
+        src/utils/parameters.cpp
+)
 target_link_libraries(test_LOTightIntegration
         PRIVATE
+        ${OpenCV_LIBS}
+        ${catkin_LIBRARIES}
         casadi
 )

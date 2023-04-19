@@ -1,7 +1,10 @@
 #pragma once
 
 #include <Eigen/Dense>
+
 #include "utils/LOTightUtils.hpp"
+#include "utils/parameters.hpp"
+#include "utils/vins_utility.h"
 
 #define LO_TIGHT_RESIDUAL_SIZE 16
 #define LO_TIGHT_NOISE_SIZE 22
@@ -42,6 +45,14 @@ class LOTightIntegrationBase {
 
     // init noise
     noise_diag.diagonal() = 1e-2 * Eigen::Matrix<double, LO_TIGHT_NOISE_SIZE, 1>::Ones();
+    noise_diag.diagonal().segment<3>(T_PHIN) = JOINT_ANG_N * JOINT_ANG_N * Eigen::Matrix<double, 3, 1>::Ones();
+    noise_diag.diagonal().segment<3>(T_DPHIN) = JOINT_VEL_N * JOINT_VEL_N * Eigen::Matrix<double, 3, 1>::Ones();
+    noise_diag.diagonal().segment<3>(T_GN) = GYR_N * GYR_N * Eigen::Matrix<double, 3, 1>::Ones();
+    noise_diag.diagonal().segment<3>(T_GW) = GYR_W * GYR_W * Eigen::Matrix<double, 3, 1>::Ones();
+    noise_diag.diagonal().segment<3>(T_FN) = FOOT_GYR_N * FOOT_GYR_N * Eigen::Matrix<double, 3, 1>::Ones();
+    noise_diag.diagonal().segment<3>(T_FW) = FOOT_GYR_W * FOOT_GYR_W * Eigen::Matrix<double, 3, 1>::Ones();
+    noise_diag.diagonal().segment<3>(T_VN) = FOOT_VEL_W * FOOT_VEL_W * Eigen::Matrix<double, 3, 1>::Ones();
+    noise_diag.diagonal()(TRHO_N) = RHO_W * RHO_W;
 
     tightUtils = _tightUtils;
   }
@@ -241,13 +252,38 @@ class LOTightIntegrationBase {
   }
 
   Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, 1> evaluate(const Eigen::Vector3d& Pi, const Eigen::Quaterniond& Qi,
-                                                            const Eigen::Vector3d& Vi, const Eigen::Vector3d& Bai,
-                                                            const Eigen::Vector3d& Bgi, const Eigen::Vector3d& Bfi, const Vec_rho& rhoi,
-                                                            const Eigen::Vector3d& Pj, const Eigen::Quaterniond& Qj,
-                                                            const Eigen::Vector3d& Vj, const Eigen::Vector3d& Baj,
-                                                            const Eigen::Vector3d& Bgj, const Eigen::Vector3d& Bfj, const Vec_rho& rhoj) {
+                                                            const Eigen::Vector3d& Bgi, const Eigen::Vector3d& Bfi,
+                                                            const Eigen::Vector3d& Bvi, const Vec_rho& rhoi, const Eigen::Vector3d& Pj,
+                                                            const Eigen::Quaterniond& Qj, const Eigen::Vector3d& Bgj,
+                                                            const Eigen::Vector3d& Bfj, const Eigen::Vector3d& Bvj, const Vec_rho& rhoj) {
     Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, 1> residuals;
     residuals.setZero();
+
+    Eigen::Matrix3d dq_dbg = jacobian.block<3, 3>(T_R, T_BG);
+
+    Eigen::Vector3d dbg = Bgi - linearized_bg;
+
+    Eigen::Quaterniond corrected_delta_q = delta_q * Utility::deltaQ(dq_dbg * dbg);
+
+    residuals.block<3, 1>(T_R, 0) = 2 * (corrected_delta_q.inverse() * (Qi.inverse() * Qj)).vec();
+
+    Eigen::Matrix3d de_dbg = jacobian.block<3, 3>(T_E, T_BG);
+    Eigen::Matrix3d de_dbf = jacobian.block<3, 3>(T_E, T_BF);
+    Eigen::Matrix3d de_dbv = jacobian.block<3, 3>(T_E, T_BV);
+    Eigen::Vector3d de_drho = jacobian.block<3, 1>(T_E, T_RHO);
+
+    Eigen::Vector3d dbf = Bfi - linearized_bf;
+    Eigen::Vector3d dbv = Bvi - linearized_bv;
+    Vec_rho drho = rhoi - linearized_rho;
+
+    Eigen::Vector3d corrected_delta_epsilon = delta_epsilon + de_dbg * dbg + de_dbf * dbf + de_dbv * dbv + de_drho * drho;
+
+    residuals.block<3, 1>(T_E, 0) = Qi.inverse() * (Pj - Pi) - corrected_delta_epsilon;
+
+    residuals.block<3, 1>(T_BG, 0) = Bgj - Bgi;
+    residuals.block<3, 1>(T_BF, 0) = Bfj - Bfi;
+    residuals.block<3, 1>(T_BV, 0) = Bvj - Bvi;
+    residuals.block<RHO_SIZE, 1>(T_RHO, 0) = rhoj - rhoi;
 
     return residuals;
   }

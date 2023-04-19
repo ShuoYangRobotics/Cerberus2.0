@@ -2,6 +2,8 @@
 
 #include <Eigen/Dense>
 
+#include "utils/parameters.hpp"
+
 #define LO_RESIDUAL_SIZE 3
 #define LO_NOISE_SIZE 6
 

@@ -7,6 +7,9 @@ LOTightUtils* tightUtils = new LOTightUtils();
 
 LOTightIntegrationBase* lo_pre_integration;
 int main() {
+  std::string config_file = "/home/EstimationUser/estimation_ws/src/cerberus2/config/go1_config/hardware_go1_vilo_config.yaml";
+  Utils::readParametersFile(config_file);
+
   std::cout << "Hello, World!" << std::endl;
 
   Eigen::Vector3d jang = {0.190146958330476, 0.467755352958025, -1.470605609393327};
