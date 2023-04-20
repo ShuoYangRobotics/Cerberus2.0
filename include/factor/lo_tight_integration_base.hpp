@@ -293,6 +293,9 @@ class LOTightIntegrationBase {
   Eigen::Quaterniond delta_q;
   Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, LO_TIGHT_RESIDUAL_SIZE> jacobian, covariance;
 
+  Eigen::Vector3d linearized_bg, linearized_bf, linearized_bv;
+  Vec_rho linearized_rho;
+
  private:
   int leg_id;  // 0 FL, 1 FR, 2 RL, 3 RR, very important when calling LOTightUtils
   double dt;
@@ -307,11 +310,6 @@ class LOTightIntegrationBase {
   std::vector<Eigen::Vector3d> foot_gyr_buf;
   std::vector<Eigen::Vector3d> jang_buf;
   std::vector<Eigen::Vector3d> jvel_buf;
-
-  const Eigen::Vector3d linearized_body_gyr, linearized_foot_gyr;
-  const Eigen::Vector3d linearized_jang, linearized_foot_jvel;
-  Eigen::Vector3d linearized_bg, linearized_bf, linearized_bv;
-  Vec_rho linearized_rho;
 
   Eigen::DiagonalMatrix<double, LO_TIGHT_NOISE_SIZE> noise_diag;
 

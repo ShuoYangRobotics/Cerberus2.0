@@ -48,6 +48,7 @@ class LOConstantFactor : public ceres::SizedCostFunction<7, 7, 7> {
         jacobian_footBias_j(6, 6) = 1;
       }
     }
+    return true;
   }
 
  private:

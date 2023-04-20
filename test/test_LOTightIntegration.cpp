@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "factor/lo_tight_factor.hpp"
 #include "factor/lo_tight_integration_base.hpp"
 #include "utils/LOTightUtils.hpp"
 
@@ -37,5 +38,32 @@ int main() {
   std::cout << "  --  " << std::endl;
   lo_pre_integration->push_back(0.5, body_gyr, foot_gyr, jang, jvel);
   std::cout << lo_pre_integration->covariance.diagonal().transpose() << std::endl;
+
+  LOTightFactor* lo_tight_factor = new LOTightFactor(lo_pre_integration);
+
+  double para_Pose[WINDOW_SIZE + 1][7];
+  double para_SpeedBias[WINDOW_SIZE + 1][9];
+  double para_FootBias[WINDOW_SIZE + 1][4][7];
+
+  int i = 3;
+  int j = i + 1;
+  std::vector<double*> parameter_blocks =
+      std::vector<double*>{para_Pose[i], para_SpeedBias[i], para_FootBias[i][0], para_Pose[j], para_SpeedBias[j], para_FootBias[j][0]};
+  std::vector<int> block_sizes = lo_tight_factor->parameter_block_sizes();
+  Eigen::VectorXd residuals;
+  residuals.resize(lo_tight_factor->num_residuals());
+  double** raw_jacobians = new double*[block_sizes.size()];
+  std::vector<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> jacobians;
+  jacobians.resize(block_sizes.size());
+  for (int xx = 0; xx < static_cast<int>(block_sizes.size()); xx++) {
+    jacobians[xx].resize(lo_tight_factor->num_residuals(), block_sizes[xx]);
+    raw_jacobians[xx] = jacobians[xx].data();
+    // dim += block_sizes[i] == 7 ? 6 : block_sizes[i];
+  }
+  lo_tight_factor->Evaluate(parameter_blocks.data(), residuals.data(), raw_jacobians);
+  std::cout << "residual between frame " << i << " and " << j << std::endl;
+  std::cout << residuals.transpose() << std::endl;
+  //   lo_tight_factor->checkJacobian(parameter_blocks.data());
+
   return 0;
 }

@@ -3,7 +3,7 @@
 #include <ceres/ceres.h>
 #include <Eigen/Dense>
 
-#include "factor/lo_tight_intergration_base.hpp"
+#include "factor/lo_tight_integration_base.hpp"
 #include "utils/vins_utility.h"
 
 /*
@@ -63,18 +63,85 @@ class LOTightFactor : public ceres::SizedCostFunction<LO_TIGHT_RESIDUAL_SIZE, 7,
     residual = sqrt_info * residual;
 
     if (jacobians) {
+      Eigen::Matrix3d dq_dbg = lo_pre_integration->jacobian.template block<3, 3>(T_R, T_BG);
+      Eigen::Matrix3d de_dbg = lo_pre_integration->jacobian.template block<3, 3>(T_E, T_BG);
+      Eigen::Matrix3d de_dbf = lo_pre_integration->jacobian.template block<3, 3>(T_E, T_BF);
+      Eigen::Matrix3d de_dbv = lo_pre_integration->jacobian.template block<3, 3>(T_E, T_BV);
+      Eigen::Vector3d de_dbd0 = lo_pre_integration->jacobian.template block<3, 1>(T_E, T_RHO);
+
       if (jacobians[0]) {
         Eigen::Map<Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, 7, Eigen::RowMajor>> jacobian_pose_i(jacobians[0]);
-        Eigen::Quaterniond corrected_delta_q = pre_integration->delta_q * Utility::deltaQ(dq_dbg * (Bgi - pre_integration->linearized_bg));
+        jacobian_pose_i.setZero();
+        Eigen::Quaterniond corrected_delta_q =
+            lo_pre_integration->delta_q * Utility::deltaQ(dq_dbg * (Bgi - lo_pre_integration->linearized_bg));
 
-        jacobian_pose_i.block<3, 3>(0, 0) = -Qi.inverse().toRotationMatrix();
         jacobian_pose_i.block<3, 3>(0, 3) =
             -(Utility::Qleft(Qj.inverse() * Qi) * Utility::Qright(corrected_delta_q)).bottomRightCorner<3, 3>();
 
-        jacobian_pose_i.block<3, 3>(O_P, O_P) = -Qi.inverse().toRotationMatrix();
-        jacobian_pose_i.block<3, 3>(O_P, O_R) = Utility::skewSymmetric(Qi.inverse() * (0.5 * G * sum_dt * sum_dt + Pj - Pi - Vi * sum_dt));
+        jacobian_pose_i.block<3, 3>(3, 0) = -Qi.inverse().toRotationMatrix();
+        jacobian_pose_i.block<3, 3>(3, 3) = Utility::skewSymmetric(Qi.inverse() * (Pj - Pi));
+
+        jacobian_pose_i = sqrt_info * jacobian_pose_i;
+      }
+
+      if (jacobians[1]) {
+        Eigen::Map<Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, 9, Eigen::RowMajor>> jacobian_speedbias_i(jacobians[1]);
+        jacobian_speedbias_i.setZero();
+        Eigen::Quaterniond corrected_delta_q =
+            lo_pre_integration->delta_q * Utility::deltaQ(dq_dbg * (Bgi - lo_pre_integration->linearized_bg));
+
+        jacobian_speedbias_i.block<3, 3>(0, 6) = -Utility::Qleft(Qj.inverse() * Qi * corrected_delta_q).bottomRightCorner<3, 3>() * dq_dbg;
+
+        jacobian_speedbias_i.block<3, 3>(3, 6) = -de_dbg;
+        jacobian_speedbias_i.block<3, 3>(6, 6) = -Eigen::Matrix3d::Identity();
+
+        jacobian_speedbias_i = sqrt_info * jacobian_speedbias_i;
+      }
+
+      if (jacobians[2]) {
+        Eigen::Map<Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, 7, Eigen::RowMajor>> jacobian_footbias_i(jacobians[2]);
+        jacobian_footbias_i.setZero();
+        jacobian_footbias_i.block<3, 3>(3, 0) = -de_dbf;
+        jacobian_footbias_i.block<3, 3>(3, 3) = -de_dbv;
+        jacobian_footbias_i.block<3, 1>(3, 6) = -de_dbd0;
+
+        jacobian_footbias_i.block<3, 3>(9, 0) = -Eigen::Matrix3d::Identity();
+        jacobian_footbias_i.block<3, 3>(12, 3) = -Eigen::Matrix3d::Identity();
+        jacobian_footbias_i(15, 6) = -1;  // rho
+
+        jacobian_footbias_i = sqrt_info * jacobian_footbias_i;
+      }
+
+      if (jacobians[3]) {
+        Eigen::Map<Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, 7, Eigen::RowMajor>> jacobian_pose_j(jacobians[3]);
+        jacobian_pose_j.setZero();
+        Eigen::Quaterniond corrected_delta_q =
+            lo_pre_integration->delta_q * Utility::deltaQ(dq_dbg * (Bgi - lo_pre_integration->linearized_bg));
+        jacobian_pose_j.block<3, 3>(0, 3) = Utility::Qleft(corrected_delta_q.inverse() * Qi.inverse() * Qj).bottomRightCorner<3, 3>();
+        jacobian_pose_j.block<3, 3>(3, 0) = Qi.inverse().toRotationMatrix();
+
+        jacobian_pose_j = sqrt_info * jacobian_pose_j;
+      }
+
+      if (jacobians[4]) {
+        Eigen::Map<Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, 9, Eigen::RowMajor>> jacobian_speedbias_j(jacobians[4]);
+        jacobian_speedbias_j.setZero();
+        jacobian_speedbias_j.block<3, 3>(6, 6) = Eigen::Matrix3d::Identity();
+        jacobian_speedbias_j = sqrt_info * jacobian_speedbias_j;
+      }
+
+      if (jacobians[5]) {
+        Eigen::Map<Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, 7, Eigen::RowMajor>> jacobian_footbias_j(jacobians[5]);
+        jacobian_footbias_j.setZero();
+
+        jacobian_footbias_j.block<3, 3>(9, 0) = Eigen::Matrix3d::Identity();
+        jacobian_footbias_j.block<3, 3>(12, 3) = Eigen::Matrix3d::Identity();
+        jacobian_footbias_j(15, 6) = 1;  // rho
+
+        jacobian_footbias_j = sqrt_info * jacobian_footbias_j;
       }
     }
+    return true;
   }
 
   LOTightIntegrationBase* lo_pre_integration;
