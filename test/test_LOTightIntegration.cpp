@@ -41,9 +41,28 @@ int main() {
 
   LOTightFactor* lo_tight_factor = new LOTightFactor(lo_pre_integration);
 
-  double para_Pose[WINDOW_SIZE + 1][7];
-  double para_SpeedBias[WINDOW_SIZE + 1][9];
-  double para_FootBias[WINDOW_SIZE + 1][4][7];
+  double para_Pose[WINDOW_SIZE + 1][7] = {0};
+  for (int i = 0; i < WINDOW_SIZE + 1; i++) {
+    para_Pose[i][0] = 0.01 * i;
+    para_Pose[i][1] = 0.01 * i;
+    para_Pose[i][2] = 0.01 * i;
+    para_Pose[i][3] = 0;
+    para_Pose[i][4] = 0;
+    para_Pose[i][5] = 0;
+    para_Pose[i][6] = 1;
+  }
+  double para_SpeedBias[WINDOW_SIZE + 1][9] = {0};
+  for (int i = 0; i < WINDOW_SIZE + 1; i++) {
+    for (int j = 0; j < 9; j++) para_SpeedBias[i][j] = 0.01 * i;
+  }
+  double para_FootBias[WINDOW_SIZE + 1][4][7] = {0};
+  for (int i = 0; i < WINDOW_SIZE + 1; i++) {
+    for (int j = 0; j < 4; j++) {
+      for (int k = 0; k < 7; k++) {
+        para_FootBias[i][j][k] = 0.01 * i + 0.01 * k;
+      }
+    }
+  }
 
   int i = 3;
   int j = i + 1;
@@ -63,7 +82,7 @@ int main() {
   lo_tight_factor->Evaluate(parameter_blocks.data(), residuals.data(), raw_jacobians);
   std::cout << "residual between frame " << i << " and " << j << std::endl;
   std::cout << residuals.transpose() << std::endl;
-  //   lo_tight_factor->checkJacobian(parameter_blocks.data());
+  lo_tight_factor->checkJacobian(parameter_blocks.data());
 
   return 0;
 }
