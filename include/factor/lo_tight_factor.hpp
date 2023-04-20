@@ -15,6 +15,14 @@
 //       9 is speedBias(velocity + gyroBias + accelBias)
 //       7 is footBias [(footIMUbias footVel + kinematic parameter)]
 
+// LO_TIGHT_RESIDUAL_SIZE 16
+//  0:2    rotation
+//  3:5    Q^T(Pj-Pi)-epsilon
+//  6:8    Bgj-Bgi
+//  9:11   Bfj-Bfi
+// 12:14   Bvj-Bvi
+//  15     rhoj-rhoi
+
 class LOTightFactor : public ceres::SizedCostFunction<LO_TIGHT_RESIDUAL_SIZE, 7, 9, 7, 7, 9, 7> {
  public:
   LOTightFactor() = delete;
@@ -55,6 +63,17 @@ class LOTightFactor : public ceres::SizedCostFunction<LO_TIGHT_RESIDUAL_SIZE, 7,
     residual = sqrt_info * residual;
 
     if (jacobians) {
+      if (jacobians[0]) {
+        Eigen::Map<Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, 7, Eigen::RowMajor>> jacobian_pose_i(jacobians[0]);
+        Eigen::Quaterniond corrected_delta_q = pre_integration->delta_q * Utility::deltaQ(dq_dbg * (Bgi - pre_integration->linearized_bg));
+
+        jacobian_pose_i.block<3, 3>(0, 0) = -Qi.inverse().toRotationMatrix();
+        jacobian_pose_i.block<3, 3>(0, 3) =
+            -(Utility::Qleft(Qj.inverse() * Qi) * Utility::Qright(corrected_delta_q)).bottomRightCorner<3, 3>();
+
+        jacobian_pose_i.block<3, 3>(O_P, O_P) = -Qi.inverse().toRotationMatrix();
+        jacobian_pose_i.block<3, 3>(O_P, O_R) = Utility::skewSymmetric(Qi.inverse() * (0.5 * G * sum_dt * sum_dt + Pj - Pi - Vi * sum_dt));
+      }
     }
   }
 
