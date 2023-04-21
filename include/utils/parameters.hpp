@@ -18,7 +18,8 @@
 enum SIZE_PARAMETERIZATION {
   SIZE_POSE = 7,       // position, quaternion
   SIZE_SPEEDBIAS = 9,  // velocity, bias acc, bias gyr
-  SIZE_FEATURE = 1
+  SIZE_FEATURE = 1,
+  SIZE_FOOTBIAS = 7  // Bf, Bv, rho
 };
 
 enum StateOrder { O_P = 0, O_R = 3, O_V = 6, O_BA = 9, O_BG = 12 };

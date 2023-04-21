@@ -44,6 +44,15 @@ void VILOEstimator::reset() {
   while (!gyrBuf.empty()) gyrBuf.pop();
   while (!featureBuf.empty()) featureBuf.pop();
 
+  if (VILO_FUSION_TYPE == 2) {
+    for (int j = 0; j < NUM_LEG; j++) {
+      while (!footGyrBuf[j].empty()) footGyrBuf[j].pop();
+      while (!jointAngBuf[j].empty()) jointAngBuf[j].pop();
+      while (!jointVelBuf[j].empty()) jointVelBuf[j].pop();
+      while (!contactFlagBuf[j].empty()) contactFlagBuf[j].pop();
+    }
+  }
+
   if (VILO_FUSION_TYPE == 1) {
     while (!loBuf.empty()) loBuf.pop();
     while (!loCovBuf.empty()) loCovBuf.pop();
@@ -70,6 +79,12 @@ void VILOEstimator::reset() {
     Bas[i].setZero();
     Bgs[i].setZero();
 
+    for (int j = 0; j < NUM_LEG; j++) {
+      Bfs[i][j].setZero();
+      Bvs[i][j].setZero();
+      Rhos[i][j].setZero();
+    }
+
     dt_buf[i].clear();
     linear_acceleration_buf[i].clear();
     angular_velocity_buf[i].clear();
@@ -87,6 +102,20 @@ void VILOEstimator::reset() {
         delete lo_pre_integrations[i];
       }
       lo_pre_integrations[i] = nullptr;
+    } else if (VILO_FUSION_TYPE == 2) {
+      tight_lo_dt_buf[i].clear();
+      for (int j = 0; j < NUM_LEG; j++) {
+        tight_lo_footGyr_buf[i][j].clear();
+        tight_lo_jang_buf[i][j].clear();
+        tight_lo_jvel_buf[i][j].clear();
+        tight_lo_contact_buf[i][j].clear();
+
+        if (tlo_pre_integration[i][j] != nullptr) {
+          delete tlo_pre_integration[i][j];
+        }
+        tlo_pre_integration[i][j] = nullptr;
+        tlo_all_in_contact[i][j] = true;
+      }
     }
   }
 
@@ -151,10 +180,29 @@ void VILOEstimator::inputBodyIMU(double t, const Vector3d& linearAcceleration, c
   // printf("input imu with time %f \n", t);
 }
 
+// this function is used for VILO_FUSION_TYPE == 1, it is used along with inputBodyIMU
 void VILOEstimator::inputLOVel(double t, const Vector3d& linearVelocity, const Matrix3d& linearVelocityCov) {
   const std::lock_guard<std::mutex> lock(mBuf);
   loBuf.push(make_pair(t, linearVelocity));
   loCovBuf.push(make_pair(t, linearVelocityCov));
+}
+
+// this function is used for VILO_FUSION_TYPE == 2, it replaces inputBodyIMU
+void VILOEstimator::inputBodyIMULeg(double t, const Vector3d& bodyLinearAcceleration, const Vector3d& bodyAngularVelocity,
+                                    const Eigen::Matrix<double, 12, 1>& footAngularVelocity,
+                                    const Eigen::Matrix<double, NUM_DOF, 1>& jointAngles,
+                                    const Eigen::Matrix<double, NUM_DOF, 1>& jointVelocities,
+                                    const Eigen::Matrix<double, NUM_LEG, 1>& contactFlags) {
+  const std::lock_guard<std::mutex> lock(mBuf);
+  accBuf.push(make_pair(t, bodyLinearAcceleration));
+  gyrBuf.push(make_pair(t, bodyAngularVelocity));
+
+  for (int j = 0; j < NUM_LEG; j++) {
+    footGyrBuf[j].push(footAngularVelocity.segment<3>(j * 3));
+    jointAngBuf[j].push(jointAngles.segment<3>(j * 3));
+    jointVelBuf[j].push(jointVelocities.segment<3>(j * 3));
+    contactFlagBuf[j].push(contactFlags[j]);
+  }
 }
 
 bool VILOEstimator::getBodyIMUInterval(double t0, double t1, vector<pair<double, Eigen::Vector3d>>& accVector,
@@ -181,6 +229,74 @@ bool VILOEstimator::getBodyIMUInterval(double t0, double t1, vector<pair<double,
     gyrVector.push_back(gyrBuf.front());
   } else {
     printf("wait for imu\n");
+    return false;
+  }
+  return true;
+}
+
+// this replaces getBodyIMUInterval when VILO_FUSION_TYPE == 2
+// contactDecision is very important, it shows whether during t0 and t1
+bool VILOEstimator::getBodyIMULegInterval(double t0, double t1, vector<pair<double, Eigen::Vector3d>>& bodyAccVector,
+                                          vector<pair<double, Eigen::Vector3d>>& bodyGyrVector, vector<Eigen::Vector3d> footGyrVector[],
+                                          vector<Eigen::Vector3d> jointAngVector[], vector<Eigen::Vector3d> jointVelVector[],
+                                          double contactDecision[]) {
+  if (accBuf.empty()) {
+    printf("not receive imu and leg\n");
+    return false;
+  }
+  // printf("get imu from %f %f\n", t0, t1);
+  // printf("imu fornt time %f   imu end time %f\n", accBuf.front().first,
+  // accBuf.back().first);
+  if (t1 <= accBuf.back().first) {
+    while (accBuf.front().first <= t0) {
+      accBuf.pop();
+      gyrBuf.pop();
+      for (int j = 0; j < NUM_LEG; j++) {
+        footGyrBuf[j].pop();
+        jointAngBuf[j].pop();
+        jointVelBuf[j].pop();
+        contactFlagBuf[j].pop();
+      }
+    }
+    // the actual important place, first set all contactDecision[] to be true
+    for (int j = 0; j < NUM_LEG; j++) {
+      contactDecision[j] = true;
+    }
+    while (accBuf.front().first < t1) {
+      bodyAccVector.push_back(accBuf.front());
+      accBuf.pop();
+
+      bodyGyrVector.push_back(gyrBuf.front());
+      gyrBuf.pop();
+
+      for (int j = 0; j < NUM_LEG; j++) {
+        footGyrVector[j].push_back(footGyrBuf[j].front());
+        footGyrBuf[j].pop();
+        jointAngVector[j].push_back(jointAngBuf[j].front());
+        jointAngBuf[j].pop();
+        jointVelVector[j].push_back(jointVelBuf[j].front());
+        jointVelBuf[j].pop();
+
+        if (contactFlagBuf[j].front() != 1.0) {
+          contactDecision[j] = false;
+        }
+        contactFlagBuf[j].pop();
+      }
+    }
+    bodyAccVector.push_back(accBuf.front());
+    bodyGyrVector.push_back(gyrBuf.front());
+
+    for (int j = 0; j < NUM_LEG; j++) {
+      footGyrVector[j].push_back(footGyrBuf[j].front());
+      jointAngVector[j].push_back(jointAngBuf[j].front());
+      jointVelVector[j].push_back(jointVelBuf[j].front());
+      if (contactFlagBuf[j].front() != 1.0) {
+        contactDecision[j] = false;
+      }
+    }
+
+  } else {
+    printf("wait for imu and leg\n");
     return false;
   }
   return true;
@@ -237,6 +353,9 @@ void VILOEstimator::processMeasurements() {
   while (ros::ok()) {
     pair<double, map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>>> feature;
     vector<pair<double, Eigen::Vector3d>> accVector, gyrVector;
+    vector<Eigen::Vector3d> footGyrVector[NUM_LEG], jointAngVector[NUM_LEG], jointVelVector[NUM_LEG];
+    double contactDecision[NUM_LEG];
+
     vector<pair<double, Eigen::Vector3d>> loVelVector;
     vector<pair<double, Eigen::Matrix3d>> loCovVector;
 
@@ -254,7 +373,13 @@ void VILOEstimator::processMeasurements() {
       }
       mBuf.lock();
 
-      getBodyIMUInterval(prevTime, curTime, accVector, gyrVector);
+      if (VILO_FUSION_TYPE == 2) {
+        getBodyIMULegInterval(prevTime, curTime, accVector, gyrVector, footGyrVector, jointAngVector, jointVelVector, contactDecision);
+        // now contactDecision[j] contains flag indicating between prevTime and curTime whether leg j is in contact
+        // TODO: check this
+      } else {
+        getBodyIMUInterval(prevTime, curTime, accVector, gyrVector);
+      }
       featureBuf.pop();
 
       mBuf.unlock();
