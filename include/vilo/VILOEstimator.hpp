@@ -11,8 +11,10 @@
 
 #include "factor/imu_factor.hpp"
 #include "factor/integration_base.hpp"
+
 #include "factor/lo_factor.hpp"
 #include "factor/lo_intergration_base.hpp"
+
 #include "factor/marginalization_factor.h"
 #include "factor/pose_local_parameterization.h"
 #include "factor/projectionOneFrameTwoCamFactor.h"
@@ -32,7 +34,14 @@ class VILOEstimator {
   void inputFeature(double t, const map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>>& featureFrame);
   void inputImage(double t, const cv::Mat& _img, const cv::Mat& _img1 = cv::Mat());
   void inputBodyIMU(double t, const Vector3d& linearAcceleration, const Vector3d& angularVelocity);
+
+  // this function is used for VILO_FUSION_TYPE == 1
   void inputLOVel(double t, const Vector3d& linearVelocity, const Matrix3d& linearVelocityCov);
+
+  // this function is used for VILO_FUSION_TYPE == 2
+  void inputLORaw(double t, const Vector3d& bodyAngularVelocity, const Vector3d& footAngularVelocity,
+                  const Eigen::Matrix<double, NUM_DOF, 1>& jointAngles, const Eigen::Matrix<double, NUM_DOF, 1>& jointVelocities,
+                  const Eigen::Matrix<double, NUM_LEG, 1>& contactFlags);
 
   // output latest state
   Eigen::Matrix<double, VS_OUTSIZE, 1> outputState() const;
@@ -103,13 +112,13 @@ class VILOEstimator {
   bool first_imu;
   Vector3d acc_0, gyr_0;  // save previous imu data
   IntegrationBase* pre_integrations[(WINDOW_SIZE + 1)] = {nullptr};
-  // process LO vel, loosely couple
+  // process LO vel, loosely couple (lo)
   bool first_lo;
   Vector3d lo_vel_0;  // save previous leg odometry data
   Matrix3d lo_vel_cov_0;
   LOIntegrationBase* lo_pre_integrations[(WINDOW_SIZE + 1)] = {nullptr};
 
-  // process LO vel, tightly couple
+  // process LO vel, tightly couple (tlo)
 
   bool initFirstPoseFlag;
 
