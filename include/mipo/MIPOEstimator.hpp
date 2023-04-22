@@ -153,11 +153,13 @@ class MIPOEstimator {
      (3), foot3 IMU gyro (3), foot4 IMU gyro (3) yaw], indices are [0:2, 3:5,
      6:17, 18:29, 30:32, 33:35, 36:38, 39:41, 42:44, 45:47, 48:50, 51:53 54]
 
+     * return is contact flags, 1 means contact, 0 means no contact
    */
   void ekfUpdate(const Eigen::Matrix<double, MS_SIZE, 1>& x_k, const Eigen::Matrix<double, MS_SIZE, MS_SIZE>& P_k,
                  const MIPOEstimatorSensorData& sensor_data_k, const MIPOEstimatorSensorData& sensor_data_k1, const double dt,
                  // output
-                 Eigen::Matrix<double, MS_SIZE, 1>& x_k1, Eigen::Matrix<double, MS_SIZE, MS_SIZE>& P_k1);
+                 Eigen::Matrix<double, MS_SIZE, 1>& x_k1, Eigen::Matrix<double, MS_SIZE, MS_SIZE>& P_k1,
+                 Eigen::Matrix<double, NUM_LEG, 1>& contact_est);
 
   // given a sensor data k, initialize the state
   Eigen::Matrix<double, MS_SIZE, 1> ekfInitState(const MIPOEstimatorSensorData& sensor_data_k);

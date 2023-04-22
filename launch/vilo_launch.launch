@@ -17,8 +17,8 @@
         value="$(find cerberus2)/config/go1_config/hardware_go1_vilo_config.yaml" />
 
 
-    <node name="cerberus2_main" pkg="cerberus2"
+    <!-- <node name="cerberus2_main" pkg="cerberus2"
         args="$(arg vilo_config_file)"
         type="cerberus2_main"
-        output="screen" />
+        output="screen" /> -->
 </launch>

@@ -122,7 +122,8 @@ void VILOFusion::POLoop() {
           // do estimation
           Eigen::Matrix<double, MS_SIZE, 1> mipo_x_k1_est;
           Eigen::Matrix<double, MS_SIZE, MS_SIZE> mipo_P_k1_est;
-          mipo_estimator->ekfUpdate(mipo_x, mipo_P, *prev_data, *curr_data, dt_ros, mipo_x_k1_est, mipo_P_k1_est);
+          Eigen::Matrix<double, NUM_LEG, 1> contact_est;
+          mipo_estimator->ekfUpdate(mipo_x, mipo_P, *prev_data, *curr_data, dt_ros, mipo_x_k1_est, mipo_P_k1_est, contact_est);
 
           mipo_x = mipo_x_k1_est;
           // std::cout << "x: " << x.transpose() << std::endl;
@@ -134,7 +135,18 @@ void VILOFusion::POLoop() {
           publishPOEstimationResult(x, P);
 
           // inputPODataToVILO();
-          vilo_estimator->inputBodyIMU(curr_esti_time, curr_data->body_acc, curr_data->body_gyro);
+          if (VILO_FUSION_TYPE == 2) {
+            // convert curr_data->foot_gyro from Eigen::Matrix<double, 3, 4> to Eigen::Matrix<double, 12, 1>
+            Eigen::Matrix<double, 12, 1> foot_gyro_vec;
+            for (int j = 0; j < NUM_LEG; j++) {
+              foot_gyro_vec.segment<3>(3 * j) = curr_data->foot_gyro.col(j);
+            }
+
+            vilo_estimator->inputBodyIMULeg(curr_esti_time, curr_data->body_acc, curr_data->body_gyro, foot_gyro_vec,
+                                            curr_data->joint_angles, curr_data->joint_velocities, contact_est);
+          } else {
+            vilo_estimator->inputBodyIMU(curr_esti_time, curr_data->body_acc, curr_data->body_gyro);
+          }
           // input LO velocity
           if (VILO_FUSION_TYPE == 1) {
             vilo_estimator->inputLOVel(curr_esti_time, mipo_x.segment<3>(3), mipo_P.block<3, 3>(3, 3));

@@ -67,7 +67,8 @@ MIPOEstimator::~MIPOEstimator() {}
 void MIPOEstimator::ekfUpdate(const Eigen::Matrix<double, MS_SIZE, 1>& x_k, const Eigen::Matrix<double, MS_SIZE, MS_SIZE>& P_k,
                               const MIPOEstimatorSensorData& sensor_data_k, const MIPOEstimatorSensorData& sensor_data_k1, const double dt,
                               // output
-                              Eigen::Matrix<double, MS_SIZE, 1>& x_k1, Eigen::Matrix<double, MS_SIZE, MS_SIZE>& P_k1) {
+                              Eigen::Matrix<double, MS_SIZE, 1>& x_k1, Eigen::Matrix<double, MS_SIZE, MS_SIZE>& P_k1,
+                              Eigen::Matrix<double, NUM_LEG, 1>& contact_est) {
   // process sensor data into input and measurement
   // caution: make sure these two functions are called by outside caller
   // sensor_data_k.footIMUToBody();
@@ -142,6 +143,7 @@ void MIPOEstimator::ekfUpdate(const Eigen::Matrix<double, MS_SIZE, 1>& x_k, cons
   //   is 0
   // or 1, 0 means outlier, 1 means inlier. The mask is initialized as
   //   all 1.
+  contact_est.setOnes();
   Eigen::Matrix<int, MY_SIZE, 1> outlier_mask;
   outlier_mask.setOnes();
   for (int i = 0; i < NUM_LEG; i++) {
@@ -153,6 +155,7 @@ void MIPOEstimator::ekfUpdate(const Eigen::Matrix<double, MS_SIZE, 1>& x_k, cons
     double mahal_dist = sqrt(seg_mes.transpose() * seg_S.inverse() * seg_mes);
     // std::cout << "mahal_dist: " << mahal_dist << std::endl;
     if (mahal_dist > 1.0) {
+      contact_est(i) = 0;
       outlier_mask.segment<3>(MY_PER_LEG * i + 6).setZero();
       // outlier_mask(MY_PER_LEG * i + 9) = 0.0;
     }

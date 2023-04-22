@@ -196,7 +196,8 @@ void ROSFusion::loop() {
         // do estimation
         Eigen::Matrix<double, MS_SIZE, 1> x_k1_est;
         Eigen::Matrix<double, MS_SIZE, MS_SIZE> P_k1_est;
-        mipo_estimator.ekfUpdate(x, P, *prev_data, *curr_data, dt_ros, x_k1_est, P_k1_est);
+        Eigen::Matrix<double, NUM_LEG, 1> contact_est;
+        mipo_estimator.ekfUpdate(x, P, *prev_data, *curr_data, dt_ros, x_k1_est, P_k1_est, contact_est);
 
         x = x_k1_est;
         // std::cout << "x: " << x.transpose() << std::endl;

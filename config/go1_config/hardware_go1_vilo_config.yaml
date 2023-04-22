@@ -24,9 +24,9 @@ kf_type:   0  # 0 is MIPO (multi-imu PO)
               # 1 is SIPO (standard single imu PO)
 
 # leg related
-vilo_fusion_type: 1  # 0 - do not use leg for preintegration (then this is just VIO)
+vilo_fusion_type: 2  # 0 - do not use leg for preintegration (then this is just VIO)
                      # 1 - use LO velocity as preintegration
-                     # 2 - average each leg 
+                     # 2 - tightly couple leg and imu for preintegration 
 
 foot_gyro_n: 0.05
 foot_gyro_w: 0.0005

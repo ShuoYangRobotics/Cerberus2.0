@@ -6,6 +6,10 @@ VILOEstimator::VILOEstimator() {
   initThreadFlag = false;
   feature_manager_ = std::make_unique<FeatureManager>(Rs);
   feature_tracker_ = std::make_unique<FeatureTracker>();
+
+  for (int j = 0; j < NUM_LEG; j++) {
+    lo_tight_utils_[j] = std::make_shared<LOTightUtils>();
+  }
   reset();
 }
 
@@ -102,13 +106,15 @@ void VILOEstimator::reset() {
         delete lo_pre_integrations[i];
       }
       lo_pre_integrations[i] = nullptr;
-    } else if (VILO_FUSION_TYPE == 2) {
-      tight_lo_dt_buf[i].clear();
+    }
+
+    if (VILO_FUSION_TYPE == 2) {
       for (int j = 0; j < NUM_LEG; j++) {
+        tight_lo_dt_buf[i][j].clear();
+        tight_lo_bodyGyr_buf[i][j].clear();
         tight_lo_footGyr_buf[i][j].clear();
         tight_lo_jang_buf[i][j].clear();
         tight_lo_jvel_buf[i][j].clear();
-        tight_lo_contact_buf[i][j].clear();
 
         if (tlo_pre_integration[i][j] != nullptr) {
           delete tlo_pre_integration[i][j];
@@ -377,6 +383,9 @@ void VILOEstimator::processMeasurements() {
         getBodyIMULegInterval(prevTime, curTime, accVector, gyrVector, footGyrVector, jointAngVector, jointVelVector, contactDecision);
         // now contactDecision[j] contains flag indicating between prevTime and curTime whether leg j is in contact
         // TODO: check this
+        for (int j = 0; j < NUM_LEG; j++) {
+          tlo_all_in_contact[frame_count][j] = contactDecision[j];
+        }
       } else {
         getBodyIMUInterval(prevTime, curTime, accVector, gyrVector);
       }
@@ -399,6 +408,16 @@ void VILOEstimator::processMeasurements() {
         else
           dt = accVector[i].first - accVector[i - 1].first;
         processIMU(accVector[i].first, dt, accVector[i].second, gyrVector[i].second);
+
+        // do contact preintegration for leg in contact
+        if (VILO_FUSION_TYPE == 2) {
+          for (int j = 0; j < NUM_LEG; j++) {
+            if (contactDecision[j]) {
+              processIMULegOdom(j, accVector[i].first, dt, gyrVector[i].second, footGyrVector[j][i], jointAngVector[j][i],
+                                jointVelVector[j][i]);
+            }
+          }
+        }
       }
 
       // process LO velocity
@@ -497,13 +516,51 @@ void VILOEstimator::processIMU(double t, double dt, const Vector3d& linear_accel
   acc_0 = linear_acceleration;
   gyr_0 = angular_velocity;
 }
+// this is used in VILO_FUSION_TYPE == 2 together with processIMU
+void VILOEstimator::processIMULegOdom(int leg_id, double t, double dt, const Vector3d& bodyAngularVelocity,
+                                      const Vector3d& footAngularVelocity, const Vector3d& jointAngles, const Vector3d& jointVelocities) {
+  if (!first_tight_lo[leg_id]) {
+    first_tight_lo[leg_id] = true;
+    tight_lo_body_gyr_0[leg_id] = bodyAngularVelocity;
+    tight_lo_foot_gyr_0[leg_id] = footAngularVelocity;
+    tight_lo_joint_ang_0[leg_id] = jointAngles;
+    tight_lo_joint_vel_0[leg_id] = jointVelocities;
+  }
 
+  if (!tlo_pre_integration[frame_count][leg_id]) {
+    tlo_pre_integration[frame_count][leg_id] = new LOTightIntegrationBase{leg_id,
+                                                                          tight_lo_joint_ang_0[leg_id],
+                                                                          tight_lo_joint_vel_0[leg_id],
+                                                                          tight_lo_body_gyr_0[leg_id],
+                                                                          tight_lo_foot_gyr_0[leg_id],
+                                                                          Bgs[frame_count],
+                                                                          Bfs[frame_count][leg_id],
+                                                                          Bvs[frame_count][leg_id],
+                                                                          Rhos[frame_count][leg_id],
+                                                                          lo_tight_utils_[leg_id].get()};
+  }
+
+  if (frame_count != 0) {
+    tlo_pre_integration[frame_count][leg_id]->push_back(dt, bodyAngularVelocity, footAngularVelocity, jointAngles, jointVelocities);
+    tight_lo_dt_buf[frame_count][leg_id].push_back(dt);
+    tight_lo_bodyGyr_buf[frame_count][leg_id].push_back(bodyAngularVelocity);
+    tight_lo_footGyr_buf[frame_count][leg_id].push_back(footAngularVelocity);
+    tight_lo_jang_buf[frame_count][leg_id].push_back(jointAngles);
+    tight_lo_jvel_buf[frame_count][leg_id].push_back(jointVelocities);
+  }
+
+  tight_lo_body_gyr_0[leg_id] = bodyAngularVelocity;
+  tight_lo_foot_gyr_0[leg_id] = footAngularVelocity;
+  tight_lo_joint_ang_0[leg_id] = jointAngles;
+  tight_lo_joint_vel_0[leg_id] = jointVelocities;
+}
+
+// this is used in VILO_FUSION_TYPE == 1 together with processIMU
 void VILOEstimator::processLegOdom(double t, double dt, const Eigen::Vector3d& loVel, const Eigen::Matrix3d& loCov) {
   if (!first_lo) {
     first_lo = true;
     lo_vel_0 = loVel;
     lo_vel_cov_0 = loCov;
-    ;
   }
 
   // contact preintegration
@@ -574,6 +631,13 @@ void VILOEstimator::processImage(const map<int, vector<pair<int, Eigen::Matrix<d
       Rs[frame_count] = Rs[prev_frame];
       Bas[frame_count] = Bas[prev_frame];
       Bgs[frame_count] = Bgs[prev_frame];
+
+      // for VILO_FUSION_TYPE == 2
+      for (int j = 0; j < NUM_LEG; j++) {
+        Bfs[frame_count][j] = Bfs[prev_frame][j];
+        Bvs[frame_count][j] = Bvs[prev_frame][j];
+        Rhos[frame_count][j] = Rhos[prev_frame][j];
+      }
     }
   } else {  // the usual sliding window optimization
 
@@ -633,6 +697,19 @@ void VILOEstimator::vector2double() {
     para_SpeedBias[i][6] = Bgs[i].x();
     para_SpeedBias[i][7] = Bgs[i].y();
     para_SpeedBias[i][8] = Bgs[i].z();
+
+    // for VILO_FUSION_TYPE == 2
+    for (int j = 0; j < NUM_LEG; j++) {
+      para_FootBias[i][j][0] = Bfs[i][j].x();
+      para_FootBias[i][j][1] = Bfs[i][j].y();
+      para_FootBias[i][j][2] = Bfs[i][j].z();
+
+      para_FootBias[i][j][3] = Bvs[i][j].x();
+      para_FootBias[i][j][4] = Bvs[i][j].y();
+      para_FootBias[i][j][5] = Bvs[i][j].z();
+
+      para_FootBias[i][j][6] = Rhos[i][j](0);
+    }
   }
 
   for (int i = 0; i < NUM_OF_CAM; i++) {
@@ -682,6 +759,13 @@ void VILOEstimator::double2vector() {
     Bas[i] = Vector3d(para_SpeedBias[i][3], para_SpeedBias[i][4], para_SpeedBias[i][5]);
 
     Bgs[i] = Vector3d(para_SpeedBias[i][6], para_SpeedBias[i][7], para_SpeedBias[i][8]);
+
+    // for VILO_FUSION_TYPE == 2
+    for (int j = 0; j < NUM_LEG; j++) {
+      Bfs[i][j] = Vector3d(para_FootBias[i][j][0], para_FootBias[i][j][1], para_FootBias[i][j][2]);
+      Bvs[i][j] = Vector3d(para_FootBias[i][j][3], para_FootBias[i][j][4], para_FootBias[i][j][5]);
+      Rhos[i][j](0) = para_FootBias[i][j][6];
+    }
   }
 
   for (int i = 0; i < NUM_OF_CAM; i++) {
@@ -767,6 +851,20 @@ void VILOEstimator::slideWindow() {
         Vs[i].swap(Vs[i + 1]);
         Bas[i].swap(Bas[i + 1]);
         Bgs[i].swap(Bgs[i + 1]);
+
+        if (VILO_FUSION_TYPE == 2) {
+          for (int j = 0; j < NUM_LEG; j++) {
+            Bfs[i][j].swap(Bfs[i + 1][j]);
+            Bvs[i][j].swap(Bvs[i + 1][j]);
+            Rhos[i][j].swap(Rhos[i + 1][j]);
+            std::swap(tlo_pre_integration[i][j], tlo_pre_integration[i + 1][j]);
+            tight_lo_footGyr_buf[i][j].swap(tight_lo_footGyr_buf[i + 1][j]);
+            tight_lo_jang_buf[i][j].swap(tight_lo_jang_buf[i + 1][j]);
+            tight_lo_jvel_buf[i][j].swap(tight_lo_jvel_buf[i + 1][j]);
+            tight_lo_dt_buf[i][j].swap(tight_lo_dt_buf[i + 1][j]);
+            tight_lo_bodyGyr_buf[i][j].swap(tight_lo_bodyGyr_buf[i + 1][j]);
+          }
+        }
       }
       Headers[WINDOW_SIZE] = Headers[WINDOW_SIZE - 1];
       Ps[WINDOW_SIZE] = Ps[WINDOW_SIZE - 1];
@@ -775,6 +873,14 @@ void VILOEstimator::slideWindow() {
       Vs[WINDOW_SIZE] = Vs[WINDOW_SIZE - 1];
       Bas[WINDOW_SIZE] = Bas[WINDOW_SIZE - 1];
       Bgs[WINDOW_SIZE] = Bgs[WINDOW_SIZE - 1];
+
+      if (VILO_FUSION_TYPE == 2) {
+        for (int j = 0; j < NUM_LEG; j++) {
+          Bfs[WINDOW_SIZE][j] = Bfs[WINDOW_SIZE - 1][j];
+          Bvs[WINDOW_SIZE][j] = Bvs[WINDOW_SIZE - 1][j];
+          Rhos[WINDOW_SIZE][j] = Rhos[WINDOW_SIZE - 1][j];
+        }
+      }
 
       delete pre_integrations[WINDOW_SIZE];
       pre_integrations[WINDOW_SIZE] = new IntegrationBase{acc_0, gyr_0, Bas[WINDOW_SIZE], Bgs[WINDOW_SIZE]};
@@ -789,6 +895,22 @@ void VILOEstimator::slideWindow() {
         lo_dt_buf[WINDOW_SIZE].clear();
         lo_velocity_buf[WINDOW_SIZE].clear();
         lo_velocity_cov_buf[WINDOW_SIZE].clear();
+      }
+
+      if (VILO_FUSION_TYPE == 2) {
+        for (int j = 0; j < NUM_LEG; j++) {
+          delete tlo_pre_integration[WINDOW_SIZE][j];
+          tlo_pre_integration[WINDOW_SIZE][j] = new LOTightIntegrationBase(
+              j, tight_lo_joint_ang_0[j], tight_lo_joint_vel_0[j], tight_lo_body_gyr_0[j], tight_lo_foot_gyr_0[j], Bgs[WINDOW_SIZE],
+              Bfs[WINDOW_SIZE][j], Bvs[WINDOW_SIZE][j], Rhos[WINDOW_SIZE][j], lo_tight_utils_[j].get());
+        }
+        for (int j = 0; j < NUM_LEG; j++) {
+          tight_lo_dt_buf[WINDOW_SIZE][j].clear();
+          tight_lo_bodyGyr_buf[WINDOW_SIZE][j].clear();
+          tight_lo_footGyr_buf[WINDOW_SIZE][j].clear();
+          tight_lo_jang_buf[WINDOW_SIZE][j].clear();
+          tight_lo_jvel_buf[WINDOW_SIZE][j].clear();
+        }
       }
 
       if (true || solver_flag == INITIAL) {
@@ -821,6 +943,13 @@ void VILOEstimator::slideWindow() {
       Bas[frame_count - 1] = Bas[frame_count];
       Bgs[frame_count - 1] = Bgs[frame_count];
 
+      if (VILO_FUSION_TYPE == 2) {
+        for (int j = 0; j < NUM_LEG; j++) {
+          Bfs[frame_count - 1][j] = Bfs[frame_count][j];
+          Bvs[frame_count - 1][j] = Bvs[frame_count][j];
+          Rhos[frame_count - 1][j] = Rhos[frame_count][j];
+        }
+      }
       delete pre_integrations[WINDOW_SIZE];
       pre_integrations[WINDOW_SIZE] = new IntegrationBase{acc_0, gyr_0, Bas[WINDOW_SIZE], Bgs[WINDOW_SIZE]};
 
@@ -843,6 +972,36 @@ void VILOEstimator::slideWindow() {
         lo_dt_buf[WINDOW_SIZE].clear();
         lo_velocity_buf[WINDOW_SIZE].clear();
         lo_velocity_cov_buf[WINDOW_SIZE].clear();
+      }
+
+      if (VILO_FUSION_TYPE == 2) {
+        for (int j = 0; j < NUM_LEG; j++) {
+          for (unsigned int i = 0; i < tight_lo_dt_buf[frame_count][j].size(); i++) {
+            double tmp_tight_lo_dt = tight_lo_dt_buf[frame_count][j][i];
+            Vector3d tmp_tight_lo_bodyGyr = tight_lo_bodyGyr_buf[frame_count][j][i];
+            Vector3d tmp_tight_lo_footGyr = tight_lo_footGyr_buf[frame_count][j][i];
+            Vector3d tmp_tight_lo_jang = tight_lo_jang_buf[frame_count][j][i];
+            Vector3d tmp_tight_lo_jvel = tight_lo_jvel_buf[frame_count][j][i];
+            tlo_pre_integration[frame_count - 1][j]->push_back(tmp_tight_lo_dt, tmp_tight_lo_bodyGyr, tmp_tight_lo_footGyr,
+                                                               tmp_tight_lo_jang, tmp_tight_lo_jvel);
+
+            delete tlo_pre_integration[WINDOW_SIZE][j];
+            tlo_pre_integration[WINDOW_SIZE][j] = new LOTightIntegrationBase(
+                j, tight_lo_joint_ang_0[j], tight_lo_joint_vel_0[j], tight_lo_body_gyr_0[j], tight_lo_foot_gyr_0[j], Bgs[WINDOW_SIZE],
+                Bfs[WINDOW_SIZE][j], Bvs[WINDOW_SIZE][j], Rhos[WINDOW_SIZE][j], lo_tight_utils_[j].get());
+
+            tight_lo_footGyr_buf[frame_count - 1][j].push_back(tmp_tight_lo_footGyr);
+            tight_lo_jang_buf[frame_count - 1][j].push_back(tmp_tight_lo_jang);
+            tight_lo_jvel_buf[frame_count - 1][j].push_back(tmp_tight_lo_jvel);
+            tight_lo_bodyGyr_buf[frame_count - 1][j].push_back(tmp_tight_lo_bodyGyr);
+            tight_lo_dt_buf[frame_count - 1][j].push_back(tmp_tight_lo_dt);
+            tight_lo_bodyGyr_buf[WINDOW_SIZE][j].clear();
+            tight_lo_dt_buf[WINDOW_SIZE][j].clear();
+            tight_lo_footGyr_buf[WINDOW_SIZE][j].clear();
+            tight_lo_jang_buf[WINDOW_SIZE][j].clear();
+            tight_lo_jvel_buf[WINDOW_SIZE][j].clear();
+          }
+        }
       }
 
       slideWindowNew();
@@ -935,6 +1094,23 @@ void VILOEstimator::optimization() {
     }
   }
 
+  if (VILO_FUSION_TYPE == 2) {
+    for (int i = 0; i < frame_count; i++) {
+      int j = i + 1;
+      for (int k = 0; k < NUM_LEG; k++) {
+        if (tlo_pre_integration[j][k]->sum_dt > 10.0) continue;
+        if (tlo_all_in_contact[j][k] == true) {
+          LOTightFactor* tlo_factor = new LOTightFactor(tlo_pre_integration[j][k]);
+          problem.AddResidualBlock(tlo_factor, NULL, para_Pose[i], para_SpeedBias[i], para_FootBias[i][k], para_Pose[j], para_SpeedBias[j],
+                                   para_FootBias[j][k]);
+        } else {
+          LOConstantFactor* tlo_factor = new LOConstantFactor(k);
+          problem.AddResidualBlock(tlo_factor, NULL, para_FootBias[i][k], para_FootBias[j][k]);
+        }
+      }
+    }
+  }
+
   // visual feature variables and factors
   int f_m_cnt = 0;
   int feature_index = -1;
@@ -1017,6 +1193,12 @@ void VILOEstimator::optimization() {
         for (int i = 0; i < static_cast<int>(last_marginalization_parameter_blocks.size()); i++) {
           if (last_marginalization_parameter_blocks[i] == para_Pose[0] || last_marginalization_parameter_blocks[i] == para_SpeedBias[0])
             drop_set.push_back(i);
+
+          for (int j = 0; j < NUM_LEG; j++) {
+            if (last_marginalization_parameter_blocks[i] == para_FootBias[0][j]) {
+              drop_set.push_back(i);
+            }
+          }
         }
         // construct new marginlization_factor
         MarginalizationFactor* marginalization_factor = new MarginalizationFactor(last_marginalization_info);
@@ -1046,6 +1228,30 @@ void VILOEstimator::optimization() {
         }
       }
 
+      if (VILO_FUSION_TYPE == 2) {
+        for (int j = 0; j < NUM_LEG; j++) {
+          if (tlo_pre_integration[1][j]->sum_dt < 10.0) {
+            if (tlo_all_in_contact[1][j] == true) {
+              LOTightFactor* tlo_factor = new LOTightFactor(tlo_pre_integration[1][j]);
+              ResidualBlockInfo* residual_block_info =
+                  new ResidualBlockInfo(tlo_factor, NULL,
+                                        vector<double*>{para_Pose[0], para_SpeedBias[0], para_FootBias[0][j], para_Pose[1],
+                                                        para_SpeedBias[1], para_FootBias[1][j]},
+                                        vector<int>{0, 1, 2});
+              marginalization_info->addResidualBlockInfo(residual_block_info);
+            } else {
+              LOConstantFactor* tlo_factor = new LOConstantFactor(j);
+              ResidualBlockInfo* residual_block_info = new ResidualBlockInfo(tlo_factor, NULL,
+                                                                             vector<double*>{
+                                                                                 para_FootBias[0][j],
+                                                                                 para_FootBias[1][j],
+                                                                             },
+                                                                             vector<int>{0});
+              marginalization_info->addResidualBlockInfo(residual_block_info);
+            }
+          }
+        }
+      }
       {
         int feature_index = -1;
         for (auto& it_per_id : feature_manager_->feature) {
@@ -1110,6 +1316,9 @@ void VILOEstimator::optimization() {
       for (int i = 1; i <= WINDOW_SIZE; i++) {
         addr_shift[reinterpret_cast<long>(para_Pose[i])] = para_Pose[i - 1];
         addr_shift[reinterpret_cast<long>(para_SpeedBias[i])] = para_SpeedBias[i - 1];
+        for (int j = 0; j < NUM_LEG; j++) {
+          addr_shift[reinterpret_cast<long>(para_FootBias[i][j])] = para_FootBias[i - 1][j];
+        }
       }
       for (int i = 0; i < NUM_OF_CAM; i++) addr_shift[reinterpret_cast<long>(para_Ex_Pose[i])] = para_Ex_Pose[i];
 
@@ -1157,9 +1366,19 @@ void VILOEstimator::optimization() {
           else if (i == WINDOW_SIZE) {
             addr_shift[reinterpret_cast<long>(para_Pose[i])] = para_Pose[i - 1];
             addr_shift[reinterpret_cast<long>(para_SpeedBias[i])] = para_SpeedBias[i - 1];
+
+            //
+            for (int j = 0; j < NUM_LEG; j++) {
+              addr_shift[reinterpret_cast<long>(para_FootBias[i][j])] = para_FootBias[i - 1][j];
+            }
+
           } else {
             addr_shift[reinterpret_cast<long>(para_Pose[i])] = para_Pose[i];
             addr_shift[reinterpret_cast<long>(para_SpeedBias[i])] = para_SpeedBias[i];
+
+            for (int j = 0; j < NUM_LEG; j++) {
+              addr_shift[reinterpret_cast<long>(para_FootBias[i][j])] = para_FootBias[i][j];
+            }
           }
         }
         for (int i = 0; i < NUM_OF_CAM; i++) addr_shift[reinterpret_cast<long>(para_Ex_Pose[i])] = para_Ex_Pose[i];

@@ -6,6 +6,7 @@
 
 #include "featureTracker/feature_manager.h"
 #include "featureTracker/feature_tracker.h"
+#include "utils/LOTightUtils.hpp"
 #include "utils/vins_utility.h"
 #include "vilo/initial_alignment.h"
 
@@ -14,6 +15,8 @@
 
 #include "factor/lo_factor.hpp"
 #include "factor/lo_intergration_base.hpp"
+
+#include "factor/lo_constant_factor.hpp"
 
 #include "factor/lo_tight_factor.hpp"
 #include "factor/lo_tight_integration_base.hpp"
@@ -78,6 +81,7 @@ class VILOEstimator {
   queue<pair<double, Eigen::Matrix3d>> loCovBuf;
 
   // tightly coupled LO VILO_FUSION_TYPE == 2
+  std::shared_ptr<LOTightUtils> lo_tight_utils_[NUM_LEG];
   queue<Eigen::Vector3d> footGyrBuf[NUM_LEG];
   queue<Eigen::Vector3d> jointAngBuf[NUM_LEG];
   queue<Eigen::Vector3d> jointVelBuf[NUM_LEG];
@@ -119,11 +123,11 @@ class VILOEstimator {
   vector<Vector3d> lo_velocity_buf[(WINDOW_SIZE + 1)];      // leg odometry velocity
   vector<Matrix3d> lo_velocity_cov_buf[(WINDOW_SIZE + 1)];  // leg odometry velocity cov
 
-  vector<double> tight_lo_dt_buf[(WINDOW_SIZE + 1)];                  // tightly leg oodmetry
+  vector<double> tight_lo_dt_buf[(WINDOW_SIZE + 1)][NUM_LEG];         // tightly leg oodmetry
+  vector<Vector3d> tight_lo_bodyGyr_buf[(WINDOW_SIZE + 1)][NUM_LEG];  // tightly leg oodmetry
   vector<Vector3d> tight_lo_footGyr_buf[(WINDOW_SIZE + 1)][NUM_LEG];  // tightly leg oodmetry
   vector<Vector3d> tight_lo_jang_buf[(WINDOW_SIZE + 1)][NUM_LEG];     // tightly leg oodmetry
   vector<Vector3d> tight_lo_jvel_buf[(WINDOW_SIZE + 1)][NUM_LEG];     // tightly leg oodmetry
-  vector<double> tight_lo_contact_buf[(WINDOW_SIZE + 1)][NUM_LEG];    // tightly leg oodmetry
 
   // failure detection related
   bool failure_occur;
@@ -139,11 +143,11 @@ class VILOEstimator {
   LOIntegrationBase* lo_pre_integrations[(WINDOW_SIZE + 1)] = {nullptr};
 
   // process LO vel, tightly couple (tlo)
-  bool first_tight_lo;
+  bool first_tight_lo[NUM_LEG];
+  Vector3d tight_lo_body_gyr_0[NUM_LEG];
   Vector3d tight_lo_foot_gyr_0[NUM_LEG];
   Vector3d tight_lo_joint_ang_0[NUM_LEG];
   Vector3d tight_lo_joint_vel_0[NUM_LEG];
-  double tight_lo_contact_0[NUM_LEG];
   LOTightIntegrationBase* tlo_pre_integration[(WINDOW_SIZE + 1)][NUM_LEG] = {nullptr};
   bool tlo_all_in_contact[(WINDOW_SIZE + 1)][NUM_LEG] = {
       true};  // this flag indicates with a correspinding tlo_pre_integration term can be used in a tight factor or not. If not (because
@@ -174,7 +178,7 @@ class VILOEstimator {
   double para_Td[1][1];
   double para_Tr[1][1];
 
-  double para_FootBias[WINDOW_SIZE + 1][SIZE_FOOTBIAS][NUM_LEG];
+  double para_FootBias[WINDOW_SIZE + 1][NUM_LEG][SIZE_FOOTBIAS];
 
   // extract the latest state
   double latest_time;
@@ -201,9 +205,8 @@ class VILOEstimator {
   void processLegOdom(double t, double dt, const Eigen::Vector3d& loVel, const Eigen::Matrix3d& loCov);
 
   // this is for VILO_FUSION_TYPE == 2
-  void processIMULegOdom(double t, double dt, const Vector3d& bodyLinearAcceleration, const Vector3d& bodyAngularVelocity,
-                         const Vector3d& footAngularVelocity, const Eigen::Matrix<double, NUM_DOF, 1>& jointAngles,
-                         const Eigen::Matrix<double, NUM_DOF, 1>& jointVelocities, const Eigen::Matrix<double, NUM_LEG, 1>& contactFlags);
+  void processIMULegOdom(int leg_id, double t, double dt, const Vector3d& bodyAngularVelocity, const Vector3d& footAngularVelocity,
+                         const Vector3d& jointAngles, const Vector3d& jointVelocities);
 
   void processImage(const map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>>& image, const double header);
 

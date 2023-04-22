@@ -3,7 +3,7 @@
 #include <ceres/ceres.h>
 #include <Eigen/Dense>
 
-#include "factor/lo_tight_intergration_base.hpp"  // just use Vec_rho
+#include "factor/lo_tight_integration_base.hpp"  // just use Vec_rho
 #include "utils/vins_utility.h"
 
 // leg id?
