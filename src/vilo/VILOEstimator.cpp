@@ -990,13 +990,14 @@ void VILOEstimator::slideWindow() {
                 j, tight_lo_joint_ang_0[j], tight_lo_joint_vel_0[j], tight_lo_body_gyr_0[j], tight_lo_foot_gyr_0[j], Bgs[WINDOW_SIZE],
                 Bfs[WINDOW_SIZE][j], Bvs[WINDOW_SIZE][j], Rhos[WINDOW_SIZE][j], lo_tight_utils_[j].get());
 
+            tight_lo_dt_buf[frame_count - 1][j].push_back(tmp_tight_lo_dt);
+            tight_lo_bodyGyr_buf[frame_count - 1][j].push_back(tmp_tight_lo_bodyGyr);
             tight_lo_footGyr_buf[frame_count - 1][j].push_back(tmp_tight_lo_footGyr);
             tight_lo_jang_buf[frame_count - 1][j].push_back(tmp_tight_lo_jang);
             tight_lo_jvel_buf[frame_count - 1][j].push_back(tmp_tight_lo_jvel);
-            tight_lo_bodyGyr_buf[frame_count - 1][j].push_back(tmp_tight_lo_bodyGyr);
-            tight_lo_dt_buf[frame_count - 1][j].push_back(tmp_tight_lo_dt);
-            tight_lo_bodyGyr_buf[WINDOW_SIZE][j].clear();
+
             tight_lo_dt_buf[WINDOW_SIZE][j].clear();
+            tight_lo_bodyGyr_buf[WINDOW_SIZE][j].clear();
             tight_lo_footGyr_buf[WINDOW_SIZE][j].clear();
             tight_lo_jang_buf[WINDOW_SIZE][j].clear();
             tight_lo_jvel_buf[WINDOW_SIZE][j].clear();
@@ -1047,6 +1048,10 @@ void VILOEstimator::optimization() {
     ceres::LocalParameterization* local_parameterization = new PoseLocalParameterization();
     problem.AddParameterBlock(para_Pose[i], SIZE_POSE, local_parameterization);
     problem.AddParameterBlock(para_SpeedBias[i], SIZE_SPEEDBIAS);
+
+    for (int k = 0; k < NUM_LEG; k++) {
+      problem.AddParameterBlock(para_FootBias[i][k], SIZE_FOOTBIAS);
+    }
   }
 
   // maybe necessary

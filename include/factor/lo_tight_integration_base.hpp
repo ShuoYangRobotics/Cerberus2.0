@@ -1,5 +1,4 @@
 #pragma once
-
 #include <Eigen/Dense>
 
 #include "utils/LOTightUtils.hpp"

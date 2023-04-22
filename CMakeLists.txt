@@ -109,7 +109,6 @@ set(${VILO_LIB}_SRC
 )
 add_library(${VILO_LIB} SHARED ${${VILO_LIB}_SRC})
 target_link_libraries(${VILO_LIB}
-        PRIVATE
         casadi
         ${catkin_LIBRARIES}
         ${Boost_LIBRARIES}
@@ -126,7 +125,6 @@ add_executable(cerberus2_main src/program/cerberus2_main.cpp)
 target_link_libraries(cerberus2_main
         ${catkin_LIBRARIES}
         ${VILO_LIB}
-        casadi
 )
 
 # ##

@@ -1,7 +1,6 @@
 #pragma once
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
-#include <casadi/casadi.hpp>
 #include <mutex>
 
 #include "mipo/MIPOEstimator.hpp"

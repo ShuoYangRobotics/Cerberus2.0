@@ -8,10 +8,6 @@ VILOFusion::VILOFusion(ros::NodeHandle nh) {
   vilo_estimator = std::make_unique<VILOEstimator>();
   vilo_estimator->setParameter();
 
-  // bind the po_loop_thread_ to the loop function
-  po_loop_thread_ = std::thread(&VILOFusion::POLoop, this);
-  vilo_loop_thread_ = std::thread(&VILOFusion::VILOLoop, this);
-
   // initialize callback functions
   imu_sub_ = nh_.subscribe(IMU_TOPIC, 1000, &VILOFusion::imuCallback, this);
   joint_foot_sub_ = nh_.subscribe(LEG_TOPIC, 1000, &VILOFusion::jointFootCallback, this);
@@ -58,6 +54,10 @@ VILOFusion::VILOFusion(ros::NodeHandle nh) {
 
   // init the output state other the write to file logic will segfault
   po_x = Eigen::VectorXd::Zero(SS_SIZE);
+
+  // bind the po_loop_thread_ to the loop function
+  po_loop_thread_ = std::thread(&VILOFusion::POLoop, this);
+  vilo_loop_thread_ = std::thread(&VILOFusion::VILOLoop, this);
 }
 
 VILOFusion ::~VILOFusion() {
