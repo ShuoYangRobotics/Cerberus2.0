@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.10.1)
 project(cerberus2)
-set(CMAKE_BUILD_TYPE Debug)
+set(CMAKE_BUILD_TYPE Release)
 set(CMAKE_CXX_STANDARD 14)          
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
@@ -146,3 +146,10 @@ target_link_libraries(test_LOTightIntegration
         ${catkin_LIBRARIES}
         casadi
 )
+add_custom_target(run_test_LOTightIntegration
+        ALL
+        COMMAND $<TARGET_FILE:test_LOTightIntegration>
+        DEPENDS test_LOTightIntegration
+        WORKING_DIRECTORY "/home/EstimationUser/estimation_ws/devel/lib/cerberus2"
+        COMMENT "Executing target: my_executable"
+        VERBATIM)

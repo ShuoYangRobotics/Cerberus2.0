@@ -81,7 +81,7 @@ class VILOEstimator {
   queue<pair<double, Eigen::Matrix3d>> loCovBuf;
 
   // tightly coupled LO VILO_FUSION_TYPE == 2
-  std::shared_ptr<LOTightUtils> lo_tight_utils_[NUM_LEG];
+  LOTightUtils lo_tight_utils_[NUM_LEG];
   queue<Eigen::Vector3d> footGyrBuf[NUM_LEG];
   queue<Eigen::Vector3d> jointAngBuf[NUM_LEG];
   queue<Eigen::Vector3d> jointVelBuf[NUM_LEG];

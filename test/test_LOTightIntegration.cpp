@@ -12,6 +12,7 @@ int main() {
   Utils::readParametersFile(config_file);
 
   std::cout << "Hello, World!" << std::endl;
+  // code gen
 
   Eigen::Vector3d jang = {0.190146958330476, 0.467755352958025, -1.470605609393327};
   Eigen::Vector3d jvel = {-0.062272018923413, 0.294882247382246, 0.203360327979819};

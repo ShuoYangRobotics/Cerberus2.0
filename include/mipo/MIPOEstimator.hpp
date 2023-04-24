@@ -236,6 +236,10 @@ class MIPOEstimator {
   casadi::Function mipo_process_dyn_jac_u_func_;
   casadi::Function mipo_measurement_jac_func_;
 
+  // function calling helper
+  std::vector<casadi::DM> proc_arg;
+  std::vector<casadi::DM> meas_arg;
+
   // initalize casadi symbolic variables and functions
   void mipo_init_casadi();
 

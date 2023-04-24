@@ -83,3 +83,5 @@ bags/
 
 # matlab 
 *.asv
+
+code_gen/*
