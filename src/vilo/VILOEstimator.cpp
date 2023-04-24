@@ -982,23 +982,21 @@ void VILOEstimator::slideWindow() {
             tlo_pre_integration[frame_count - 1][j]->push_back(tmp_tight_lo_dt, tmp_tight_lo_bodyGyr, tmp_tight_lo_footGyr,
                                                                tmp_tight_lo_jang, tmp_tight_lo_jvel);
 
-            delete tlo_pre_integration[WINDOW_SIZE][j];
-            tlo_pre_integration[WINDOW_SIZE][j] = new LOTightIntegrationBase(
-                j, tight_lo_joint_ang_0[j], tight_lo_joint_vel_0[j], tight_lo_body_gyr_0[j], tight_lo_foot_gyr_0[j], Bgs[WINDOW_SIZE],
-                Bfs[WINDOW_SIZE][j], Bvs[WINDOW_SIZE][j], Rhos[WINDOW_SIZE][j], &lo_tight_utils_[j]);
-
             tight_lo_dt_buf[frame_count - 1][j].push_back(tmp_tight_lo_dt);
             tight_lo_bodyGyr_buf[frame_count - 1][j].push_back(tmp_tight_lo_bodyGyr);
             tight_lo_footGyr_buf[frame_count - 1][j].push_back(tmp_tight_lo_footGyr);
             tight_lo_jang_buf[frame_count - 1][j].push_back(tmp_tight_lo_jang);
             tight_lo_jvel_buf[frame_count - 1][j].push_back(tmp_tight_lo_jvel);
-
-            tight_lo_dt_buf[WINDOW_SIZE][j].clear();
-            tight_lo_bodyGyr_buf[WINDOW_SIZE][j].clear();
-            tight_lo_footGyr_buf[WINDOW_SIZE][j].clear();
-            tight_lo_jang_buf[WINDOW_SIZE][j].clear();
-            tight_lo_jvel_buf[WINDOW_SIZE][j].clear();
           }
+          delete tlo_pre_integration[WINDOW_SIZE][j];
+          tlo_pre_integration[WINDOW_SIZE][j] = new LOTightIntegrationBase(
+              j, tight_lo_joint_ang_0[j], tight_lo_joint_vel_0[j], tight_lo_body_gyr_0[j], tight_lo_foot_gyr_0[j], Bgs[WINDOW_SIZE],
+              Bfs[WINDOW_SIZE][j], Bvs[WINDOW_SIZE][j], Rhos[WINDOW_SIZE][j], &lo_tight_utils_[j]);
+          tight_lo_dt_buf[WINDOW_SIZE][j].clear();
+          tight_lo_bodyGyr_buf[WINDOW_SIZE][j].clear();
+          tight_lo_footGyr_buf[WINDOW_SIZE][j].clear();
+          tight_lo_jang_buf[WINDOW_SIZE][j].clear();
+          tight_lo_jvel_buf[WINDOW_SIZE][j].clear();
         }
       }
 
@@ -1096,23 +1094,22 @@ void VILOEstimator::optimization() {
     }
   }
 
-  // if (VILO_FUSION_TYPE == 2) {
-  //   for (int i = 0; i < frame_count; i++) {
-  //     int j = i + 1;
-  //     for (int k = 0; k < NUM_LEG; k++) {
-  //       if (tlo_pre_integration[j][k]->sum_dt > 10.0) continue;
-  //       if (tlo_all_in_contact[j][k] == true) {
-  //         LOTightFactor* tlo_factor = new LOTightFactor(tlo_pre_integration[j][k]);
-  //         problem.AddResidualBlock(tlo_factor, NULL, para_Pose[i], para_SpeedBias[i], para_FootBias[i][k], para_Pose[j],
-  //         para_SpeedBias[j],
-  //                                  para_FootBias[j][k]);
-  //       } else {
-  //         LOConstantFactor* tlo_factor = new LOConstantFactor(k);
-  //         problem.AddResidualBlock(tlo_factor, NULL, para_FootBias[i][k], para_FootBias[j][k]);
-  //       }
-  //     }
-  //   }
-  // }
+  if (VILO_FUSION_TYPE == 2) {
+    for (int i = 0; i < frame_count; i++) {
+      int j = i + 1;
+      for (int k = 0; k < NUM_LEG; k++) {
+        if (tlo_pre_integration[j][k]->sum_dt > 10.0) continue;
+        if (tlo_all_in_contact[j][k] == true) {
+          LOTightFactor* tlo_factor = new LOTightFactor(tlo_pre_integration[j][k]);
+          problem.AddResidualBlock(tlo_factor, NULL, para_Pose[i], para_SpeedBias[i], para_FootBias[i][k], para_Pose[j], para_SpeedBias[j],
+                                   para_FootBias[j][k]);
+        } else {
+          LOConstantFactor* tlo_factor = new LOConstantFactor(k);
+          problem.AddResidualBlock(tlo_factor, NULL, para_FootBias[i][k], para_FootBias[j][k]);
+        }
+      }
+    }
+  }
 
   // visual feature variables and factors
   int f_m_cnt = 0;
@@ -1231,30 +1228,30 @@ void VILOEstimator::optimization() {
         }
       }
 
-      // if (VILO_FUSION_TYPE == 2) {
-      //   for (int j = 0; j < NUM_LEG; j++) {
-      //     if (tlo_pre_integration[1][j]->sum_dt < 10.0) {
-      //       if (tlo_all_in_contact[1][j] == true) {
-      //         LOTightFactor* tlo_factor = new LOTightFactor(tlo_pre_integration[1][j]);
-      //         ResidualBlockInfo* residual_block_info =
-      //             new ResidualBlockInfo(tlo_factor, NULL,
-      //                                   vector<double*>{para_Pose[0], para_SpeedBias[0], para_FootBias[0][j], para_Pose[1],
-      //                                                   para_SpeedBias[1], para_FootBias[1][j]},
-      //                                   vector<int>{0, 1, 2});
-      //         marginalization_info->addResidualBlockInfo(residual_block_info);
-      //       } else {
-      //         LOConstantFactor* tlo_factor = new LOConstantFactor(j);
-      //         ResidualBlockInfo* residual_block_info = new ResidualBlockInfo(tlo_factor, NULL,
-      //                                                                        vector<double*>{
-      //                                                                            para_FootBias[0][j],
-      //                                                                            para_FootBias[1][j],
-      //                                                                        },
-      //                                                                        vector<int>{0});
-      //         marginalization_info->addResidualBlockInfo(residual_block_info);
-      //       }
-      //     }
-      //   }
-      // }
+      if (VILO_FUSION_TYPE == 2) {
+        for (int j = 0; j < NUM_LEG; j++) {
+          if (tlo_pre_integration[1][j]->sum_dt < 10.0) {
+            if (tlo_all_in_contact[1][j] == true) {
+              LOTightFactor* tlo_factor = new LOTightFactor(tlo_pre_integration[1][j]);
+              ResidualBlockInfo* residual_block_info =
+                  new ResidualBlockInfo(tlo_factor, NULL,
+                                        vector<double*>{para_Pose[0], para_SpeedBias[0], para_FootBias[0][j], para_Pose[1],
+                                                        para_SpeedBias[1], para_FootBias[1][j]},
+                                        vector<int>{0, 1, 2});
+              marginalization_info->addResidualBlockInfo(residual_block_info);
+            } else {
+              LOConstantFactor* tlo_factor = new LOConstantFactor(j);
+              ResidualBlockInfo* residual_block_info = new ResidualBlockInfo(tlo_factor, NULL,
+                                                                             vector<double*>{
+                                                                                 para_FootBias[0][j],
+                                                                                 para_FootBias[1][j],
+                                                                             },
+                                                                             vector<int>{0});
+              marginalization_info->addResidualBlockInfo(residual_block_info);
+            }
+          }
+        }
+      }
 
       {
         int feature_index = -1;
