@@ -59,7 +59,7 @@ class LOTightFactor : public ceres::SizedCostFunction<LO_TIGHT_RESIDUAL_SIZE, 7,
         Eigen::LLT<Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, LO_TIGHT_RESIDUAL_SIZE>>(lo_pre_integration->covariance.inverse())
             .matrixL()
             .transpose();
-    //        sqrt_info.setIdentity();
+    // sqrt_info.setIdentity();
     residual = sqrt_info * residual;
 
     if (jacobians) {

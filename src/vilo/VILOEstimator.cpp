@@ -1046,6 +1046,7 @@ void VILOEstimator::optimization() {
 
     for (int k = 0; k < NUM_LEG; k++) {
       problem.AddParameterBlock(para_FootBias[i][k], SIZE_FOOTBIAS);
+      // problem.SetParameterBlockConstant(para_FootBias[i][k]);
     }
   }
 

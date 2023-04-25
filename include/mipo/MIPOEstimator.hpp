@@ -1,12 +1,18 @@
 #pragma once
-#include <Eigen/Dense>
-#include <Eigen/Sparse>
-#include <casadi/casadi.hpp>
+
+// for checking file existence
+#include <sys/stat.h>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
+#include <Eigen/Dense>
+#include <Eigen/Sparse>
+#include <casadi/casadi.hpp>
+
 #include "utils/POParams.hpp"
+#include "utils/parameters.hpp"
 /*
  * MIPO contains a differentiable EKF to estimate the robot state
  * The state is defined as
@@ -231,10 +237,19 @@ class MIPOEstimator {
   // process dynamics jacobian wrt state, 4. process dynamics jacobian wrt
   // input 5. measurement jacobian
   casadi::Function mipo_process_dyn_func_;
-  casadi::Function mipo_measurement_func_;
   casadi::Function mipo_process_dyn_jac_x_func_;
   casadi::Function mipo_process_dyn_jac_u_func_;
+
+  casadi::Function mipo_measurement_func_;
   casadi::Function mipo_measurement_jac_func_;
+
+  // compiled C code functions
+  casadi::Function gen_mipo_process_dyn_func_;
+  casadi::Function gen_mipo_process_dyn_jac_x_func_;
+  casadi::Function gen_mipo_process_dyn_jac_u_func_;
+
+  casadi::Function gen_mipo_measurement_func_;
+  casadi::Function gen_mipo_measurement_jac_func_;
 
   // function calling helper
   std::vector<casadi::DM> proc_arg;
@@ -249,4 +264,13 @@ class MIPOEstimator {
   Eigen::DiagonalMatrix<double, MY_SIZE> R;
   const POParams param;
   void mipo_init_noise();
+
+  // code gen
+  const std::string code_gen_path = "/home/EstimationUser/estimation_ws/src/cerberus2/code_gen/";
+
+  // a list of function names to be generated
+  const std::vector<std::string> fun_name_list = {"process_dyn_func", "process_dyn_jac_x_func", "process_dyn_jac_u_func",
+                                                  "measurement_func", "measurement_jac_func"};
+  void codegen(casadi::Function func);
+  bool if_code_gen();
 };

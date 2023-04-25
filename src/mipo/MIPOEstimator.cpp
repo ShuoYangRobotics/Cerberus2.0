@@ -274,7 +274,7 @@ Eigen::Matrix<double, MS_SIZE, MS_SIZE> MIPOEstimator::proc_func_x_jac(const Eig
   std::copy(u.data(), u.data() + u.size(), proc_arg[1].ptr());
   std::copy(u.data(), u.data() + u.size(), proc_arg[2].ptr());
   proc_arg[3](0, 0) = dt;
-  std::vector<casadi::DM> res = mipo_process_dyn_jac_x_func_(proc_arg);
+  std::vector<casadi::DM> res = gen_mipo_process_dyn_jac_x_func_(proc_arg);
   // convert the result to eigen matrix
   Eigen::Matrix<double, MS_SIZE, MS_SIZE> SpMatrx = Utils::cas_DM_to_eig_mat<MS_SIZE, MS_SIZE>(res[0]);
 
@@ -296,7 +296,8 @@ Eigen::Matrix<double, MS_SIZE, MS_SIZE> MIPOEstimator::proc_func_x_jac(const Eig
   std::copy(u0.data(), u0.data() + u0.size(), proc_arg[1].ptr());
   std::copy(u1.data(), u1.data() + u1.size(), proc_arg[2].ptr());
   proc_arg[3](0, 0) = dt;
-  std::vector<casadi::DM> res = mipo_process_dyn_jac_x_func_(proc_arg);
+  std::lock_guard<std::mutex> lock(casadi_mtx);
+  std::vector<casadi::DM> res = gen_mipo_process_dyn_jac_x_func_(proc_arg);
   // convert the result to eigen matrix
   Eigen::Matrix<double, MS_SIZE, MS_SIZE> SpMatrx = Utils::cas_DM_to_eig_mat<MS_SIZE, MS_SIZE>(res[0]);
 
@@ -315,7 +316,8 @@ Eigen::Matrix<double, MS_SIZE, MI_SIZE> MIPOEstimator::proc_func_u_jac(const Eig
   std::copy(u.data(), u.data() + u.size(), proc_arg[1].ptr());
   std::copy(u.data(), u.data() + u.size(), proc_arg[2].ptr());
   proc_arg[3](0, 0) = dt;
-  std::vector<casadi::DM> res = mipo_process_dyn_jac_u_func_(proc_arg);
+  std::lock_guard<std::mutex> lock(casadi_mtx);
+  std::vector<casadi::DM> res = gen_mipo_process_dyn_jac_u_func_(proc_arg);
   // convert the result to eigen matrix
   Eigen::Matrix<double, MS_SIZE, MI_SIZE> SpMatrx = Utils::cas_DM_to_eig_mat<MS_SIZE, MI_SIZE>(res[0]);
 
@@ -336,7 +338,8 @@ Eigen::Matrix<double, MS_SIZE, MI_SIZE> MIPOEstimator::proc_func_u_jac(const Eig
   std::copy(u0.data(), u0.data() + u0.size(), proc_arg[1].ptr());
   std::copy(u1.data(), u1.data() + u1.size(), proc_arg[2].ptr());
   proc_arg[3](0, 0) = dt;
-  std::vector<casadi::DM> res = mipo_process_dyn_jac_u_func_(proc_arg);
+  std::lock_guard<std::mutex> lock(casadi_mtx);
+  std::vector<casadi::DM> res = gen_mipo_process_dyn_jac_u_func_(proc_arg);
   // convert the result to eigen matrix
   Eigen::Matrix<double, MS_SIZE, MI_SIZE> SpMatrx = Utils::cas_DM_to_eig_mat<MS_SIZE, MI_SIZE>(res[0]);
 
@@ -362,7 +365,8 @@ Eigen::Matrix<double, MY_SIZE, MS_SIZE> MIPOEstimator::meas_func_jac(const Eigen
   std::copy(x.data(), x.data() + x.size(), meas_arg[0].ptr());
   std::copy(z.data(), z.data() + z.size(), meas_arg[1].ptr());
   std::copy(rho_true_.data(), rho_true_.data() + rho_true_.size(), meas_arg[2].ptr());
-  std::vector<casadi::DM> res = mipo_measurement_jac_func_(meas_arg);
+  std::lock_guard<std::mutex> lock(casadi_mtx);
+  std::vector<casadi::DM> res = gen_mipo_measurement_jac_func_(meas_arg);
   // convert the result to eigen matrix
   Eigen::Matrix<double, MY_SIZE, MS_SIZE> SpMatrx = Utils::cas_DM_to_eig_mat<MY_SIZE, MS_SIZE>(res[0]);
 
@@ -510,44 +514,58 @@ Eigen::Matrix<SCALAR_T, MY_SIZE, 1> MIPOEstimator::mipo_measurement_casadi(const
 }
 
 void MIPOEstimator::mipo_init_casadi() {
-  // define casadi symbols for state, input, parameters, sensor data, and
-  // parameters
-  casadi::SX x = casadi::SX::sym("x", MS_SIZE);
-  casadi::SX z = casadi::SX::sym("z", MZ_SIZE);
-  casadi::SX rho = casadi::SX::sym("rho", 5, NUM_LEG);
-  casadi::SX u0 = casadi::SX::sym("u0", MI_SIZE);
-  casadi::SX u1 = casadi::SX::sym("u1", MI_SIZE);
-  casadi::SX dt = casadi::SX::sym("dt", 1);
+  if (if_code_gen() == false) {
+    // define casadi symbols for state, input, parameters, sensor data, and
+    // parameters
+    casadi::SX x = casadi::SX::sym("x", MS_SIZE);
+    casadi::SX z = casadi::SX::sym("z", MZ_SIZE);
+    casadi::SX rho = casadi::SX::sym("rho", 5, NUM_LEG);
+    casadi::SX u0 = casadi::SX::sym("u0", MI_SIZE);
+    casadi::SX u1 = casadi::SX::sym("u1", MI_SIZE);
+    casadi::SX dt = casadi::SX::sym("dt", 1);
 
-  auto x_eig_X = Utils::cas_to_eig(x);
-  Eigen::Matrix<casadi::SX, MS_SIZE, 1> x_eig = x_eig_X.head(MS_SIZE);
-  auto u0_eig_X = Utils::cas_to_eig(u0);
-  Eigen::Matrix<casadi::SX, MI_SIZE, 1> u0_eig = u0_eig_X.head(MI_SIZE);
-  auto u1_eig_X = Utils::cas_to_eig(u1);
-  Eigen::Matrix<casadi::SX, MI_SIZE, 1> u1_eig = u1_eig_X.head(MI_SIZE);
-  auto z_eig_X = Utils::cas_to_eig(z);
-  Eigen::Matrix<casadi::SX, MZ_SIZE, 1> z_eig = z_eig_X.head(MZ_SIZE);
-  Eigen::Matrix<casadi::SX, 5, NUM_LEG> rho_eig = Utils::cas_to_eigmat<5, NUM_LEG>(rho);
+    auto x_eig_X = Utils::cas_to_eig(x);
+    Eigen::Matrix<casadi::SX, MS_SIZE, 1> x_eig = x_eig_X.head(MS_SIZE);
+    auto u0_eig_X = Utils::cas_to_eig(u0);
+    Eigen::Matrix<casadi::SX, MI_SIZE, 1> u0_eig = u0_eig_X.head(MI_SIZE);
+    auto u1_eig_X = Utils::cas_to_eig(u1);
+    Eigen::Matrix<casadi::SX, MI_SIZE, 1> u1_eig = u1_eig_X.head(MI_SIZE);
+    auto z_eig_X = Utils::cas_to_eig(z);
+    Eigen::Matrix<casadi::SX, MZ_SIZE, 1> z_eig = z_eig_X.head(MZ_SIZE);
+    Eigen::Matrix<casadi::SX, 5, NUM_LEG> rho_eig = Utils::cas_to_eigmat<5, NUM_LEG>(rho);
 
-  // discrete time dynamics
-  Eigen::Matrix<casadi::SX, MS_SIZE, 1> x_next_eig = mipo_xk1_casadi(x_eig, u0_eig, u1_eig, dt);
-  casadi::SX x_next = Utils::eig_to_cas(x_next_eig);
-  casadi::SX F = jacobian(x_next, x);
-  casadi::SX B = jacobian(x_next, u0);
+    // discrete time dynamics
+    Eigen::Matrix<casadi::SX, MS_SIZE, 1> x_next_eig = mipo_xk1_casadi(x_eig, u0_eig, u1_eig, dt);
+    casadi::SX x_next = Utils::eig_to_cas(x_next_eig);
+    casadi::SX F = jacobian(x_next, x);
+    casadi::SX B = jacobian(x_next, u0);
 
-  mipo_process_dyn_func_ = casadi::Function("process_dyn_func", {x, u0, u1, dt}, {x_next});
-  mipo_process_dyn_jac_x_func_ = casadi::Function("process_dyn_jac_x_func", {x, u0, u1, dt}, {F});
-  mipo_process_dyn_jac_u_func_ = casadi::Function("process_dyn_jac_u_func", {x, u0, u1, dt}, {B});
+    mipo_process_dyn_func_ = casadi::Function(fun_name_list[0], {x, u0, u1, dt}, {x_next});
+    mipo_process_dyn_jac_x_func_ = casadi::Function(fun_name_list[1], {x, u0, u1, dt}, {F});
+    mipo_process_dyn_jac_u_func_ = casadi::Function(fun_name_list[2], {x, u0, u1, dt}, {B});
 
-  // measurement
-  Eigen::Matrix<casadi::SX, MY_SIZE, 1> y_eig = mipo_measurement_casadi<casadi::SX>(x_eig, z_eig, rho_eig);
+    // measurement
+    Eigen::Matrix<casadi::SX, MY_SIZE, 1> y_eig = mipo_measurement_casadi<casadi::SX>(x_eig, z_eig, rho_eig);
 
-  casadi::SX y = Utils::eig_to_cas(y_eig);
-  // get jacoban of measurement function wrt state
-  casadi::SX H = jacobian(y, x);
+    casadi::SX y = Utils::eig_to_cas(y_eig);
+    // get jacoban of measurement function wrt state
+    casadi::SX H = jacobian(y, x);
 
-  mipo_measurement_func_ = casadi::Function("measurement_func", {x, z, rho}, {y});
-  mipo_measurement_jac_func_ = casadi::Function("measurement_jac_func", {x, z, rho}, {H});
+    mipo_measurement_func_ = casadi::Function(fun_name_list[3], {x, z, rho}, {y});
+    mipo_measurement_jac_func_ = casadi::Function(fun_name_list[4], {x, z, rho}, {H});
+
+    codegen(mipo_process_dyn_func_);
+    codegen(mipo_process_dyn_jac_x_func_);
+    codegen(mipo_process_dyn_jac_u_func_);
+    codegen(mipo_measurement_func_);
+    codegen(mipo_measurement_jac_func_);
+  }
+
+  gen_mipo_process_dyn_func_ = casadi::external(fun_name_list[0], code_gen_path + fun_name_list[0] + ".so");
+  gen_mipo_process_dyn_jac_x_func_ = casadi::external(fun_name_list[1], code_gen_path + fun_name_list[1] + ".so");
+  gen_mipo_process_dyn_jac_u_func_ = casadi::external(fun_name_list[2], code_gen_path + fun_name_list[2] + ".so");
+  gen_mipo_measurement_func_ = casadi::external(fun_name_list[3], code_gen_path + fun_name_list[3] + ".so");
+  gen_mipo_measurement_jac_func_ = casadi::external(fun_name_list[4], code_gen_path + fun_name_list[4] + ".so");
 
   return;
 }
@@ -586,6 +604,27 @@ void MIPOEstimator::mipo_init_noise() {
     R.diagonal()(9 + MY_PER_LEG * i) = param.meas_n_foot_height;
   }
   return;
+}
+
+// codegen function
+void MIPOEstimator::codegen(casadi::Function func) {
+  std::string name = func.name();
+
+  func.generate(name, casadi::Dict{{"mex", false}, {"with_header", false}, {"cpp", false}});
+  // move file to the same location
+  std::string mv_command = "mv " + name + ".c " + code_gen_path;
+  int mv_flag = system(mv_command.c_str());
+  mv_command = "mv " + name + ".h " + code_gen_path;
+  mv_flag = system(mv_command.c_str());
+  std::string compile_command = "gcc -fPIC -shared -O3 " + code_gen_path + name + ".c -o " + code_gen_path + name + ".so";
+  int flag = system(compile_command.c_str());
+}
+
+bool MIPOEstimator::if_code_gen() {
+  // check if the shared lib exists in the code_gen_path
+  std::string filename = code_gen_path + fun_name_list[0] + ".so";
+  struct stat buffer;
+  return (stat(filename.c_str(), &buffer) == 0);
 }
 
 // end

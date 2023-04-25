@@ -127,7 +127,8 @@ class LOTightIntegrationBase {
     if (update_jacobian) {
       Eigen::Matrix3d R_w_x = legged::skewSymmetric(un_gyr);
       Eigen::Matrix3d f11 = Eigen::Matrix3d::Identity() - R_w_x * _dt;
-      Eigen::Matrix3d f21 = -0.5 * _dt * (delta_R * legged::skewSymmetric(vi) + result_delta_R * legged::skewSymmetric(vip1)) * f11;
+      Eigen::Matrix3d f21 =
+          -0.5 * _dt * delta_R * legged::skewSymmetric(vi) + -0.5 * _dt * result_delta_R * legged::skewSymmetric(vip1) * f11;
 
       // epsilon derivative respect to bg
       Eigen::Matrix3d dvdbgi;
@@ -138,7 +139,8 @@ class LOTightIntegrationBase {
       dvdbgip1.setZero();
       dvdbgip1 = tightUtils->calBodyVelDbg(leg_id, _jang_1, _jvel_1, _body_gyr_1, _foot_gyr_1, linearized_bg, linearized_bf, linearized_bv,
                                            linearized_rho(0));
-      Eigen::Matrix3d f23 = 0.5 * _dt * (delta_R * dvdbgi + result_delta_R * dvdbgip1);
+      Eigen::Matrix3d f23 =
+          0.5 * _dt * (delta_R * dvdbgi + result_delta_R * dvdbgip1) + 0.5 * result_delta_R * legged::skewSymmetric(vip1) * _dt * _dt;
 
       // epsilon derivative respect to bf
       Eigen::Matrix3d dvdbfi;
@@ -179,16 +181,16 @@ class LOTightIntegrationBase {
       F.block<3, 3>(T_R, T_BG) = -Eigen::Matrix3d::Identity() * _dt;
 
       F.block<3, 3>(T_E, T_R) = f21;
-      F.block<3, 3>(T_E, T_E) = Eigen::Matrix3d::Identity() * _dt;
+      F.block<3, 3>(T_E, T_E) = Eigen::Matrix3d::Identity();
       F.block<3, 3>(T_E, T_BG) = f23;
       F.block<3, 3>(T_E, T_BF) = f24;
       F.block<3, 3>(T_E, T_BV) = f25;
       F.block<3, RHO_SIZE>(T_E, T_RHO) = f26;
 
-      F.block<3, 3>(T_BG, T_BG) = Eigen::Matrix3d::Identity() * _dt;
-      F.block<3, 3>(T_BF, T_BF) = Eigen::Matrix3d::Identity() * _dt;
-      F.block<3, 3>(T_BV, T_BV) = Eigen::Matrix3d::Identity() * _dt;
-      F.block<RHO_SIZE, RHO_SIZE>(T_RHO, T_RHO) = Eigen::Matrix<double, RHO_SIZE, RHO_SIZE>::Identity() * _dt;
+      F.block<3, 3>(T_BG, T_BG) = Eigen::Matrix3d::Identity();
+      F.block<3, 3>(T_BF, T_BF) = Eigen::Matrix3d::Identity();
+      F.block<3, 3>(T_BV, T_BV) = Eigen::Matrix3d::Identity();
+      F.block<RHO_SIZE, RHO_SIZE>(T_RHO, T_RHO) = Eigen::Matrix<double, RHO_SIZE, RHO_SIZE>::Identity();
 
       // noise related jacobian
       V.setZero();
@@ -236,19 +238,119 @@ class LOTightIntegrationBase {
       V.setZero();
       // signs are not matter actually
       V.block<3, 3>(T_R, T_GN) = -1.0 * Eigen::Matrix3d::Identity() * _dt;
-      V.block<3, 3>(T_E, T_PHIN) = V21;
-      V.block<3, 3>(T_E, T_DPHIN) = V22;
-      V.block<3, 3>(T_E, T_GN) = V23;
-      V.block<3, 3>(T_E, T_FN) = V25;
+      V.block<3, 3>(T_E, T_PHIN) = -V21;
+      V.block<3, 3>(T_E, T_DPHIN) = -V22;
+      V.block<3, 3>(T_E, T_GN) = -V23;
+      V.block<3, 3>(T_E, T_FN) = -V25;
 
       V.block<3, 3>(T_BG, T_GW) = -1.0 * Eigen::Matrix3d::Identity() * _dt;
       V.block<3, 3>(T_BF, T_FW) = -1.0 * Eigen::Matrix3d::Identity() * _dt;
       V.block<3, 3>(T_BV, T_VN) = -1.0 * Eigen::Matrix3d::Identity() * _dt;
       V.block<RHO_SIZE, RHO_SIZE>(T_RHO, TRHO_N) = -1.0 * Eigen::Matrix<double, RHO_SIZE, RHO_SIZE>::Identity() * _dt;
 
+      // step_jacobian = F;
+      // step_V = V;
+
       jacobian = F * jacobian;
       covariance = F * covariance * F.transpose() + V * noise_diag * V.transpose();
     }
+  }
+
+  void checkJacobian(double _dt,                                                               // time
+                     const Eigen::Vector3d& _body_gyr_0, const Eigen::Vector3d& _body_gyr_1,   // body IMU
+                     const Eigen::Vector3d& _foot_gyr_0, const Eigen::Vector3d& _foot_gyr_1,   // foot IMU
+                     const Eigen::Vector3d& _jang_0, const Eigen::Vector3d& _jang_1,           // leg angles
+                     const Eigen::Vector3d& _jvel_0, const Eigen::Vector3d& _jvel_1,           // leg angle velocity
+                     const Eigen::Vector3d& delta_epsilon, const Eigen::Quaterniond& delta_q,  // previous integration terms
+                     const Eigen::Vector3d& linearized_bg, const Eigen::Vector3d& linearized_bf, const Eigen::Vector3d& linearized_bv,
+                     const Vec_rho& linearized_rho) {  //     Vector3d result_delta_p;
+
+    Eigen::Vector3d result_delta_epsilon;
+    Eigen::Quaterniond result_delta_q;
+
+    Eigen::Vector3d result_linearized_bg;
+    Eigen::Vector3d result_linearized_bf;
+    Eigen::Vector3d result_linearized_bv;
+    Vec_rho result_linearized_rho;
+
+    midPointIntegration(dt, body_gyr_0, body_gyr_1, foot_gyr_0, foot_gyr_1, jang_0, jang_1, jvel_0, jvel_1, delta_epsilon, delta_q,
+                        linearized_bg, linearized_bf, linearized_bv, linearized_rho, result_delta_epsilon, result_delta_q,
+                        result_linearized_bg, result_linearized_bf, result_linearized_bv, result_linearized_rho, 1);
+
+    Eigen::Vector3d turb_delta_epsilon;
+    Eigen::Quaterniond turb_delta_q;
+
+    Eigen::Vector3d turb_linearized_bg;
+    Eigen::Vector3d turb_linearized_bf;
+    Eigen::Vector3d turb_linearized_bv;
+    Vec_rho turb_linearized_rho;
+
+    Eigen::Vector3d turb(0.001, -0.003, 0.003);
+
+    std::cout << "------------------- check jacobian --------------------" << std::endl;
+    std::cout << "turb q-----F col 1-------------------------       " << std::endl;
+    midPointIntegration(dt, body_gyr_0, body_gyr_1, foot_gyr_0, foot_gyr_1, jang_0, jang_1, jvel_0, jvel_1, delta_epsilon,
+                        delta_q * Eigen::Quaterniond(1, turb(0) / 2, turb(1) / 2, turb(2) / 2), linearized_bg, linearized_bf, linearized_bv,
+                        linearized_rho, turb_delta_epsilon, turb_delta_q, turb_linearized_bg, turb_linearized_bf, turb_linearized_bv,
+                        turb_linearized_rho, 0);
+    std::cout << "epsilon diff       " << (turb_delta_epsilon - result_delta_epsilon).transpose() << std::endl;
+    std::cout << "epsilon jacob diff " << (step_jacobian.block<3, 3>(T_E, T_R) * turb).transpose() << std::endl;
+    std::cout << "q diff       " << ((result_delta_q.inverse() * turb_delta_q).vec() * 2).transpose() << std::endl;
+    std::cout << "q jacob diff " << (step_jacobian.block<3, 3>(T_R, T_R) * turb).transpose() << std::endl;
+
+    std::cout << "------------------- check jacobian --------------------" << std::endl;
+    std::cout << "turb epsilon-----F col 2-------------------------       " << std::endl;
+    midPointIntegration(dt, body_gyr_0, body_gyr_1, foot_gyr_0, foot_gyr_1, jang_0, jang_1, jvel_0, jvel_1, delta_epsilon + turb, delta_q,
+                        linearized_bg, linearized_bf, linearized_bv, linearized_rho, turb_delta_epsilon, turb_delta_q, turb_linearized_bg,
+                        turb_linearized_bf, turb_linearized_bv, turb_linearized_rho, 0);
+    std::cout << "epsilon diff       " << (turb_delta_epsilon - result_delta_epsilon).transpose() << std::endl;
+    std::cout << "epsilon jacob diff " << (step_jacobian.block<3, 3>(T_E, T_E) * turb).transpose() << std::endl;
+    std::cout << "q diff       " << ((result_delta_q.inverse() * turb_delta_q).vec() * 2).transpose() << std::endl;
+    std::cout << "q jacob diff " << (step_jacobian.block<3, 3>(T_R, T_E) * turb).transpose() << std::endl;
+
+    std::cout << "------------------- check jacobian --------------------" << std::endl;
+    std::cout << "turb bg-----F col 3-------------------------       " << std::endl;
+    midPointIntegration(dt, body_gyr_0, body_gyr_1, foot_gyr_0, foot_gyr_1, jang_0, jang_1, jvel_0, jvel_1, delta_epsilon, delta_q,
+                        linearized_bg + turb, linearized_bf, linearized_bv, linearized_rho, turb_delta_epsilon, turb_delta_q,
+                        turb_linearized_bg, turb_linearized_bf, turb_linearized_bv, turb_linearized_rho, 0);
+    std::cout << "epsilon diff       " << (turb_delta_epsilon - result_delta_epsilon).transpose() << std::endl;
+    std::cout << "epsilon jacob diff " << (step_jacobian.block<3, 3>(T_E, T_BG) * turb).transpose() << std::endl;
+    std::cout << "q diff       " << ((result_delta_q.inverse() * turb_delta_q).vec() * 2).transpose() << std::endl;
+    std::cout << "q jacob diff " << (step_jacobian.block<3, 3>(T_R, T_BG) * turb).transpose() << std::endl;
+    std::cout << "bg diff      " << (turb_linearized_bg - result_linearized_bg).transpose() << std::endl;
+    std::cout << "bg jacob diff" << (step_jacobian.block<3, 3>(T_BG, T_BG) * turb).transpose() << std::endl;
+
+    std::cout << "------------------- check jacobian --------------------" << std::endl;
+    std::cout << "turb bf-----F col 4-------------------------       " << std::endl;
+    midPointIntegration(dt, body_gyr_0, body_gyr_1, foot_gyr_0, foot_gyr_1, jang_0, jang_1, jvel_0, jvel_1, delta_epsilon, delta_q,
+                        linearized_bg, linearized_bf + turb, linearized_bv, linearized_rho, turb_delta_epsilon, turb_delta_q,
+                        turb_linearized_bg, turb_linearized_bf, turb_linearized_bv, turb_linearized_rho, 0);
+    std::cout << "epsilon diff       " << (turb_delta_epsilon - result_delta_epsilon).transpose() << std::endl;
+    std::cout << "epsilon jacob diff " << (step_jacobian.block<3, 3>(T_E, T_BF) * turb).transpose() << std::endl;
+    std::cout << "bf diff      " << (turb_linearized_bf - result_linearized_bf).transpose() << std::endl;
+    std::cout << "bf jacob diff" << (step_jacobian.block<3, 3>(T_BF, T_BF) * turb).transpose() << std::endl;
+
+    std::cout << "------------------- check jacobian --------------------" << std::endl;
+    std::cout << "turb bv-----F col 4-------------------------       " << std::endl;
+    midPointIntegration(dt, body_gyr_0, body_gyr_1, foot_gyr_0, foot_gyr_1, jang_0, jang_1, jvel_0, jvel_1, delta_epsilon, delta_q,
+                        linearized_bg, linearized_bf, linearized_bv + turb, linearized_rho, turb_delta_epsilon, turb_delta_q,
+                        turb_linearized_bg, turb_linearized_bf, turb_linearized_bv, turb_linearized_rho, 0);
+    std::cout << "epsilon diff       " << (turb_delta_epsilon - result_delta_epsilon).transpose() << std::endl;
+    std::cout << "epsilon jacob diff " << (step_jacobian.block<3, 3>(T_E, T_BV) * turb).transpose() << std::endl;
+    std::cout << "bv diff      " << (turb_linearized_bv - result_linearized_bv).transpose() << std::endl;
+    std::cout << "bv jacob diff" << (step_jacobian.block<3, 3>(T_BV, T_BV) * turb).transpose() << std::endl;
+
+    std::cout << "------------------- check jacobian --------------------" << std::endl;
+    std::cout << "turb rho-----F col 4-------------------------       " << std::endl;
+    Vec_rho turb_rho = linearized_rho;
+    turb_rho(0) += turb(0);
+    midPointIntegration(dt, body_gyr_0, body_gyr_1, foot_gyr_0, foot_gyr_1, jang_0, jang_1, jvel_0, jvel_1, delta_epsilon, delta_q,
+                        linearized_bg, linearized_bf, linearized_bv, turb_rho, turb_delta_epsilon, turb_delta_q, turb_linearized_bg,
+                        turb_linearized_bf, turb_linearized_bv, turb_linearized_rho, 0);
+    std::cout << "epsilon diff       " << (turb_delta_epsilon - result_delta_epsilon).transpose() << std::endl;
+    std::cout << "epsilon jacob diff " << (step_jacobian.block<3, 1>(T_E, T_RHO) * turb(0)).transpose() << std::endl;
+    std::cout << "rho diff      " << (turb_linearized_rho - result_linearized_rho).transpose() << std::endl;
+    std::cout << "rho jacob diff" << (step_jacobian.block<1, 1>(T_RHO, T_RHO) * turb(0)).transpose() << std::endl;
   }
 
   void propagate(const double _dt, const Eigen::Vector3d& _body_gyr_1, const Eigen::Vector3d& _foot_gyr_1, const Eigen::Vector3d& _jang_1,
@@ -270,6 +372,11 @@ class LOTightIntegrationBase {
     midPointIntegration(dt, body_gyr_0, body_gyr_1, foot_gyr_0, foot_gyr_1, jang_0, jang_1, jvel_0, jvel_1, delta_epsilon, delta_q,
                         linearized_bg, linearized_bf, linearized_bv, linearized_rho, result_delta_epsilon, result_delta_q,
                         result_linearized_bg, result_linearized_bf, result_linearized_bv, result_linearized_rho, 1);
+
+    // checkJacobian
+    // checkJacobian(dt, body_gyr_0, body_gyr_1, foot_gyr_0, foot_gyr_1, jang_0, jang_1, jvel_0, jvel_1, delta_epsilon, delta_q,
+    // linearized_bg,
+    //               linearized_bf, linearized_bv, linearized_rho);
 
     delta_epsilon = result_delta_epsilon;
     delta_q = result_delta_q;
@@ -351,6 +458,9 @@ class LOTightIntegrationBase {
   // helper functions for calculating jacobian
   Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, LO_TIGHT_RESIDUAL_SIZE> F;
   Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, LO_TIGHT_NOISE_SIZE> V;
+
+  Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, LO_TIGHT_RESIDUAL_SIZE> step_jacobian;
+  Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, LO_TIGHT_NOISE_SIZE> step_V;
 
   LOTightUtils* tightUtils;
 };

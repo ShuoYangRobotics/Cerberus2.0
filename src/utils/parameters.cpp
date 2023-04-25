@@ -78,6 +78,8 @@ double F_THRESHOLD;
 int SHOW_TRACK;
 int FLOW_BACK;
 
+std::mutex casadi_mtx;
+
 void Utils::readParametersROS(ros::NodeHandle& nh_) {
   // default values
   IMU_TOPIC = "/unitree_hardware/imu";
@@ -136,11 +138,22 @@ void Utils::readParametersFile(std::string config_file) {
   FOOT_GYR_W = fsSettings["foot_gyro_w"];
   FOOT_VEL_W = fsSettings["foot_vel_w"];
   RHO_W = fsSettings["rho_w"];
-
   ACC_N = fsSettings["acc_n"];
   ACC_W = fsSettings["acc_w"];
   GYR_N = fsSettings["gyr_n"];
   GYR_W = fsSettings["gyr_w"];
+  // print all above parameters
+  printf("JOINT_ANG_N: %f\n", JOINT_ANG_N);
+  printf("JOINT_VEL_N: %f\n", JOINT_VEL_N);
+  printf("FOOT_GYR_N: %f\n", FOOT_GYR_N);
+  printf("FOOT_GYR_W: %f\n", FOOT_GYR_W);
+  printf("FOOT_VEL_W: %f\n", FOOT_VEL_W);
+  printf("RHO_W: %f\n", RHO_W);
+  printf("ACC_N: %f\n", ACC_N);
+  printf("ACC_W: %f\n", ACC_W);
+  printf("GYR_N: %f\n", GYR_N);
+  printf("GYR_W: %f\n", GYR_W);
+
   G.z() = fsSettings["g_norm"];
 
   SOLVER_TIME = fsSettings["max_solver_time"];

@@ -30,6 +30,8 @@ class LOConstantFactor : public ceres::SizedCostFunction<7, 7, 7> {
 
     Eigen::Matrix<double, 7, 7> sqrt_info;
     sqrt_info.setIdentity();  // change to some value?
+    sqrt_info *= 0.01;
+
     residual = sqrt_info * residual;
     if (jacobians) {
       if (jacobians[0]) {
@@ -38,6 +40,8 @@ class LOConstantFactor : public ceres::SizedCostFunction<7, 7, 7> {
         jacobian_footBias_i.block<3, 3>(0, 0) = -Eigen::Matrix3d::Identity();
         jacobian_footBias_i.block<3, 3>(3, 3) = -Eigen::Matrix3d::Identity();
         jacobian_footBias_i(6, 6) = -1;
+
+        jacobian_footBias_i = sqrt_info * jacobian_footBias_i;
       }
       if (jacobians[1]) {
         Eigen::Map<Eigen::Matrix<double, 7, 7, Eigen::RowMajor>> jacobian_footBias_j(jacobians[1]);
@@ -45,6 +49,8 @@ class LOConstantFactor : public ceres::SizedCostFunction<7, 7, 7> {
         jacobian_footBias_j.block<3, 3>(0, 0) = Eigen::Matrix3d::Identity();
         jacobian_footBias_j.block<3, 3>(3, 3) = Eigen::Matrix3d::Identity();
         jacobian_footBias_j(6, 6) = 1;
+
+        jacobian_footBias_j = sqrt_info * jacobian_footBias_j;
       }
     }
     return true;

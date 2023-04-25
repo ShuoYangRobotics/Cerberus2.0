@@ -130,9 +130,12 @@ target_link_libraries(cerberus2_main
 # ##
 # ## tests
 # ##
-add_executable(test_LOTightFactor test/test_LOTightFactor.cpp)
+add_executable(test_LOTightFactor test/test_LOTightFactor.cpp
+        src/utils/parameters.cpp)
 target_link_libraries(test_LOTightFactor
         PRIVATE
+        ${OpenCV_LIBS}
+        ${catkin_LIBRARIES}
         casadi
 )
 

@@ -103,6 +103,8 @@ extern double F_THRESHOLD;
 extern int SHOW_TRACK;
 extern int FLOW_BACK;
 
+extern std::mutex casadi_mtx;
+
 // MIPO and SIPO parameters
 
 namespace Utils {

@@ -81,8 +81,8 @@ int main() {
     // dim += block_sizes[i] == 7 ? 6 : block_sizes[i];
   }
   lo_tight_factor->Evaluate(parameter_blocks.data(), residuals.data(), raw_jacobians);
-  std::cout << "residual between frame " << i << " and " << j << std::endl;
-  std::cout << residuals.transpose() << std::endl;
+  // std::cout << "residual between frame " << i << " and " << j << std::endl;
+  // std::cout << residuals.transpose() << std::endl;
   lo_tight_factor->checkJacobian(parameter_blocks.data());
 
   return 0;
