@@ -12,7 +12,7 @@ typedef Eigen::Matrix<double, RHO_SIZE, 1> Vec_rho;
 
 enum T_StateOrder { T_R = 0, T_E = 3, T_BG = 6, T_BF = 9, T_BV = 12, T_RHO = 15 };
 
-enum T_NoiseOrder { T_PHIN = 0, T_DPHIN = 3, T_GN = 6, T_GW = 9, T_FN = 12, T_FW = 15, T_VN = 18, TRHO_N = 21 };
+enum T_NoiseOrder { T_PHIN = 0, T_DPHIN = 3, T_GN = 6, T_FN = 9, T_GW = 12, T_FW = 15, T_VW = 18, TRHO_W = 21 };
 
 class LOTightIntegrationBase {
  public:
@@ -39,19 +39,20 @@ class LOTightIntegrationBase {
     sum_dt = 0.0;
     delta_epsilon.setZero();
     delta_q.setIdentity();
-    jacobian.setZero();
+    jacobian.setIdentity();  // this has to be identity as the beginning
     covariance.setZero();
+    covariance = 1e-1 * Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, LO_TIGHT_RESIDUAL_SIZE>::Identity();
 
     // init noise
     noise_diag.diagonal() = 1e-2 * Eigen::Matrix<double, LO_TIGHT_NOISE_SIZE, 1>::Ones();
     noise_diag.diagonal().segment<3>(T_PHIN) = JOINT_ANG_N * JOINT_ANG_N * Eigen::Matrix<double, 3, 1>::Ones();
     noise_diag.diagonal().segment<3>(T_DPHIN) = JOINT_VEL_N * JOINT_VEL_N * Eigen::Matrix<double, 3, 1>::Ones();
     noise_diag.diagonal().segment<3>(T_GN) = GYR_N * GYR_N * Eigen::Matrix<double, 3, 1>::Ones();
-    noise_diag.diagonal().segment<3>(T_GW) = GYR_W * GYR_W * Eigen::Matrix<double, 3, 1>::Ones();
     noise_diag.diagonal().segment<3>(T_FN) = FOOT_GYR_N * FOOT_GYR_N * Eigen::Matrix<double, 3, 1>::Ones();
+    noise_diag.diagonal().segment<3>(T_GW) = GYR_W * GYR_W * Eigen::Matrix<double, 3, 1>::Ones();
     noise_diag.diagonal().segment<3>(T_FW) = FOOT_GYR_W * FOOT_GYR_W * Eigen::Matrix<double, 3, 1>::Ones();
-    noise_diag.diagonal().segment<3>(T_VN) = FOOT_VEL_W * FOOT_VEL_W * Eigen::Matrix<double, 3, 1>::Ones();
-    noise_diag.diagonal()(TRHO_N) = RHO_W * RHO_W;
+    noise_diag.diagonal().segment<3>(T_VW) = FOOT_VEL_W * FOOT_VEL_W * Eigen::Matrix<double, 3, 1>::Ones();
+    noise_diag.diagonal()(TRHO_W) = RHO_W * RHO_W;
 
     tightUtils = _tightUtils;
   }
@@ -245,8 +246,8 @@ class LOTightIntegrationBase {
 
       V.block<3, 3>(T_BG, T_GW) = -1.0 * Eigen::Matrix3d::Identity() * _dt;
       V.block<3, 3>(T_BF, T_FW) = -1.0 * Eigen::Matrix3d::Identity() * _dt;
-      V.block<3, 3>(T_BV, T_VN) = -1.0 * Eigen::Matrix3d::Identity() * _dt;
-      V.block<RHO_SIZE, RHO_SIZE>(T_RHO, TRHO_N) = -1.0 * Eigen::Matrix<double, RHO_SIZE, RHO_SIZE>::Identity() * _dt;
+      V.block<3, 3>(T_BV, T_VW) = -1.0 * Eigen::Matrix3d::Identity() * _dt;
+      V.block<RHO_SIZE, RHO_SIZE>(T_RHO, TRHO_W) = -1.0 * Eigen::Matrix<double, RHO_SIZE, RHO_SIZE>::Identity() * _dt;
 
       // step_jacobian = F;
       // step_V = V;
