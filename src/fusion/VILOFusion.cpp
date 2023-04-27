@@ -35,6 +35,7 @@ VILOFusion::VILOFusion(ros::NodeHandle nh) {
   pose_vilo_pub_ = nh_.advertise<geometry_msgs::PoseWithCovarianceStamped>("/vilo/estimate_pose", 1000);
   twist_pub_ = nh_.advertise<geometry_msgs::TwistWithCovarianceStamped>("/mipo/estimate_twist", 1000);
   twist_vilo_pub_ = nh_.advertise<geometry_msgs::TwistWithCovarianceStamped>("/vilo/estimate_twist", 1000);
+  contact_pub_ = nh.advertise<geometry_msgs::PoseStamped>("/mipo/contact", 1000);
 
   // initialize the filter
   for (int i = 0; i < 3; i++) {
@@ -132,7 +133,7 @@ void VILOFusion::POLoop() {
           // publish the estimation result
           Eigen::VectorXd x = Eigen::VectorXd::Map(mipo_x.data(), mipo_x.size());
           Eigen::MatrixXd P = mipo_P.cast<double>();
-          publishPOEstimationResult(x, P);
+          publishPOEstimationResult(x, P, contact_est);
 
           // inputPODataToVILO();
           if (VILO_FUSION_TYPE == 2) {
@@ -144,6 +145,7 @@ void VILOFusion::POLoop() {
 
             vilo_estimator->inputBodyIMULeg(curr_esti_time, curr_data->body_acc, curr_data->body_gyro, foot_gyro_vec,
                                             curr_data->joint_angles, curr_data->joint_velocities, contact_est);
+            // std::cout << "curr_data->joint_velocities" << curr_data->joint_velocities.transpose() << std::endl;
           } else {
             vilo_estimator->inputBodyIMU(curr_esti_time, curr_data->body_acc, curr_data->body_gyro);
           }
@@ -177,7 +179,8 @@ void VILOFusion::POLoop() {
           // do estimation
           Eigen::Matrix<double, SS_SIZE, 1> sipo_x_k1_est;
           Eigen::Matrix<double, SS_SIZE, SS_SIZE> sipo_P_k1_est;
-          sipo_estimator->ekfUpdate(sipo_x, sipo_P, *sipo_prev_data, *sipo_curr_data, dt_ros, sipo_x_k1_est, sipo_P_k1_est);
+          Eigen::Matrix<double, NUM_LEG, 1> contact_est;
+          sipo_estimator->ekfUpdate(sipo_x, sipo_P, *sipo_prev_data, *sipo_curr_data, dt_ros, sipo_x_k1_est, sipo_P_k1_est, contact_est);
 
           sipo_x = sipo_x_k1_est;
           // std::cout << "x: " << x.transpose() << std::endl;
@@ -186,7 +189,7 @@ void VILOFusion::POLoop() {
           // publish the estimation result
           Eigen::VectorXd x = Eigen::VectorXd::Map(sipo_x.data(), sipo_x.size());
           Eigen::MatrixXd P = sipo_P.cast<double>();
-          publishPOEstimationResult(x, P);
+          publishPOEstimationResult(x, P, contact_est);
 
           // inputPODataToVILO();
           vilo_estimator->inputBodyIMU(curr_esti_time, sipo_curr_data->body_acc, sipo_curr_data->body_gyro);
@@ -259,37 +262,39 @@ void VILOFusion::VILOLoop() {
       fout_vilo << endl;
       fout_vilo.close();
 
-      // write MIPO
-      if (KF_TYPE == 0) {
-        double mipo_time = mipo_x(mipo_x.size() - 1);
-        Eigen::Vector3d mipo_pos = mipo_x.segment<3>(0);
-        Eigen::Vector3d mipo_vel = mipo_x.segment<3>(3);
-        Eigen::Vector3d mipo_euler = mipo_x.segment<3>(6);
-        ofstream fout_mipo(PO_RESULT_PATH, ios::app);
-        fout_mipo.setf(ios::fixed, ios::floatfield);
-        fout_mipo.precision(15);
-        fout_mipo << mipo_time << ",";
-        fout_mipo.precision(5);
-        fout_mipo << mipo_pos(0) << "," << mipo_pos(1) << "," << mipo_pos(2) << ",";
-        fout_mipo << mipo_euler(0) << "," << mipo_euler(1) << "," << mipo_euler(2) << ",";
-        fout_mipo << mipo_vel(0) << "," << mipo_vel(1) << "," << mipo_vel(2);
-        fout_mipo << endl;
-        fout_mipo.close();
-      } else {
-        double sipo_time = sipo_x(sipo_x.size() - 1);
-        Eigen::Vector3d sipo_pos = sipo_x.segment<3>(0);
-        Eigen::Vector3d sipo_vel = sipo_x.segment<3>(3);
-        Eigen::Vector3d sipo_euler = sipo_x.segment<3>(6);
-        ofstream fout_sipo(PO_RESULT_PATH, ios::app);
-        fout_sipo.setf(ios::fixed, ios::floatfield);
-        fout_sipo.precision(15);
-        fout_sipo << sipo_time << ",";
-        fout_sipo.precision(5);
-        fout_sipo << sipo_pos(0) << "," << sipo_pos(1) << "," << sipo_pos(2) << ",";
-        fout_sipo << sipo_euler(0) << "," << sipo_euler(1) << "," << sipo_euler(2) << ",";
-        fout_sipo << sipo_vel(0) << "," << sipo_vel(1) << "," << sipo_vel(2);
-        fout_sipo << endl;
-        fout_sipo.close();
+      // write MIPO only when no fusion
+      if (VILO_FUSION_TYPE == 0) {
+        if (KF_TYPE == 0) {
+          double mipo_time = mipo_x(mipo_x.size() - 1);
+          Eigen::Vector3d mipo_pos = mipo_x.segment<3>(0);
+          Eigen::Vector3d mipo_vel = mipo_x.segment<3>(3);
+          Eigen::Vector3d mipo_euler = mipo_x.segment<3>(6);
+          ofstream fout_mipo(PO_RESULT_PATH, ios::app);
+          fout_mipo.setf(ios::fixed, ios::floatfield);
+          fout_mipo.precision(15);
+          fout_mipo << mipo_time << ",";
+          fout_mipo.precision(5);
+          fout_mipo << mipo_pos(0) << "," << mipo_pos(1) << "," << mipo_pos(2) << ",";
+          fout_mipo << mipo_euler(0) << "," << mipo_euler(1) << "," << mipo_euler(2) << ",";
+          fout_mipo << mipo_vel(0) << "," << mipo_vel(1) << "," << mipo_vel(2);
+          fout_mipo << endl;
+          fout_mipo.close();
+        } else {
+          double sipo_time = sipo_x(sipo_x.size() - 1);
+          Eigen::Vector3d sipo_pos = sipo_x.segment<3>(0);
+          Eigen::Vector3d sipo_vel = sipo_x.segment<3>(3);
+          Eigen::Vector3d sipo_euler = sipo_x.segment<3>(6);
+          ofstream fout_sipo(PO_RESULT_PATH, ios::app);
+          fout_sipo.setf(ios::fixed, ios::floatfield);
+          fout_sipo.precision(15);
+          fout_sipo << sipo_time << ",";
+          fout_sipo.precision(5);
+          fout_sipo << sipo_pos(0) << "," << sipo_pos(1) << "," << sipo_pos(2) << ",";
+          fout_sipo << sipo_euler(0) << "," << sipo_euler(1) << "," << sipo_euler(2) << ",";
+          fout_sipo << sipo_vel(0) << "," << sipo_vel(1) << "," << sipo_vel(2);
+          fout_sipo << endl;
+          fout_sipo.close();
+        }
       }
 
       // write GT is mocap is available
@@ -335,7 +340,8 @@ void VILOFusion::VILOLoop() {
   }
 }
 
-void VILOFusion::publishPOEstimationResult(Eigen::VectorXd& x, Eigen::MatrixXd& P) {
+void VILOFusion::publishPOEstimationResult(const Eigen::VectorXd& x, const Eigen::MatrixXd& P,
+                                           const Eigen::Matrix<double, NUM_LEG, 1>& contact_est) {
   // extract position from the first 3 elements of x
   Eigen::Vector3d pos = x.segment<3>(0);
   // extract position uncertainty from the first 3 elements of P
@@ -386,6 +392,17 @@ void VILOFusion::publishPOEstimationResult(Eigen::VectorXd& x, Eigen::MatrixXd& 
   twist_msg.twist.twist.linear.z = vel(2);
 
   twist_pub_.publish(twist_msg);
+
+  // fill the four contact states into a quaternion message
+  geometry_msgs::PoseStamped contact_msg;
+  contact_msg.header.stamp = ros::Time::now();
+  contact_msg.header.frame_id = "world";
+  contact_msg.pose.orientation.w = contact_est(0);
+  contact_msg.pose.orientation.x = contact_est(1);
+  contact_msg.pose.orientation.y = contact_est(2);
+  contact_msg.pose.orientation.z = contact_est(3);
+  contact_pub_.publish(contact_msg);
+
   return;
 }
 
@@ -527,7 +544,7 @@ void VILOFusion::jointFootCallback(const sensor_msgs::JointState::ConstPtr& msg)
   if (!mq_joint_foot_.empty() && mq_joint_foot_.size() > MAX_PO_QUEUE_SIZE) {
     mq_joint_foot_.pop();
   }
-  mq_foot_force_.push(t - 0.03, foot_force);  // notice: a delay of 30ms
+  mq_foot_force_.push(t - FOOT_PRESSURE_DELAY, foot_force);  // notice: a delay of 30ms
   // limit the size of the message queue
   if (!mq_foot_force_.empty() && mq_foot_force_.size() > MAX_PO_QUEUE_SIZE) {
     mq_foot_force_.pop();

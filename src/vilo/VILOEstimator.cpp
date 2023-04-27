@@ -83,7 +83,7 @@ void VILOEstimator::reset() {
     for (int j = 0; j < NUM_LEG; j++) {
       Bfs[i][j].setZero();
       Bvs[i][j].setZero();
-      Rhos[i][j].setZero();
+      Rhos[i][j] = Vec_rho::Ones() * 0.05;
     }
 
     dt_buf[i].clear();
@@ -129,6 +129,10 @@ void VILOEstimator::reset() {
 
   first_imu = false;
   initFirstPoseFlag = false;
+
+  for (int i = 0; i < NUM_LEG; i++) {
+    first_tight_lo[i] = false;
+  }
 
   if (tmp_pre_integration != nullptr) delete tmp_pre_integration;
   tmp_pre_integration = nullptr;
@@ -536,6 +540,10 @@ void VILOEstimator::processIMULegOdom(int leg_id, double t, double dt, const Vec
                                                                           Rhos[frame_count][leg_id],
                                                                           &lo_tight_utils_[leg_id]};
   }
+  // std::cout << "bodyAngularVelocity\t\t\t" << bodyAngularVelocity.transpose() << std::endl;
+  // std::cout << "footAngularVelocity\t\t\t" << footAngularVelocity.transpose() << std::endl;
+  // std::cout << "jointAngles\t\t\t" << jointAngles.transpose() << std::endl;
+  // std::cout << "jointVelocities\t\t\t" << jointVelocities.transpose() << std::endl;
 
   if (frame_count != 0) {
     tlo_pre_integration[frame_count][leg_id]->push_back(dt, bodyAngularVelocity, footAngularVelocity, jointAngles, jointVelocities);
@@ -1046,7 +1054,9 @@ void VILOEstimator::optimization() {
 
     for (int k = 0; k < NUM_LEG; k++) {
       problem.AddParameterBlock(para_FootBias[i][k], SIZE_FOOTBIAS);
-      // problem.SetParameterBlockConstant(para_FootBias[i][k]);
+      if (ESTIMATE_KINEMATIC == 0) {
+        problem.SetParameterBlockConstant(para_FootBias[i][k]);
+      }
     }
   }
 
@@ -1099,8 +1109,7 @@ void VILOEstimator::optimization() {
     for (int i = 0; i < frame_count; i++) {
       int j = i + 1;
       for (int k = 0; k < NUM_LEG; k++) {
-        if (tlo_pre_integration[j][k]->sum_dt > 10.0) continue;
-        if (tlo_all_in_contact[j][k] == true) {
+        if (tlo_all_in_contact[j][k] == true && tlo_pre_integration[j][k]->sum_dt > 0.01 && tlo_pre_integration[j][k]->sum_dt < 10.0) {
           LOTightFactor* tlo_factor = new LOTightFactor(tlo_pre_integration[j][k]);
           problem.AddResidualBlock(tlo_factor, NULL, para_Pose[i], para_SpeedBias[i], para_FootBias[i][k], para_Pose[j], para_SpeedBias[j],
                                    para_FootBias[j][k]);
@@ -1231,25 +1240,22 @@ void VILOEstimator::optimization() {
 
       if (VILO_FUSION_TYPE == 2) {
         for (int j = 0; j < NUM_LEG; j++) {
-          if (tlo_pre_integration[1][j]->sum_dt < 10.0) {
-            if (tlo_all_in_contact[1][j] == true) {
-              LOTightFactor* tlo_factor = new LOTightFactor(tlo_pre_integration[1][j]);
-              ResidualBlockInfo* residual_block_info =
-                  new ResidualBlockInfo(tlo_factor, NULL,
-                                        vector<double*>{para_Pose[0], para_SpeedBias[0], para_FootBias[0][j], para_Pose[1],
-                                                        para_SpeedBias[1], para_FootBias[1][j]},
-                                        vector<int>{0, 1, 2});
-              marginalization_info->addResidualBlockInfo(residual_block_info);
-            } else {
-              LOConstantFactor* tlo_factor = new LOConstantFactor(j);
-              ResidualBlockInfo* residual_block_info = new ResidualBlockInfo(tlo_factor, NULL,
-                                                                             vector<double*>{
-                                                                                 para_FootBias[0][j],
-                                                                                 para_FootBias[1][j],
-                                                                             },
-                                                                             vector<int>{0});
-              marginalization_info->addResidualBlockInfo(residual_block_info);
-            }
+          if (tlo_all_in_contact[1][j] == true && tlo_pre_integration[1][j]->sum_dt > 0.01 && tlo_pre_integration[1][j]->sum_dt < 10.0) {
+            LOTightFactor* tlo_factor = new LOTightFactor(tlo_pre_integration[1][j]);
+            ResidualBlockInfo* residual_block_info = new ResidualBlockInfo(
+                tlo_factor, NULL,
+                vector<double*>{para_Pose[0], para_SpeedBias[0], para_FootBias[0][j], para_Pose[1], para_SpeedBias[1], para_FootBias[1][j]},
+                vector<int>{0, 1, 2});
+            marginalization_info->addResidualBlockInfo(residual_block_info);
+          } else {
+            LOConstantFactor* tlo_factor = new LOConstantFactor(j);
+            ResidualBlockInfo* residual_block_info = new ResidualBlockInfo(tlo_factor, NULL,
+                                                                           vector<double*>{
+                                                                               para_FootBias[0][j],
+                                                                               para_FootBias[1][j],
+                                                                           },
+                                                                           vector<int>{0});
+            marginalization_info->addResidualBlockInfo(residual_block_info);
           }
         }
       }

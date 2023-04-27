@@ -80,7 +80,8 @@ class SIPOEstimator {
   void ekfUpdate(const Eigen::Matrix<double, SS_SIZE, 1>& x_k, const Eigen::Matrix<double, SS_SIZE, SS_SIZE>& P_k,
                  const SIPOEstimatorSensorData& sensor_data_k, const SIPOEstimatorSensorData& sensor_data_k1, const double dt,
                  // output
-                 Eigen::Matrix<double, SS_SIZE, 1>& x_k1, Eigen::Matrix<double, SS_SIZE, SS_SIZE>& P_k1);
+                 Eigen::Matrix<double, SS_SIZE, 1>& x_k1, Eigen::Matrix<double, SS_SIZE, SS_SIZE>& P_k1,
+                 Eigen::Matrix<double, NUM_LEG, 1>& contact_est);
 
   // given a sensor data k, initialize the state
   Eigen::Matrix<double, SS_SIZE, 1> ekfInitState(const SIPOEstimatorSensorData& sensor_data_k);

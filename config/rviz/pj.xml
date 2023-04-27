@@ -1,60 +1,104 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <root>
  <tabbed_widget parent="main_window" name="Main Window">
-  <Tab containers="1" tab_name="tab1">
+  <Tab tab_name="tab1" containers="1">
    <Container>
-    <DockSplitter orientation="-" sizes="0.332606;0.34133;0.326063" count="3">
-     <DockSplitter orientation="|" sizes="0.500652;0.499348" count="2">
+    <DockSplitter orientation="-" count="3" sizes="0.332968;0.341731;0.325301">
+     <DockSplitter orientation="|" count="2" sizes="0.500652;0.499348">
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="-1465676.163759" top="176.224655" bottom="-7171.448496" right="-1465671.163984"/>
+       <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
+        <range bottom="-0.035593" right="-109.481123" left="-114.989961" top="0.025822"/>
         <limitY/>
-        <curve color="#17becf" name="/vilo/estimate_pose/pose/pose/position/x"/>
         <curve color="#1f77b4" name="/mipo/estimate_pose/pose/pose/position/x"/>
+        <curve color="#d62728" name="/vilo/estimate_pose/pose/pose/position/x"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="-1465676.163759" top="-0.114845" bottom="-52.566981" right="-1465671.163984"/>
+       <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
+        <range bottom="1.356809" right="-109.481123" left="-114.989961" top="14.180874"/>
         <limitY/>
         <curve color="#bcbd22" name="/vilo/estimate_pose/pose/pose/orientation/pitch_deg"/>
        </plot>
       </DockArea>
      </DockSplitter>
-     <DockSplitter orientation="|" sizes="0.500652;0.499348" count="2">
+     <DockSplitter orientation="|" count="2" sizes="0.501956;0.498044">
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="-1465676.163759" top="90.577430" bottom="-3692.975791" right="-1465671.163984"/>
+       <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
+        <range bottom="-0.025555" right="-109.481123" left="-114.989961" top="0.011915"/>
         <limitY/>
         <curve color="#bcbd22" name="/vilo/estimate_pose/pose/pose/position/y"/>
         <curve color="#d62728" name="/mipo/estimate_pose/pose/pose/position/y"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="-1465676.163759" top="138.355349" bottom="-2.569300" right="-1465671.163984"/>
+       <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
+        <range bottom="-1.301993" right="-109.481123" left="-114.989961" top="11.909030"/>
         <limitY/>
         <curve color="#1f77b4" name="/vilo/estimate_pose/pose/pose/orientation/roll_deg"/>
        </plot>
       </DockArea>
      </DockSplitter>
-     <DockSplitter orientation="|" sizes="0.500652;0.499348" count="2">
+     <DockSplitter orientation="|" count="2" sizes="0.501956;0.498044">
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="-1465676.163759" top="173.835578" bottom="-7113.860801" right="-1465671.163984"/>
+       <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
+        <range bottom="-0.006493" right="-109.481123" left="-114.989961" top="0.263663"/>
         <limitY/>
         <curve color="#1f77b4" name="/vilo/estimate_pose/pose/pose/position/z"/>
         <curve color="#1ac938" name="/mipo/estimate_pose/pose/pose/position/z"/>
        </plot>
       </DockArea>
       <DockArea name="...">
-       <plot flip_y="false" mode="TimeSeries" flip_x="false" style="Lines">
-        <range left="-1465676.163759" top="4458.745574" bottom="4301.431483" right="-1465671.163984"/>
+       <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
+        <range bottom="346.034434" right="-109.481123" left="-114.989961" top="353.385009"/>
         <limitY/>
         <curve color="#d62728" name="/vilo/estimate_pose/pose/pose/orientation/yaw_deg"/>
        </plot>
       </DockArea>
      </DockSplitter>
+    </DockSplitter>
+   </Container>
+  </Tab>
+  <Tab tab_name="tab2" containers="1">
+   <Container>
+    <DockSplitter orientation="-" count="4" sizes="0.25;0.25;0.25;0.25">
+     <DockArea name="...">
+      <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
+       <range bottom="-0.027050" right="-109.483339" left="-114.989961" top="1.025050"/>
+       <limitY/>
+       <curve color="#1ac938" name="/mipo/contact/pose/orientation/w"/>
+       <curve color="#17becf" name="/unitree_hardware/joint_foot/FL_foot/effort">
+        <transform alias="/unitree_hardware/joint_foot/FL_foot/effort[Scale/Offset]" name="Scale/Offset">
+         <options value_scale="0.002" time_offset="0" value_offset="0"/>
+        </transform>
+       </curve>
+      </plot>
+     </DockArea>
+     <DockArea name="...">
+      <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
+       <range bottom="-0.025150" right="-109.483339" left="-114.989961" top="1.031150"/>
+       <limitY/>
+       <curve color="#ff7f0e" name="/mipo/contact/pose/orientation/x"/>
+       <curve color="#bcbd22" name="/unitree_hardware/joint_foot/FR_foot/effort">
+        <transform alias="/unitree_hardware/joint_foot/FR_foot/effort[Scale/Offset]" name="Scale/Offset">
+         <options value_scale="0.002" time_offset="0" value_offset="0"/>
+        </transform>
+       </curve>
+      </plot>
+     </DockArea>
+     <DockArea name="...">
+      <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
+       <range bottom="-0.025000" right="-109.483339" left="-114.989961" top="1.025000"/>
+       <limitY/>
+       <curve color="#f14cc1" name="/mipo/contact/pose/orientation/y"/>
+      </plot>
+     </DockArea>
+     <DockArea name="...">
+      <plot style="Lines" flip_x="false" mode="TimeSeries" flip_y="false">
+       <range bottom="-0.025000" right="-109.483339" left="-114.989961" top="1.025000"/>
+       <limitY/>
+       <curve color="#9467bd" name="/mipo/contact/pose/orientation/z"/>
+      </plot>
+     </DockArea>
     </DockSplitter>
    </Container>
   </Tab>

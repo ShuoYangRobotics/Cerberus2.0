@@ -52,6 +52,7 @@ extern std::string IMAGE1_TOPIC;
 // information mistaches
 extern double LAG_TIME;  // 100ms
 
+extern double FOOT_PRESSURE_DELAY;
 extern double FOOT_IMU_DELAY;  // 23ms, this is estimated from analysing data in Matlab
 
 /*
@@ -73,6 +74,8 @@ extern double GYR_N, GYR_W;
 
 extern double JOINT_ANG_N, JOINT_VEL_N;
 extern double FOOT_GYR_N, FOOT_GYR_W, FOOT_VEL_W, RHO_W;
+
+extern int ESTIMATE_KINEMATIC;
 
 extern std::vector<Eigen::Matrix3d> RIC;  // num of cam, imu to camera rotation
 extern std::vector<Eigen::Vector3d> TIC;  // num of cam, imu to camera position

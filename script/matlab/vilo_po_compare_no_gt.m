@@ -8,12 +8,12 @@ dataset_name = '20230304_wightman_park_trot_bridge_loop';       % modify this
 
 % look at src/utils/parameters.cpp for possible types
 % traj_types = {'gt','mipo','sipo','vio','vilo-m','vilo-s'};
-traj_types = {'mipo','sipo','vio','vilo-m','vilo-s'};
+traj_types = {'mipo','vilo-m','vilo-s', 'vilo-tm-n', 'vilo-tm-y'};
 
 total_types = size(traj_types,2);
 
 plot_start = 0;
-plot_end = 416.5;
+plot_end = 415;
 %% read data
 traj_data = cell(1, total_types);
 for i=1:total_types
@@ -32,6 +32,7 @@ traj_pos = cell(1, total_types);
 traj_euler = cell(1, total_types);
 
 for i=1:total_types
+    i
     [traj_t0(i), traj_time{i}, traj_pos{i}, traj_euler{i}, ~] =...
         parse_data(traj_data{i}, plot_start, plot_end);
 end

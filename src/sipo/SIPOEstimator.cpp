@@ -28,7 +28,8 @@ SIPOEstimator::~SIPOEstimator() {}
 void SIPOEstimator::ekfUpdate(const Eigen::Matrix<double, SS_SIZE, 1>& x_k, const Eigen::Matrix<double, SS_SIZE, SS_SIZE>& P_k,
                               const SIPOEstimatorSensorData& sensor_data_k, const SIPOEstimatorSensorData& sensor_data_k1, const double dt,
                               // output
-                              Eigen::Matrix<double, SS_SIZE, 1>& x_k1, Eigen::Matrix<double, SS_SIZE, SS_SIZE>& P_k1) {
+                              Eigen::Matrix<double, SS_SIZE, 1>& x_k1, Eigen::Matrix<double, SS_SIZE, SS_SIZE>& P_k1,
+                              Eigen::Matrix<double, NUM_LEG, 1>& contact_est) {
   Eigen::Matrix<double, SI_SIZE, 1> u_k;
   u_k.segment<3>(0) = sensor_data_k.body_gyro;  // notice the order, defined in sipo_process_dyn_casadi
   u_k.segment<3>(3) = sensor_data_k.body_acc;
@@ -50,7 +51,7 @@ void SIPOEstimator::ekfUpdate(const Eigen::Matrix<double, SS_SIZE, 1>& x_k, cons
   double threshold_value = 100.0;
   Eigen::Vector4i result = foot_force.unaryExpr([threshold_value](double x) { return x > threshold_value ? 1 : 0; });
   Eigen::Vector4d ck = result.cast<double>();
-
+  contact_est = ck;
   // EKF steps
   // 1. predict
 

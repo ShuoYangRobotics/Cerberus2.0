@@ -27,7 +27,8 @@ std::string IMAGE1_TOPIC;
 // information mistaches
 double LAG_TIME = 0.0;  // 100ms
 
-double FOOT_IMU_DELAY = 0.023;  // 23ms, this is estimated from analysing data in Matlab
+double FOOT_PRESSURE_DELAY = 0.1;  // 100ms this is the foot pressure sensor delay
+double FOOT_IMU_DELAY = 0.023;     // 23ms, this is estimated from analysing data in Matlab
 
 /*
  * VINS Fusion parameters
@@ -48,6 +49,8 @@ double GYR_N, GYR_W;
 
 double JOINT_ANG_N, JOINT_VEL_N;
 double FOOT_GYR_N, FOOT_GYR_W, FOOT_VEL_W, RHO_W;
+
+int ESTIMATE_KINEMATIC;
 
 std::vector<Eigen::Matrix3d> RIC;  // num of cam, imu to camera rotation
 std::vector<Eigen::Vector3d> TIC;  // num of cam, imu to camera position
@@ -173,6 +176,8 @@ void Utils::readParametersFile(std::string config_file) {
     kf_type_name = "sipo";
   }
 
+  ESTIMATE_KINEMATIC = fsSettings["estimate_kinematic"];
+
   std::string vilo_run_name = "vilo";
   if (VILO_FUSION_TYPE == 0) {
     vilo_run_name = "vio";
@@ -182,16 +187,28 @@ void Utils::readParametersFile(std::string config_file) {
     } else {
       vilo_run_name = "vilo-s";
     }
+  } else if (VILO_FUSION_TYPE == 2) {
+    if (KF_TYPE == 0) {
+      if (ESTIMATE_KINEMATIC == 0) {
+        vilo_run_name = "vilo-tm-n";
+      } else {
+        vilo_run_name = "vilo-tm-y";
+      }
+    } else {
+      throw std::runtime_error("not implemented");
+    }
   }
-
   VILO_RESULT_PATH = OUTPUT_FOLDER + "/" + vilo_run_name + "-" + DATASET_NAME + ".csv";
   PO_RESULT_PATH = OUTPUT_FOLDER + "/" + kf_type_name + "-" + DATASET_NAME + ".csv";
   GT_RESULT_PATH = OUTPUT_FOLDER + "/gt" + "-" + DATASET_NAME + ".csv";
   std::cout << "result path " << VILO_RESULT_PATH << std::endl;
   std::ofstream fout_V(VILO_RESULT_PATH, std::ios::out);
   fout_V.close();
-  std::ofstream fout_P(PO_RESULT_PATH, std::ios::out);
-  fout_P.close();
+
+  if (VILO_FUSION_TYPE == 0) {
+    std::ofstream fout_P(PO_RESULT_PATH, std::ios::out);
+    fout_P.close();
+  }
   std::ofstream fout_G(GT_RESULT_PATH, std::ios::out);
   fout_G.close();
 

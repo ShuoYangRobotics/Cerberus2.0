@@ -270,6 +270,7 @@ Eigen::Matrix<double, MS_SIZE, MS_SIZE> MIPOEstimator::proc_func_x_jac(const Eig
   // casadi::DM dt_dm = casadi::DM(dt);
   // std::vector<casadi::DM> arg = {x_dm, u_dm, u_dm, dt_dm};
 
+  std::lock_guard<std::mutex> lock(casadi_mtx);
   std::copy(x.data(), x.data() + x.size(), proc_arg[0].ptr());
   std::copy(u.data(), u.data() + u.size(), proc_arg[1].ptr());
   std::copy(u.data(), u.data() + u.size(), proc_arg[2].ptr());
@@ -292,11 +293,11 @@ Eigen::Matrix<double, MS_SIZE, MS_SIZE> MIPOEstimator::proc_func_x_jac(const Eig
   // casadi::DM dt_dm = casadi::DM(dt);
   // std::vector<casadi::DM> arg = {x_dm, u0_dm, u1_dm, dt_dm};
 
+  std::lock_guard<std::mutex> lock(casadi_mtx);
   std::copy(x.data(), x.data() + x.size(), proc_arg[0].ptr());
   std::copy(u0.data(), u0.data() + u0.size(), proc_arg[1].ptr());
   std::copy(u1.data(), u1.data() + u1.size(), proc_arg[2].ptr());
   proc_arg[3](0, 0) = dt;
-  std::lock_guard<std::mutex> lock(casadi_mtx);
   std::vector<casadi::DM> res = gen_mipo_process_dyn_jac_x_func_(proc_arg);
   // convert the result to eigen matrix
   Eigen::Matrix<double, MS_SIZE, MS_SIZE> SpMatrx = Utils::cas_DM_to_eig_mat<MS_SIZE, MS_SIZE>(res[0]);
@@ -312,11 +313,11 @@ Eigen::Matrix<double, MS_SIZE, MI_SIZE> MIPOEstimator::proc_func_u_jac(const Eig
   // // covert rho to casadi DM type
   // casadi::DM dt_dm = casadi::DM(dt);
   // std::vector<casadi::DM> arg = {x_dm, u_dm, u_dm, dt_dm};
+  std::lock_guard<std::mutex> lock(casadi_mtx);
   std::copy(x.data(), x.data() + x.size(), proc_arg[0].ptr());
   std::copy(u.data(), u.data() + u.size(), proc_arg[1].ptr());
   std::copy(u.data(), u.data() + u.size(), proc_arg[2].ptr());
   proc_arg[3](0, 0) = dt;
-  std::lock_guard<std::mutex> lock(casadi_mtx);
   std::vector<casadi::DM> res = gen_mipo_process_dyn_jac_u_func_(proc_arg);
   // convert the result to eigen matrix
   Eigen::Matrix<double, MS_SIZE, MI_SIZE> SpMatrx = Utils::cas_DM_to_eig_mat<MS_SIZE, MI_SIZE>(res[0]);
@@ -334,11 +335,11 @@ Eigen::Matrix<double, MS_SIZE, MI_SIZE> MIPOEstimator::proc_func_u_jac(const Eig
   // // covert rho to casadi DM type
   // casadi::DM dt_dm = casadi::DM(dt);
   // std::vector<casadi::DM> arg = {x_dm, u0_dm, u1_dm, dt_dm};
+  std::lock_guard<std::mutex> lock(casadi_mtx);
   std::copy(x.data(), x.data() + x.size(), proc_arg[0].ptr());
   std::copy(u0.data(), u0.data() + u0.size(), proc_arg[1].ptr());
   std::copy(u1.data(), u1.data() + u1.size(), proc_arg[2].ptr());
   proc_arg[3](0, 0) = dt;
-  std::lock_guard<std::mutex> lock(casadi_mtx);
   std::vector<casadi::DM> res = gen_mipo_process_dyn_jac_u_func_(proc_arg);
   // convert the result to eigen matrix
   Eigen::Matrix<double, MS_SIZE, MI_SIZE> SpMatrx = Utils::cas_DM_to_eig_mat<MS_SIZE, MI_SIZE>(res[0]);
@@ -361,11 +362,11 @@ Eigen::Matrix<double, MY_SIZE, MS_SIZE> MIPOEstimator::meas_func_jac(const Eigen
   // casadi::DM z_dm = Utils::eig_to_cas_DM<MZ_SIZE, 1>(z);
   // // covert rho to casadi DM type
   // casadi::DM rho_dm = Utils::eig_to_cas_DM<5, NUM_LEG>(rho_true_);
+  std::lock_guard<std::mutex> lock(casadi_mtx);
   // std::vector<casadi::DM> arg = {x_dm, z_dm, rho_dm};
   std::copy(x.data(), x.data() + x.size(), meas_arg[0].ptr());
   std::copy(z.data(), z.data() + z.size(), meas_arg[1].ptr());
   std::copy(rho_true_.data(), rho_true_.data() + rho_true_.size(), meas_arg[2].ptr());
-  std::lock_guard<std::mutex> lock(casadi_mtx);
   std::vector<casadi::DM> res = gen_mipo_measurement_jac_func_(meas_arg);
   // convert the result to eigen matrix
   Eigen::Matrix<double, MY_SIZE, MS_SIZE> SpMatrx = Utils::cas_DM_to_eig_mat<MY_SIZE, MS_SIZE>(res[0]);

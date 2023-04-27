@@ -9,7 +9,7 @@
 
     <node pkg="rosbag" type="play" name="player" required="true"
         launch-prefix="zsh -c 'sleep $(arg node_start_delay); $0 $@' "
-        args="--clock --hz=2000 -u 197 $(find cerberus2)/bags/legged_robots/20230304_wightman_park_flying_trot_right_loop.bag" />
+        args="--clock --hz=2000 -u 415 $(find cerberus2)/bags/legged_robots/20230304_wightman_park_trot_bridge_loop.bag" />
 
 
     <!-- cerberus2 config -->

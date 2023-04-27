@@ -24,11 +24,11 @@ class LOTightUtils {
   Eigen::Vector3d calBodyVel(const int leg_id, const Eigen::Vector3d& jang, const Eigen::Vector3d& jvel, const Eigen::Vector3d& body_gyr,
                              const Eigen::Vector3d& foot_gyr, const Eigen::Vector3d& linearized_bg, const Eigen::Vector3d& linearized_bf,
                              const Eigen::Vector3d& linearized_bv, const double d0) {
-    std::lock_guard<std::mutex> lock(casadi_mtx);
+    casadi_mtx.lock();
     eig_args_asm(leg_id, jang, jvel, body_gyr, foot_gyr, linearized_bg, linearized_bf, linearized_bv, d0);
 
-    casadi::Function tmp = gen_v_fun[leg_id];
-    std::vector<casadi::DM> res = tmp(arg);
+    std::vector<casadi::DM> res = gen_v_fun[leg_id](arg);
+    casadi_mtx.unlock();
 
     Eigen::Matrix<double, 3, 1> body_v = Utils::cas_DM_to_eig_mat<3, 1>(res[0]);
 
@@ -39,11 +39,11 @@ class LOTightUtils {
   Eigen::Matrix3d calBodyVelDjang(const int leg_id, const Eigen::Vector3d& jang, const Eigen::Vector3d& jvel,
                                   const Eigen::Vector3d& body_gyr, const Eigen::Vector3d& foot_gyr, const Eigen::Vector3d& linearized_bg,
                                   const Eigen::Vector3d& linearized_bf, const Eigen::Vector3d& linearized_bv, const double d0) {
-    std::lock_guard<std::mutex> lock(casadi_mtx);
+    casadi_mtx.lock();
     eig_args_asm(leg_id, jang, jvel, body_gyr, foot_gyr, linearized_bg, linearized_bf, linearized_bv, d0);
 
-    casadi::Function tmp = gen_dvdphi_fun[leg_id];
-    std::vector<casadi::DM> res = tmp(arg);
+    std::vector<casadi::DM> res = gen_dvdphi_fun[leg_id](arg);
+    casadi_mtx.unlock();
 
     Eigen::Matrix<double, 3, 3> dvdphi_jac = Utils::cas_DM_to_eig_mat<3, 3>(res[0]);
 
@@ -53,11 +53,11 @@ class LOTightUtils {
   Eigen::Matrix3d calBodyVelDjvel(const int leg_id, const Eigen::Vector3d& jang, const Eigen::Vector3d& jvel,
                                   const Eigen::Vector3d& body_gyr, const Eigen::Vector3d& foot_gyr, const Eigen::Vector3d& linearized_bg,
                                   const Eigen::Vector3d& linearized_bf, const Eigen::Vector3d& linearized_bv, const double d0) {
-    std::lock_guard<std::mutex> lock(casadi_mtx);
+    casadi_mtx.lock();
     eig_args_asm(leg_id, jang, jvel, body_gyr, foot_gyr, linearized_bg, linearized_bf, linearized_bv, d0);
 
-    casadi::Function tmp = gen_dvddphi_fun[leg_id];
-    std::vector<casadi::DM> res = tmp(arg);
+    std::vector<casadi::DM> res = gen_dvddphi_fun[leg_id](arg);
+    casadi_mtx.unlock();
 
     Eigen::Matrix<double, 3, 3> dvddphi_jac = Utils::cas_DM_to_eig_mat<3, 3>(res[0]);
 
@@ -67,11 +67,11 @@ class LOTightUtils {
   Eigen::Matrix3d calBodyVelDbodyGyr(const int leg_id, const Eigen::Vector3d& jang, const Eigen::Vector3d& jvel,
                                      const Eigen::Vector3d& body_gyr, const Eigen::Vector3d& foot_gyr, const Eigen::Vector3d& linearized_bg,
                                      const Eigen::Vector3d& linearized_bf, const Eigen::Vector3d& linearized_bv, const double d0) {
-    std::lock_guard<std::mutex> lock(casadi_mtx);
+    casadi_mtx.lock();
     eig_args_asm(leg_id, jang, jvel, body_gyr, foot_gyr, linearized_bg, linearized_bf, linearized_bv, d0);
 
-    casadi::Function tmp = gen_dvdw_fun[leg_id];
-    std::vector<casadi::DM> res = tmp(arg);
+    std::vector<casadi::DM> res = gen_dvdw_fun[leg_id](arg);
+    casadi_mtx.unlock();
 
     Eigen::Matrix<double, 3, 3> dvdw_jac = Utils::cas_DM_to_eig_mat<3, 3>(res[0]);
 
@@ -81,11 +81,11 @@ class LOTightUtils {
   Eigen::Matrix3d calBodyVelDfootGyr(const int leg_id, const Eigen::Vector3d& jang, const Eigen::Vector3d& jvel,
                                      const Eigen::Vector3d& body_gyr, const Eigen::Vector3d& foot_gyr, const Eigen::Vector3d& linearized_bg,
                                      const Eigen::Vector3d& linearized_bf, const Eigen::Vector3d& linearized_bv, const double d0) {
-    std::lock_guard<std::mutex> lock(casadi_mtx);
+    casadi_mtx.lock();
     eig_args_asm(leg_id, jang, jvel, body_gyr, foot_gyr, linearized_bg, linearized_bf, linearized_bv, d0);
 
-    casadi::Function tmp = gen_dvdwf_fun[leg_id];
-    std::vector<casadi::DM> res = tmp(arg);
+    std::vector<casadi::DM> res = gen_dvdwf_fun[leg_id](arg);
+    casadi_mtx.unlock();
 
     Eigen::Matrix<double, 3, 3> dvdwf_jac = Utils::cas_DM_to_eig_mat<3, 3>(res[0]);
 
@@ -95,11 +95,11 @@ class LOTightUtils {
   Eigen::Matrix3d calBodyVelDbg(const int leg_id, const Eigen::Vector3d& jang, const Eigen::Vector3d& jvel, const Eigen::Vector3d& body_gyr,
                                 const Eigen::Vector3d& foot_gyr, const Eigen::Vector3d& linearized_bg, const Eigen::Vector3d& linearized_bf,
                                 const Eigen::Vector3d& linearized_bv, const double d0) {
-    std::lock_guard<std::mutex> lock(casadi_mtx);
+    casadi_mtx.lock();
     eig_args_asm(leg_id, jang, jvel, body_gyr, foot_gyr, linearized_bg, linearized_bf, linearized_bv, d0);
 
-    casadi::Function tmp = gen_dvdbg_fun[leg_id];
-    std::vector<casadi::DM> res = tmp(arg);
+    std::vector<casadi::DM> res = gen_dvdbg_fun[leg_id](arg);
+    casadi_mtx.unlock();
 
     Eigen::Matrix<double, 3, 3> dvdbg_jac = Utils::cas_DM_to_eig_mat<3, 3>(res[0]);
 
@@ -109,11 +109,11 @@ class LOTightUtils {
   Eigen::Matrix3d calBodyVelDbf(const int leg_id, const Eigen::Vector3d& jang, const Eigen::Vector3d& jvel, const Eigen::Vector3d& body_gyr,
                                 const Eigen::Vector3d& foot_gyr, const Eigen::Vector3d& linearized_bg, const Eigen::Vector3d& linearized_bf,
                                 const Eigen::Vector3d& linearized_bv, const double d0) {
-    std::lock_guard<std::mutex> lock(casadi_mtx);
+    casadi_mtx.lock();
     eig_args_asm(leg_id, jang, jvel, body_gyr, foot_gyr, linearized_bg, linearized_bf, linearized_bv, d0);
 
-    casadi::Function tmp = gen_dvdbf_fun[leg_id];
-    std::vector<casadi::DM> res = tmp(arg);
+    std::vector<casadi::DM> res = gen_dvdbf_fun[leg_id](arg);
+    casadi_mtx.unlock();
 
     Eigen::Matrix<double, 3, 3> dvdbf_jac = Utils::cas_DM_to_eig_mat<3, 3>(res[0]);
 
@@ -123,11 +123,11 @@ class LOTightUtils {
   Eigen::Matrix3d calBodyVelDbv(const int leg_id, const Eigen::Vector3d& jang, const Eigen::Vector3d& jvel, const Eigen::Vector3d& body_gyr,
                                 const Eigen::Vector3d& foot_gyr, const Eigen::Vector3d& linearized_bg, const Eigen::Vector3d& linearized_bf,
                                 const Eigen::Vector3d& linearized_bv, const double d0) {
-    std::lock_guard<std::mutex> lock(casadi_mtx);
+    casadi_mtx.lock();
     eig_args_asm(leg_id, jang, jvel, body_gyr, foot_gyr, linearized_bg, linearized_bf, linearized_bv, d0);
 
-    casadi::Function tmp = gen_dvdbv_fun[leg_id];
-    std::vector<casadi::DM> res = tmp(arg);
+    std::vector<casadi::DM> res = gen_dvdbv_fun[leg_id](arg);
+    casadi_mtx.unlock();
 
     Eigen::Matrix<double, 3, 3> dvdbv_jac = Utils::cas_DM_to_eig_mat<3, 3>(res[0]);
 
@@ -138,12 +138,11 @@ class LOTightUtils {
                                             const Eigen::Vector3d& body_gyr, const Eigen::Vector3d& foot_gyr,
                                             const Eigen::Vector3d& linearized_bg, const Eigen::Vector3d& linearized_bf,
                                             const Eigen::Vector3d& linearized_bv, const double d0) {
-    std::lock_guard<std::mutex> lock(casadi_mtx);
+    casadi_mtx.lock();
     eig_args_asm(leg_id, jang, jvel, body_gyr, foot_gyr, linearized_bg, linearized_bf, linearized_bv, d0);
 
-    casadi::Function tmp = gen_dvdd0_fun[leg_id];
-    std::vector<casadi::DM> res = tmp(arg);
-
+    std::vector<casadi::DM> res = gen_dvdd0_fun[leg_id](arg);
+    casadi_mtx.unlock();
     Eigen::Matrix<double, 3, 1> dvdd0_jac = Utils::cas_DM_to_eig_mat<3, 1>(res[0]);
 
     return dvdd0_jac;

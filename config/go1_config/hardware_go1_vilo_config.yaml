@@ -5,7 +5,7 @@ imu: 1
 num_of_cam: 2  
 
 robot_type: "go1"   # should be go1 or a1 
-dataset_name: "lab"    # to keep track of datasets
+dataset_name: "20230304_wightman_park_trot_bridge_loop"    # to keep track of datasets
 
 imu_topic: "/unitree_hardware/imu"
 image0_topic: "/camera_forward/infra1/image_rect_raw"
@@ -33,7 +33,9 @@ foot_gyro_w: 0.0002
 joint_angle_n: 0.01
 joint_vel_n: 0.01      
 foot_vel_w: 0.0002
-rho_w: 0.0002                       
+rho_w: 0.0002    
+
+estimate_kinematic: 0                       
 
 # Extrinsic parameter between IMU and Camera.
 estimate_extrinsic: 1   # 0  Have an accurate extrinsic parameters. We will trust the following imu^R_cam, imu^T_cam, don't change it.

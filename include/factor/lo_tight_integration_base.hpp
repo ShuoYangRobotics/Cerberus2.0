@@ -119,6 +119,12 @@ class LOTightIntegrationBase {
     result_linearized_bf = linearized_bf;
     result_linearized_bv = linearized_bv;
     result_linearized_rho = linearized_rho;
+    // std::cout << "_jang_0: \t\t\t" << _jang_0.transpose() << std::endl;
+    // std::cout << "_jvel_0: \t\t\t" << _jvel_0.transpose() << std::endl;
+    // std::cout << "_body_gyr_0: \t\t\t" << _body_gyr_0.transpose() << std::endl;
+    // std::cout << "_foot_gyr_0: \t\t\t" << _foot_gyr_0.transpose() << std::endl;
+    // std::cout << "vi: \t\t\t" << vi.transpose() << std::endl;
+    // std::cout << "vip1: \t\t\t" << vip1.transpose() << std::endl;
 
     Eigen::Matrix3d delta_R = delta_q.toRotationMatrix();
     Eigen::Matrix3d result_delta_R = result_delta_q.toRotationMatrix();
@@ -200,41 +206,45 @@ class LOTightIntegrationBase {
       dv_djang_i.setZero();
       dv_djang_i = tightUtils->calBodyVelDjang(leg_id, _jang_0, _jvel_0, _body_gyr_0, _foot_gyr_0, linearized_bg, linearized_bf,
                                                linearized_bv, linearized_rho(0));
-      Eigen::Matrix3d dv_djang_ip1;
-      dv_djang_ip1.setZero();
-      dv_djang_ip1 = tightUtils->calBodyVelDjang(leg_id, _jang_1, _jvel_1, _body_gyr_1, _foot_gyr_1, linearized_bg, linearized_bf,
-                                                 linearized_bv, linearized_rho(0));
-      Eigen::Matrix3d V21 = 0.5 * _dt * (delta_R * dv_djang_i + result_delta_R * dv_djang_ip1);
+      // Eigen::Matrix3d dv_djang_ip1;
+      // dv_djang_ip1.setZero();
+      // dv_djang_ip1 = tightUtils->calBodyVelDjang(leg_id, _jang_1, _jvel_1, _body_gyr_1, _foot_gyr_1, linearized_bg, linearized_bf,
+      //                                            linearized_bv, linearized_rho(0));
+      // Eigen::Matrix3d V21 = 0.5 * _dt * (delta_R * dv_djang_i + result_delta_R * dv_djang_ip1);
+      Eigen::Matrix3d V21 = _dt * (delta_R * dv_djang_i);
       // epsilon derivative respect to jvel
       Eigen::Matrix3d dv_djvel_i;
       dv_djvel_i.setZero();
       dv_djvel_i = tightUtils->calBodyVelDjvel(leg_id, _jang_0, _jvel_0, _body_gyr_0, _foot_gyr_0, linearized_bg, linearized_bf,
                                                linearized_bv, linearized_rho(0));
-      Eigen::Matrix3d dv_djvel_ip1;
-      dv_djvel_ip1.setZero();
-      dv_djvel_ip1 = tightUtils->calBodyVelDjvel(leg_id, _jang_1, _jvel_1, _body_gyr_1, _foot_gyr_1, linearized_bg, linearized_bf,
-                                                 linearized_bv, linearized_rho(0));
-      Eigen::Matrix3d V22 = 0.5 * _dt * (delta_R * dv_djvel_i + result_delta_R * dv_djvel_ip1);
+      // Eigen::Matrix3d dv_djvel_ip1;
+      // dv_djvel_ip1.setZero();
+      // dv_djvel_ip1 = tightUtils->calBodyVelDjvel(leg_id, _jang_1, _jvel_1, _body_gyr_1, _foot_gyr_1, linearized_bg, linearized_bf,
+      //                                            linearized_bv, linearized_rho(0));
+      // Eigen::Matrix3d V22 = 0.5 * _dt * (delta_R * dv_djvel_i + result_delta_R * dv_djvel_ip1);
+      Eigen::Matrix3d V22 = _dt * (delta_R * dv_djvel_i);
       // epsilon derivative respect to bodyGyr
       Eigen::Matrix3d dv_dbodyGyr_i;
       dv_dbodyGyr_i.setZero();
       dv_dbodyGyr_i = tightUtils->calBodyVelDbodyGyr(leg_id, _jang_0, _jvel_0, _body_gyr_0, _foot_gyr_0, linearized_bg, linearized_bf,
                                                      linearized_bv, linearized_rho(0));
-      Eigen::Matrix3d dv_dbodyGyr_ip1;
-      dv_dbodyGyr_ip1.setZero();
-      dv_dbodyGyr_ip1 = tightUtils->calBodyVelDbodyGyr(leg_id, _jang_1, _jvel_1, _body_gyr_1, _foot_gyr_1, linearized_bg, linearized_bf,
-                                                       linearized_bv, linearized_rho(0));
-      Eigen::Matrix3d V23 = 0.5 * _dt * (delta_R * dv_dbodyGyr_i + result_delta_R * dv_dbodyGyr_ip1);
+      // Eigen::Matrix3d dv_dbodyGyr_ip1;
+      // dv_dbodyGyr_ip1.setZero();
+      // dv_dbodyGyr_ip1 = tightUtils->calBodyVelDbodyGyr(leg_id, _jang_1, _jvel_1, _body_gyr_1, _foot_gyr_1, linearized_bg, linearized_bf,
+      //                                                  linearized_bv, linearized_rho(0));
+      // Eigen::Matrix3d V23 = 0.5 * _dt * (delta_R * dv_dbodyGyr_i + result_delta_R * dv_dbodyGyr_ip1);
+      Eigen::Matrix3d V23 = _dt * (delta_R * dv_dbodyGyr_i);
       // epsilon derivative respect to footGyr
       Eigen::Matrix3d dv_dfootGyr_i;
       dv_dfootGyr_i.setZero();
       dv_dfootGyr_i = tightUtils->calBodyVelDfootGyr(leg_id, _jang_0, _jvel_0, _body_gyr_0, _foot_gyr_0, linearized_bg, linearized_bf,
                                                      linearized_bv, linearized_rho(0));
-      Eigen::Matrix3d dv_dfootGyr_ip1;
-      dv_dfootGyr_ip1.setZero();
-      dv_dfootGyr_ip1 = tightUtils->calBodyVelDfootGyr(leg_id, _jang_1, _jvel_1, _body_gyr_1, _foot_gyr_1, linearized_bg, linearized_bf,
-                                                       linearized_bv, linearized_rho(0));
-      Eigen::Matrix3d V25 = 0.5 * _dt * (delta_R * dv_dfootGyr_i + result_delta_R * dv_dfootGyr_ip1);
+      // Eigen::Matrix3d dv_dfootGyr_ip1;
+      // dv_dfootGyr_ip1.setZero();
+      // dv_dfootGyr_ip1 = tightUtils->calBodyVelDfootGyr(leg_id, _jang_1, _jvel_1, _body_gyr_1, _foot_gyr_1, linearized_bg, linearized_bf,
+      //                                                  linearized_bv, linearized_rho(0));
+      // Eigen::Matrix3d V25 = 0.5 * _dt * (delta_R * dv_dfootGyr_i + result_delta_R * dv_dfootGyr_ip1);
+      Eigen::Matrix3d V25 = _dt * (delta_R * dv_dfootGyr_i);
 
       V.setZero();
       // signs are not matter actually
@@ -427,6 +437,9 @@ class LOTightIntegrationBase {
     residuals.block<3, 1>(T_BF, 0) = Bfj - Bfi;
     residuals.block<3, 1>(T_BV, 0) = Bvj - Bvi;
     residuals.block<RHO_SIZE, 1>(T_RHO, 0) = rhoj - rhoi;
+    // std::cout << "delta_epsilon\t" << delta_epsilon.transpose() << std::endl;
+    // std::cout << "corrected_delta_epsilon\t" << corrected_delta_epsilon.transpose() << std::endl;
+    // std::cout << "sum_dt\t\t" << sum_dt << std::endl;
 
     return residuals;
   }
