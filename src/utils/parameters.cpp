@@ -4,7 +4,7 @@
  * PO message queue
  */
 int MIN_PO_QUEUE_SIZE = 25;
-int MAX_PO_QUEUE_SIZE = 250;
+int MAX_PO_QUEUE_SIZE = 300;
 
 int BODY_IMU_MOVMEAN_WINDOW_SIZE = 5;
 int FOOT_IMU_MOVMEAN_WINDOW_SIZE = 5;
@@ -27,7 +27,8 @@ std::string IMAGE1_TOPIC;
 // information mistaches
 double LAG_TIME = 0.0;  // 100ms
 
-double FOOT_IMU_DELAY = 0.023;  // 23ms, this is estimated from analysing data in Matlab
+double FOOT_PRESSURE_DELAY = 0.03;  // 30ms this is the foot pressure sensor delay
+double FOOT_IMU_DELAY = 0.023;      // 23ms, this is estimated from analysing data in Matlab
 
 /*
  * VINS Fusion parameters
@@ -45,6 +46,11 @@ int KF_TYPE;
 
 double ACC_N, ACC_N_Z, ACC_W;
 double GYR_N, GYR_W;
+
+double JOINT_ANG_N, JOINT_VEL_N;
+double FOOT_GYR_N, FOOT_GYR_W, FOOT_VEL_W, RHO_W;
+
+int ESTIMATE_KINEMATIC;
 
 std::vector<Eigen::Matrix3d> RIC;  // num of cam, imu to camera rotation
 std::vector<Eigen::Vector3d> TIC;  // num of cam, imu to camera position
@@ -74,6 +80,8 @@ int MIN_DIST;
 double F_THRESHOLD;
 int SHOW_TRACK;
 int FLOW_BACK;
+
+std::mutex casadi_mtx;
 
 void Utils::readParametersROS(ros::NodeHandle& nh_) {
   // default values
@@ -127,10 +135,29 @@ void Utils::readParametersFile(std::string config_file) {
   fsSettings["leg_topic"] >> LEG_TOPIC;
   printf("LEG_TOPIC: %s\n", LEG_TOPIC.c_str());
 
+  JOINT_ANG_N = fsSettings["joint_angle_n"];
+  JOINT_VEL_N = fsSettings["joint_vel_n"];
+  FOOT_GYR_N = fsSettings["foot_gyro_n"];
+  FOOT_GYR_W = fsSettings["foot_gyro_w"];
+  FOOT_VEL_W = fsSettings["foot_vel_w"];
+  RHO_W = fsSettings["rho_w"];
   ACC_N = fsSettings["acc_n"];
+  ACC_N_Z = fsSettings["acc_n_z"];
   ACC_W = fsSettings["acc_w"];
   GYR_N = fsSettings["gyr_n"];
   GYR_W = fsSettings["gyr_w"];
+  // print all above parameters
+  printf("JOINT_ANG_N: %f\n", JOINT_ANG_N);
+  printf("JOINT_VEL_N: %f\n", JOINT_VEL_N);
+  printf("FOOT_GYR_N: %f\n", FOOT_GYR_N);
+  printf("FOOT_GYR_W: %f\n", FOOT_GYR_W);
+  printf("FOOT_VEL_W: %f\n", FOOT_VEL_W);
+  printf("RHO_W: %f\n", RHO_W);
+  printf("ACC_N: %f\n", ACC_N);
+  printf("ACC_W: %f\n", ACC_W);
+  printf("GYR_N: %f\n", GYR_N);
+  printf("GYR_W: %f\n", GYR_W);
+
   G.z() = fsSettings["g_norm"];
 
   SOLVER_TIME = fsSettings["max_solver_time"];
@@ -150,6 +177,8 @@ void Utils::readParametersFile(std::string config_file) {
     kf_type_name = "sipo";
   }
 
+  ESTIMATE_KINEMATIC = fsSettings["estimate_kinematic"];
+
   std::string vilo_run_name = "vilo";
   if (VILO_FUSION_TYPE == 0) {
     vilo_run_name = "vio";
@@ -159,16 +188,28 @@ void Utils::readParametersFile(std::string config_file) {
     } else {
       vilo_run_name = "vilo-s";
     }
+  } else if (VILO_FUSION_TYPE == 2) {
+    if (KF_TYPE == 0) {
+      if (ESTIMATE_KINEMATIC == 0) {
+        vilo_run_name = "vilo-tm-n";
+      } else {
+        vilo_run_name = "vilo-tm-y";
+      }
+    } else {
+      throw std::runtime_error("not implemented");
+    }
   }
-
   VILO_RESULT_PATH = OUTPUT_FOLDER + "/" + vilo_run_name + "-" + DATASET_NAME + ".csv";
   PO_RESULT_PATH = OUTPUT_FOLDER + "/" + kf_type_name + "-" + DATASET_NAME + ".csv";
   GT_RESULT_PATH = OUTPUT_FOLDER + "/gt" + "-" + DATASET_NAME + ".csv";
   std::cout << "result path " << VILO_RESULT_PATH << std::endl;
   std::ofstream fout_V(VILO_RESULT_PATH, std::ios::out);
   fout_V.close();
-  std::ofstream fout_P(PO_RESULT_PATH, std::ios::out);
-  fout_P.close();
+
+  if (VILO_FUSION_TYPE == 0) {
+    std::ofstream fout_P(PO_RESULT_PATH, std::ios::out);
+    fout_P.close();
+  }
   std::ofstream fout_G(GT_RESULT_PATH, std::ios::out);
   fout_G.close();
 

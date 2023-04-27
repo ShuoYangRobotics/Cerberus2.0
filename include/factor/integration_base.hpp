@@ -36,9 +36,11 @@ class IntegrationBase {
 
   {
     noise = Eigen::Matrix<double, 18, 18>::Zero();
-    noise.block<3, 3>(0, 0) = (ACC_N * ACC_N) * Eigen::Matrix3d::Identity();
+    noise.block<2, 2>(0, 0) = (ACC_N * ACC_N) * Eigen::Matrix2d::Identity();
+    noise(2, 2) = (ACC_N_Z * ACC_N_Z);
     noise.block<3, 3>(3, 3) = (GYR_N * GYR_N) * Eigen::Matrix3d::Identity();
-    noise.block<3, 3>(6, 6) = (ACC_N * ACC_N) * Eigen::Matrix3d::Identity();
+    noise.block<2, 2>(6, 6) = (ACC_N * ACC_N) * Eigen::Matrix2d::Identity();
+    noise(8, 8) = (ACC_N_Z * ACC_N_Z);
     noise.block<3, 3>(9, 9) = (GYR_N * GYR_N) * Eigen::Matrix3d::Identity();
     noise.block<3, 3>(12, 12) = (ACC_W * ACC_W) * Eigen::Matrix3d::Identity();
     noise.block<3, 3>(15, 15) = (GYR_W * GYR_W) * Eigen::Matrix3d::Identity();

@@ -45,7 +45,7 @@ class VILOFusion {
   void POLoop();    // this loop runs MIPO at 400Hz
   void VILOLoop();  // this loop triggers VILO at 15Hz
 
-  void publishPOEstimationResult(Eigen::VectorXd& x, Eigen::MatrixXd& P);
+  void publishPOEstimationResult(const Eigen::VectorXd& x, const Eigen::MatrixXd& P, const Eigen::Matrix<double, NUM_LEG, 1>& contact_est);
 
   void publishVILOEstimationResult(Eigen::Matrix<double, VS_OUTSIZE, 1>& state);
 
@@ -70,6 +70,7 @@ class VILOFusion {
   ros::Publisher pose_vilo_pub_;   // VILO pose
   ros::Publisher twist_pub_;       // MIPO twist
   ros::Publisher twist_vilo_pub_;  // VILO twist
+  ros::Publisher contact_pub_;     // contact state estimated by MIPO
 
   std::thread po_loop_thread_;
   std::thread vilo_loop_thread_;

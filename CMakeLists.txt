@@ -109,7 +109,6 @@ set(${VILO_LIB}_SRC
 )
 add_library(${VILO_LIB} SHARED ${${VILO_LIB}_SRC})
 target_link_libraries(${VILO_LIB}
-        PRIVATE
         casadi
         ${catkin_LIBRARIES}
         ${Boost_LIBRARIES}
@@ -128,4 +127,32 @@ target_link_libraries(cerberus2_main
         ${VILO_LIB}
 )
 
+# ##
+# ## tests
+# ##
+add_executable(test_LOTightFactor test/test_LOTightFactor.cpp
+        src/utils/parameters.cpp)
+target_link_libraries(test_LOTightFactor
+        PRIVATE
+        ${OpenCV_LIBS}
+        ${catkin_LIBRARIES}
+        casadi
+)
 
+add_executable(test_LOTightIntegration 
+        test/test_LOTightIntegration.cpp
+        src/utils/parameters.cpp
+)
+target_link_libraries(test_LOTightIntegration
+        PRIVATE
+        ${OpenCV_LIBS}
+        ${catkin_LIBRARIES}
+        casadi
+)
+add_custom_target(run_test_LOTightIntegration
+        ALL
+        COMMAND $<TARGET_FILE:test_LOTightIntegration>
+        DEPENDS test_LOTightIntegration
+        WORKING_DIRECTORY "/home/EstimationUser/estimation_ws/devel/lib/cerberus2"
+        COMMENT "Executing target: my_executable"
+        VERBATIM)

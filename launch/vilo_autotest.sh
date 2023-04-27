@@ -31,6 +31,13 @@ roslaunch cerberus2 vilo_auto.launch dataset_name:="$dataset_name" dataset_durat
 sed -i 's/\(kf_type: \)1/\10/' "$temp_config"
 roslaunch cerberus2 vilo_auto.launch dataset_name:="$dataset_name" dataset_duration:="$dataset_duration"
 
+# launch the vilo node with different kf_type and vilo_fusion_type: 0 2  
+sed -i 's/\(vilo_fusion_type: \)1/\12/' "$temp_config"
+# roslaunch cerberus2 vilo_auto.launch dataset_name:="$dataset_name" dataset_duration:="$dataset_duration"
+
+# launch the vilo node with different kf_type and vilo_fusion_type: 0 2, no exstimate kinematic  # should be the best ones
+sed -i 's/\(estimate_kinematic: \)1/\10/' "$temp_config"
+roslaunch cerberus2 vilo_auto.launch dataset_name:="$dataset_name" dataset_duration:="$dataset_duration"
 
 # finally remove the temp file
 rm "$temp_config"

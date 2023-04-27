@@ -5,7 +5,7 @@ bag_output_path = '../../bags/output/';
 dataset_name = '20230215_lab_short';       % modify this
 
 % look at src/utils/parameters.cpp for possible types
-traj_types = {'gt','mipo','sipo','vio','vilo-m','vilo-s'};
+traj_types = {'gt','mipo','sipo','vio','vilo-m','vilo-s','vilo-tm-n'};
 
 total_types = size(traj_types,2);
 

@@ -4,7 +4,7 @@
     <!-- use sim time-->
     <param name="use_sim_time" value="true" />
 
-    <arg name="node_start_delay" default="2.0" />
+    <arg name="node_start_delay" default="5.0" />
 
 
     <node pkg="rosbag" type="play" name="player" required="true"

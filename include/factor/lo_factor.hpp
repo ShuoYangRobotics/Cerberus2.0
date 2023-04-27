@@ -6,6 +6,11 @@
 #include "factor/lo_intergration_base.hpp"
 #include "utils/vins_utility.h"
 
+/*
+ * LOFactor directly intergrates the velocity measurements from PO as a displacement measurement for the pose.
+ * It is considered as ``loosely coupled'' because raw sensor data is first processed by PO, and then feed into VILO.
+ */
+
 class LOFactor : public ceres::SizedCostFunction<LO_RESIDUAL_SIZE, 7, 7> {
  public:
   LOFactor() = delete;

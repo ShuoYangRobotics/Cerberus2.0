@@ -125,11 +125,7 @@ static Eigen::MatrixXd cas_DM_to_eig_mat(const casadi::DM& Matrx) {
 template <int s1, int s2>
 static casadi::DM eig_to_cas_DM(const Eigen::Matrix<double, s1, s2>& eig) {
   casadi::DM cas = casadi::DM::zeros(s1, s2);
-  for (int i = 0; i < s1; i++) {
-    for (int j = 0; j < s2; j++) {
-      cas(i, j) = eig(i, j);
-    }
-  }
+  std ::copy(eig.data(), eig.data() + eig.size(), cas.ptr());
   return cas;
 }
 
