@@ -4,7 +4,7 @@
  * PO message queue
  */
 int MIN_PO_QUEUE_SIZE = 25;
-int MAX_PO_QUEUE_SIZE = 250;
+int MAX_PO_QUEUE_SIZE = 300;
 
 int BODY_IMU_MOVMEAN_WINDOW_SIZE = 5;
 int FOOT_IMU_MOVMEAN_WINDOW_SIZE = 5;
@@ -27,8 +27,8 @@ std::string IMAGE1_TOPIC;
 // information mistaches
 double LAG_TIME = 0.0;  // 100ms
 
-double FOOT_PRESSURE_DELAY = 0.1;  // 100ms this is the foot pressure sensor delay
-double FOOT_IMU_DELAY = 0.023;     // 23ms, this is estimated from analysing data in Matlab
+double FOOT_PRESSURE_DELAY = 0.03;  // 30ms this is the foot pressure sensor delay
+double FOOT_IMU_DELAY = 0.023;      // 23ms, this is estimated from analysing data in Matlab
 
 /*
  * VINS Fusion parameters
@@ -142,6 +142,7 @@ void Utils::readParametersFile(std::string config_file) {
   FOOT_VEL_W = fsSettings["foot_vel_w"];
   RHO_W = fsSettings["rho_w"];
   ACC_N = fsSettings["acc_n"];
+  ACC_N_Z = fsSettings["acc_n_z"];
   ACC_W = fsSettings["acc_w"];
   GYR_N = fsSettings["gyr_n"];
   GYR_W = fsSettings["gyr_w"];

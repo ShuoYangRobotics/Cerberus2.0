@@ -409,17 +409,43 @@ void VILOEstimator::processMeasurements() {
         else
           dt = accVector[i].first - accVector[i - 1].first;
         processIMU(accVector[i].first, dt, accVector[i].second, gyrVector[i].second);
+        // print contactDecision
+        // for (int j = 0; j < NUM_LEG; j++) {
+        //   std::cout << "contactDecision[" << j << "] = " << tlo_all_in_contact[frame_count][j] << std::endl;
+        // }
 
         // do contact preintegration for leg in contact
         if (VILO_FUSION_TYPE == 2) {
           for (int j = 0; j < NUM_LEG; j++) {
-            if (contactDecision[j]) {
+            if (tlo_all_in_contact[frame_count][j] == 1) {
               processIMULegOdom(j, accVector[i].first, dt, gyrVector[i].second, footGyrVector[j][i], jointAngVector[j][i],
                                 jointVelVector[j][i]);
             }
           }
+          // init P and V
+          // use LO to provide initial guess for P and V
+          if (frame_count != 0) {
+            Vector3d average_vel;
+            average_vel.setZero();
+            int count = 0;
+            for (int j = 0; j < NUM_LEG; j++) {
+              if (tlo_all_in_contact[frame_count][j] == 1) {
+                average_vel += tlo_pre_integration[frame_count][j]->estimated_v;
+                count++;
+              }
+            }
+            if (count == 0) {
+              average_vel = Vector3d::Zero();
+            } else {
+              average_vel /= count;
+            }
+            Vs[frame_count] = Rs[frame_count] * average_vel;  // world frame velocity from LO
+            Ps[frame_count] += dt * Vs[frame_count];
+          }
         }
       }
+
+      // show delta epsilon
 
       // process LO velocity
       if (VILO_FUSION_TYPE == 1) {
@@ -438,8 +464,9 @@ void VILOEstimator::processMeasurements() {
         }
       }
 
-      const std::lock_guard<std::mutex> lock(mProcess);
+      mProcess.lock();
       processImage(feature.second, feature.first);
+      mProcess.unlock();
       prevTime = curTime;
     }
 
@@ -505,7 +532,7 @@ void VILOEstimator::processIMU(double t, double dt, const Vector3d& linear_accel
     Vector3d un_gyr = 0.5 * (gyr_0 + angular_velocity) - Bgs[j];
     Rs[j] *= Utility::deltaQ(un_gyr * dt).toRotationMatrix();
 
-    // initialize P and V using IMU integration
+    // initialize P and V using IMU integration, for VILO_FUSION_TYPE == 1 we use LO velocity to initialize it, see line 589
     if (VILO_FUSION_TYPE == 0) {
       Vector3d un_acc_0 = Rs[j] * (acc_0 - Bas[j]) - g;
       Vector3d un_acc_1 = Rs[j] * (linear_acceleration - Bas[j]) - g;
@@ -620,6 +647,12 @@ void VILOEstimator::processImage(const map<int, vector<pair<int, Eigen::Matrix<d
       solveGyroscopeBias(all_image_frame, Bgs);
       for (int i = 0; i <= WINDOW_SIZE; i++) {
         pre_integrations[i]->repropagate(Vector3d::Zero(), Bgs[i]);
+
+        if (VILO_FUSION_TYPE == 2) {
+          for (int j = 0; j < NUM_LEG; j++) {
+            tlo_pre_integration[i][j]->repropagate(Bgs[i], Vector3d::Zero(), Vector3d::Zero(), Rhos[i][j]);
+          }
+        }
       }
       optimization();
       updateLatestStates();
@@ -1052,10 +1085,12 @@ void VILOEstimator::optimization() {
     problem.AddParameterBlock(para_Pose[i], SIZE_POSE, local_parameterization);
     problem.AddParameterBlock(para_SpeedBias[i], SIZE_SPEEDBIAS);
 
-    for (int k = 0; k < NUM_LEG; k++) {
-      problem.AddParameterBlock(para_FootBias[i][k], SIZE_FOOTBIAS);
-      if (ESTIMATE_KINEMATIC == 0) {
-        problem.SetParameterBlockConstant(para_FootBias[i][k]);
+    if (VILO_FUSION_TYPE == 2) {
+      for (int k = 0; k < NUM_LEG; k++) {
+        problem.AddParameterBlock(para_FootBias[i][k], SIZE_FOOTBIAS);
+        if (ESTIMATE_KINEMATIC == 0) {
+          problem.SetParameterBlockConstant(para_FootBias[i][k]);
+        }
       }
     }
   }
@@ -1109,10 +1144,11 @@ void VILOEstimator::optimization() {
     for (int i = 0; i < frame_count; i++) {
       int j = i + 1;
       for (int k = 0; k < NUM_LEG; k++) {
-        if (tlo_all_in_contact[j][k] == true && tlo_pre_integration[j][k]->sum_dt > 0.01 && tlo_pre_integration[j][k]->sum_dt < 10.0) {
+        if (tlo_all_in_contact[j][k] == 1 && tlo_pre_integration[j][k]->sum_dt < 10.0) {
           LOTightFactor* tlo_factor = new LOTightFactor(tlo_pre_integration[j][k]);
-          problem.AddResidualBlock(tlo_factor, NULL, para_Pose[i], para_SpeedBias[i], para_FootBias[i][k], para_Pose[j], para_SpeedBias[j],
-                                   para_FootBias[j][k]);
+          // std::cout << "delta_epsilon " << k << " " << tlo_pre_integration[j][k]->delta_epsilon.transpose() << std::endl;
+          problem.AddResidualBlock(tlo_factor, loss_function, para_Pose[i], para_SpeedBias[i], para_FootBias[i][k], para_Pose[j],
+                                   para_SpeedBias[j], para_FootBias[j][k]);
         } else {
           LOConstantFactor* tlo_factor = new LOConstantFactor(k);
           problem.AddResidualBlock(tlo_factor, NULL, para_FootBias[i][k], para_FootBias[j][k]);
@@ -1204,9 +1240,11 @@ void VILOEstimator::optimization() {
           if (last_marginalization_parameter_blocks[i] == para_Pose[0] || last_marginalization_parameter_blocks[i] == para_SpeedBias[0])
             drop_set.push_back(i);
 
-          for (int j = 0; j < NUM_LEG; j++) {
-            if (last_marginalization_parameter_blocks[i] == para_FootBias[0][j]) {
-              drop_set.push_back(i);
+          if (VILO_FUSION_TYPE == 2) {
+            for (int j = 0; j < NUM_LEG; j++) {
+              if (last_marginalization_parameter_blocks[i] == para_FootBias[0][j]) {
+                drop_set.push_back(i);
+              }
             }
           }
         }
@@ -1240,10 +1278,10 @@ void VILOEstimator::optimization() {
 
       if (VILO_FUSION_TYPE == 2) {
         for (int j = 0; j < NUM_LEG; j++) {
-          if (tlo_all_in_contact[1][j] == true && tlo_pre_integration[1][j]->sum_dt > 0.01 && tlo_pre_integration[1][j]->sum_dt < 10.0) {
+          if (tlo_all_in_contact[1][j] == 1 && tlo_pre_integration[1][j]->sum_dt < 10.0) {
             LOTightFactor* tlo_factor = new LOTightFactor(tlo_pre_integration[1][j]);
             ResidualBlockInfo* residual_block_info = new ResidualBlockInfo(
-                tlo_factor, NULL,
+                tlo_factor, loss_function,
                 vector<double*>{para_Pose[0], para_SpeedBias[0], para_FootBias[0][j], para_Pose[1], para_SpeedBias[1], para_FootBias[1][j]},
                 vector<int>{0, 1, 2});
             marginalization_info->addResidualBlockInfo(residual_block_info);

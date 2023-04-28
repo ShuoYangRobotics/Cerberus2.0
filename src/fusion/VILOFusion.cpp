@@ -39,6 +39,8 @@ VILOFusion::VILOFusion(ros::NodeHandle nh) {
 
   // initialize the filter
   for (int i = 0; i < 3; i++) {
+    body_imu_acc_filter_[i] = MovingWindowFilter(BODY_IMU_MOVMEAN_WINDOW_SIZE);
+
     fl_imu_acc_filter_[i] = MovingWindowFilter(FOOT_IMU_MOVMEAN_WINDOW_SIZE);
     fr_imu_acc_filter_[i] = MovingWindowFilter(FOOT_IMU_MOVMEAN_WINDOW_SIZE);
     rl_imu_acc_filter_[i] = MovingWindowFilter(FOOT_IMU_MOVMEAN_WINDOW_SIZE);
@@ -138,6 +140,7 @@ void VILOFusion::POLoop() {
           // inputPODataToVILO();
           if (VILO_FUSION_TYPE == 2) {
             // convert curr_data->foot_gyro from Eigen::Matrix<double, 3, 4> to Eigen::Matrix<double, 12, 1>
+            // Caution: curr_data->foot_gyro is in the foot IMU frame
             Eigen::Matrix<double, 12, 1> foot_gyro_vec;
             for (int j = 0; j < NUM_LEG; j++) {
               foot_gyro_vec.segment<3>(3 * j) = curr_data->foot_gyro.col(j);
@@ -508,7 +511,9 @@ void VILOFusion::inputImagesToVILO() {
 void VILOFusion::imuCallback(const sensor_msgs::Imu::ConstPtr& msg) {
   double t = msg->header.stamp.toSec();
   // assemble sensor data
-  Eigen::Vector3d acc = Eigen::Vector3d(msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z);
+  Eigen::Vector3d acc = Eigen::Vector3d(body_imu_acc_filter_[0].CalculateAverage(msg->linear_acceleration.x),
+                                        body_imu_acc_filter_[1].CalculateAverage(msg->linear_acceleration.y),
+                                        body_imu_acc_filter_[2].CalculateAverage(msg->linear_acceleration.z));
   Eigen::Vector3d ang_vel = Eigen::Vector3d(msg->angular_velocity.x, msg->angular_velocity.y, msg->angular_velocity.z);
 
   mtx.lock();

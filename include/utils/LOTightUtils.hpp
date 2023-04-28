@@ -150,6 +150,7 @@ class LOTightUtils {
 
  private:
   void init() {
+    kin_true_ = Eigen::Matrix<double, 5, NUM_LEG>::Zero();
     kin_true_ << 0.1805, 0.1805, -0.1805, -0.1805, 0.047, -0.047, 0.047, -0.047, 0.0838, -0.0838, 0.0838, -0.0838, 0.2, 0.2, 0.2, 0.2, 0.2,
         0.2, 0.2, 0.2;
 

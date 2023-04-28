@@ -5,7 +5,7 @@ imu: 1
 num_of_cam: 2  
 
 robot_type: "go1"   # should be go1 or a1 
-dataset_name: "20230304_wightman_park_trot_bridge_loop"    # to keep track of datasets
+dataset_name: "20230304_wightman_park_flying_trot_right_loop"    # to keep track of datasets
 
 imu_topic: "/unitree_hardware/imu"
 image0_topic: "/camera_forward/infra1/image_rect_raw"
@@ -28,14 +28,15 @@ vilo_fusion_type: 2  # 0 - do not use leg for preintegration (then this is just 
                      # 1 - use LO velocity as preintegration
                      # 2 - tightly couple leg and imu for preintegration 
 
-foot_gyro_n: 0.05
+foot_gyro_n: 0.1
 foot_gyro_w: 0.0002
-joint_angle_n: 0.01
-joint_vel_n: 0.01      
+joint_angle_n: 0.1
+joint_vel_n: 0.1      
 foot_vel_w: 0.0002
 rho_w: 0.0002    
 
-estimate_kinematic: 0                       
+estimate_kinematic: 0  # 0 - do not estimate kinematic parameters
+                       # 1 - estimate kinematic parameters                       
 
 # Extrinsic parameter between IMU and Camera.
 estimate_extrinsic: 1   # 0  Have an accurate extrinsic parameters. We will trust the following imu^R_cam, imu^T_cam, don't change it.
@@ -74,14 +75,14 @@ keyframe_parallax: 10.0 # keyframe selection threshold (pixel)
 
 #imu parameters       The more accurate parameters you provide, the better performance
 acc_n: 0.2          # accelerometer measurement noise standard deviation. #0.2   0.04
-acc_n_z: 0.2
+acc_n_z: 1.0
 gyr_n: 0.05         # gyroscope measurement noise standard deviation.     #0.05  0.004
 acc_w: 0.0004         # accelerometer bias random work noise standard deviation.  #0.002
 gyr_w: 0.0002       # gyroscope bias random work noise standard deviation.     #4.0e-5
 g_norm: 9.805         # gravity magnitude
 
 #unsynchronization parameters
-estimate_td: 1                      # online estimate time offset between camera and imu
+estimate_td: 0                      # online estimate time offset between camera and imu
 td: -0.02                           # initial value of time offset. unit: s. readed image clock + td = real image clock (IMU clock)
 
 #loop closure parameters
