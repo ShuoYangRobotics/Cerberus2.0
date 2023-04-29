@@ -91,6 +91,9 @@ class VILOFusion {
   SWE::MeasureQueue mq_gt_;
   bool is_gt_available_;  // maybe gt is not available, we need to check this
   std::shared_ptr<SWE::Measurement> latest_gt_meas;
+  // body imu filter
+  MovingWindowFilter body_imu_acc_filter_[3];
+
   // foot imu filter
   MovingWindowFilter joint_foot_filter_[12];
   MovingWindowFilter fl_imu_acc_filter_[3];

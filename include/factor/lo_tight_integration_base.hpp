@@ -5,6 +5,7 @@
 #include "utils/parameters.hpp"
 #include "utils/vins_utility.h"
 
+#define NO_ROT_LO_TIGHT_RESIDUAL_SIZE 13
 #define LO_TIGHT_RESIDUAL_SIZE 16
 #define LO_TIGHT_NOISE_SIZE 22
 #define RHO_SIZE 1
@@ -41,7 +42,7 @@ class LOTightIntegrationBase {
     delta_q.setIdentity();
     jacobian.setIdentity();  // this has to be identity as the beginning
     covariance.setZero();
-    // covariance = 1e-4 * Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, LO_TIGHT_RESIDUAL_SIZE>::Identity();
+    covariance = 1 * Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, LO_TIGHT_RESIDUAL_SIZE>::Identity();
 
     // init noise
     noise_diag.diagonal() = 1e-2 * Eigen::Matrix<double, LO_TIGHT_NOISE_SIZE, 1>::Ones();
@@ -129,6 +130,7 @@ class LOTightIntegrationBase {
     Eigen::Matrix3d delta_R = delta_q.toRotationMatrix();
     Eigen::Matrix3d result_delta_R = result_delta_q.toRotationMatrix();
 
+    estimated_v = delta_R * vi + result_delta_R * vip1;
     result_delta_epsilon = delta_epsilon + 0.5 * (delta_R * vi + result_delta_R * vip1) * _dt;
 
     if (update_jacobian) {
@@ -206,58 +208,58 @@ class LOTightIntegrationBase {
       dv_djang_i.setZero();
       dv_djang_i = tightUtils->calBodyVelDjang(leg_id, _jang_0, _jvel_0, _body_gyr_0, _foot_gyr_0, linearized_bg, linearized_bf,
                                                linearized_bv, linearized_rho(0));
-      // Eigen::Matrix3d dv_djang_ip1;
-      // dv_djang_ip1.setZero();
-      // dv_djang_ip1 = tightUtils->calBodyVelDjang(leg_id, _jang_1, _jvel_1, _body_gyr_1, _foot_gyr_1, linearized_bg, linearized_bf,
-      //                                            linearized_bv, linearized_rho(0));
-      // Eigen::Matrix3d V21 = 0.5 * _dt * (delta_R * dv_djang_i + result_delta_R * dv_djang_ip1);
-      Eigen::Matrix3d V21 = _dt * (delta_R * dv_djang_i);
+      Eigen::Matrix3d dv_djang_ip1;
+      dv_djang_ip1.setZero();
+      dv_djang_ip1 = tightUtils->calBodyVelDjang(leg_id, _jang_1, _jvel_1, _body_gyr_1, _foot_gyr_1, linearized_bg, linearized_bf,
+                                                 linearized_bv, linearized_rho(0));
+      Eigen::Matrix3d V21 = 0.5 * (delta_R * dv_djang_i + result_delta_R * dv_djang_ip1);
+      // Eigen::Matrix3d V21 = _dt * (delta_R * dv_djang_i);
       // epsilon derivative respect to jvel
       Eigen::Matrix3d dv_djvel_i;
       dv_djvel_i.setZero();
       dv_djvel_i = tightUtils->calBodyVelDjvel(leg_id, _jang_0, _jvel_0, _body_gyr_0, _foot_gyr_0, linearized_bg, linearized_bf,
                                                linearized_bv, linearized_rho(0));
-      // Eigen::Matrix3d dv_djvel_ip1;
-      // dv_djvel_ip1.setZero();
-      // dv_djvel_ip1 = tightUtils->calBodyVelDjvel(leg_id, _jang_1, _jvel_1, _body_gyr_1, _foot_gyr_1, linearized_bg, linearized_bf,
-      //                                            linearized_bv, linearized_rho(0));
-      // Eigen::Matrix3d V22 = 0.5 * _dt * (delta_R * dv_djvel_i + result_delta_R * dv_djvel_ip1);
-      Eigen::Matrix3d V22 = _dt * (delta_R * dv_djvel_i);
+      Eigen::Matrix3d dv_djvel_ip1;
+      dv_djvel_ip1.setZero();
+      dv_djvel_ip1 = tightUtils->calBodyVelDjvel(leg_id, _jang_1, _jvel_1, _body_gyr_1, _foot_gyr_1, linearized_bg, linearized_bf,
+                                                 linearized_bv, linearized_rho(0));
+      Eigen::Matrix3d V22 = 0.5 * (delta_R * dv_djvel_i + result_delta_R * dv_djvel_ip1);
+      // Eigen::Matrix3d V22 = _dt * (delta_R * dv_djvel_i);
       // epsilon derivative respect to bodyGyr
       Eigen::Matrix3d dv_dbodyGyr_i;
       dv_dbodyGyr_i.setZero();
       dv_dbodyGyr_i = tightUtils->calBodyVelDbodyGyr(leg_id, _jang_0, _jvel_0, _body_gyr_0, _foot_gyr_0, linearized_bg, linearized_bf,
                                                      linearized_bv, linearized_rho(0));
-      // Eigen::Matrix3d dv_dbodyGyr_ip1;
-      // dv_dbodyGyr_ip1.setZero();
-      // dv_dbodyGyr_ip1 = tightUtils->calBodyVelDbodyGyr(leg_id, _jang_1, _jvel_1, _body_gyr_1, _foot_gyr_1, linearized_bg, linearized_bf,
-      //                                                  linearized_bv, linearized_rho(0));
-      // Eigen::Matrix3d V23 = 0.5 * _dt * (delta_R * dv_dbodyGyr_i + result_delta_R * dv_dbodyGyr_ip1);
-      Eigen::Matrix3d V23 = _dt * (delta_R * dv_dbodyGyr_i);
+      Eigen::Matrix3d dv_dbodyGyr_ip1;
+      dv_dbodyGyr_ip1.setZero();
+      dv_dbodyGyr_ip1 = tightUtils->calBodyVelDbodyGyr(leg_id, _jang_1, _jvel_1, _body_gyr_1, _foot_gyr_1, linearized_bg, linearized_bf,
+                                                       linearized_bv, linearized_rho(0));
+      Eigen::Matrix3d V23 = 0.5 * (delta_R * dv_dbodyGyr_i + result_delta_R * dv_dbodyGyr_ip1);
+      // Eigen::Matrix3d V23 = _dt * (delta_R * dv_dbodyGyr_i);
       // epsilon derivative respect to footGyr
       Eigen::Matrix3d dv_dfootGyr_i;
       dv_dfootGyr_i.setZero();
       dv_dfootGyr_i = tightUtils->calBodyVelDfootGyr(leg_id, _jang_0, _jvel_0, _body_gyr_0, _foot_gyr_0, linearized_bg, linearized_bf,
                                                      linearized_bv, linearized_rho(0));
-      // Eigen::Matrix3d dv_dfootGyr_ip1;
-      // dv_dfootGyr_ip1.setZero();
-      // dv_dfootGyr_ip1 = tightUtils->calBodyVelDfootGyr(leg_id, _jang_1, _jvel_1, _body_gyr_1, _foot_gyr_1, linearized_bg, linearized_bf,
-      //                                                  linearized_bv, linearized_rho(0));
-      // Eigen::Matrix3d V25 = 0.5 * _dt * (delta_R * dv_dfootGyr_i + result_delta_R * dv_dfootGyr_ip1);
-      Eigen::Matrix3d V25 = _dt * (delta_R * dv_dfootGyr_i);
+      Eigen::Matrix3d dv_dfootGyr_ip1;
+      dv_dfootGyr_ip1.setZero();
+      dv_dfootGyr_ip1 = tightUtils->calBodyVelDfootGyr(leg_id, _jang_1, _jvel_1, _body_gyr_1, _foot_gyr_1, linearized_bg, linearized_bf,
+                                                       linearized_bv, linearized_rho(0));
+      Eigen::Matrix3d V25 = 0.5 * (delta_R * dv_dfootGyr_i + result_delta_R * dv_dfootGyr_ip1);
+      // Eigen::Matrix3d V25 = _dt * (delta_R * dv_dfootGyr_i);
 
       V.setZero();
       // signs are not matter actually
-      V.block<3, 3>(T_R, T_GN) = -1.0 * Eigen::Matrix3d::Identity() * _dt;
+      V.block<3, 3>(T_R, T_GN) = -1.0 * Eigen::Matrix3d::Identity();
       V.block<3, 3>(T_E, T_PHIN) = -V21;
       V.block<3, 3>(T_E, T_DPHIN) = -V22;
       V.block<3, 3>(T_E, T_GN) = -V23;
       V.block<3, 3>(T_E, T_FN) = -V25;
 
-      V.block<3, 3>(T_BG, T_GW) = -1.0 * Eigen::Matrix3d::Identity() * _dt;
-      V.block<3, 3>(T_BF, T_FW) = -1.0 * Eigen::Matrix3d::Identity() * _dt;
-      V.block<3, 3>(T_BV, T_VW) = -1.0 * Eigen::Matrix3d::Identity() * _dt;
-      V.block<RHO_SIZE, RHO_SIZE>(T_RHO, TRHO_W) = -1.0 * Eigen::Matrix<double, RHO_SIZE, RHO_SIZE>::Identity() * _dt;
+      V.block<3, 3>(T_BG, T_GW) = -1.0 * Eigen::Matrix3d::Identity();
+      V.block<3, 3>(T_BF, T_FW) = -1.0 * Eigen::Matrix3d::Identity();
+      V.block<3, 3>(T_BV, T_VW) = -1.0 * Eigen::Matrix3d::Identity();
+      V.block<RHO_SIZE, RHO_SIZE>(T_RHO, TRHO_W) = -1.0 * Eigen::Matrix<double, RHO_SIZE, RHO_SIZE>::Identity();
 
       // step_jacobian = F;
       // step_V = V;
@@ -404,12 +406,13 @@ class LOTightIntegrationBase {
     jvel_0 = jvel_1;
   }
 
-  Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, 1> evaluate(const Eigen::Vector3d& Pi, const Eigen::Quaterniond& Qi,
-                                                            const Eigen::Vector3d& Bgi, const Eigen::Vector3d& Bfi,
-                                                            const Eigen::Vector3d& Bvi, const Vec_rho& rhoi, const Eigen::Vector3d& Pj,
-                                                            const Eigen::Quaterniond& Qj, const Eigen::Vector3d& Bgj,
-                                                            const Eigen::Vector3d& Bfj, const Eigen::Vector3d& Bvj, const Vec_rho& rhoj) {
-    Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, 1> residuals;
+  Eigen::Matrix<double, NO_ROT_LO_TIGHT_RESIDUAL_SIZE, 1> evaluate(const Eigen::Vector3d& Pi, const Eigen::Quaterniond& Qi,
+                                                                   const Eigen::Vector3d& Bgi, const Eigen::Vector3d& Bfi,
+                                                                   const Eigen::Vector3d& Bvi, const Vec_rho& rhoi,
+                                                                   const Eigen::Vector3d& Pj, const Eigen::Quaterniond& Qj,
+                                                                   const Eigen::Vector3d& Bgj, const Eigen::Vector3d& Bfj,
+                                                                   const Eigen::Vector3d& Bvj, const Vec_rho& rhoj) {
+    Eigen::Matrix<double, NO_ROT_LO_TIGHT_RESIDUAL_SIZE, 1> residuals;
     residuals.setZero();
 
     Eigen::Matrix3d dq_dbg = jacobian.block<3, 3>(T_R, T_BG);
@@ -418,7 +421,7 @@ class LOTightIntegrationBase {
 
     Eigen::Quaterniond corrected_delta_q = delta_q * Utility::deltaQ(dq_dbg * dbg);
 
-    residuals.block<3, 1>(T_R, 0) = 2 * (corrected_delta_q.inverse() * (Qi.inverse() * Qj)).vec();
+    // residuals.block<3, 1>(T_R, 0) = 2 * (corrected_delta_q.inverse() * (Qi.inverse() * Qj)).vec();
 
     Eigen::Matrix3d de_dbg = jacobian.block<3, 3>(T_E, T_BG);
     Eigen::Matrix3d de_dbf = jacobian.block<3, 3>(T_E, T_BF);
@@ -431,12 +434,12 @@ class LOTightIntegrationBase {
 
     Eigen::Vector3d corrected_delta_epsilon = delta_epsilon + de_dbg * dbg + de_dbf * dbf + de_dbv * dbv + de_drho * drho;
 
-    residuals.block<3, 1>(T_E, 0) = Qi.inverse() * (Pj - Pi) - corrected_delta_epsilon;
+    residuals.block<3, 1>(0, 0) = Qi.inverse() * (Pj - Pi) - corrected_delta_epsilon;
 
-    residuals.block<3, 1>(T_BG, 0) = Bgj - Bgi;
-    residuals.block<3, 1>(T_BF, 0) = Bfj - Bfi;
-    residuals.block<3, 1>(T_BV, 0) = Bvj - Bvi;
-    residuals.block<RHO_SIZE, 1>(T_RHO, 0) = rhoj - rhoi;
+    residuals.block<3, 1>(3, 0) = Bgj - Bgi;
+    residuals.block<3, 1>(6, 0) = Bfj - Bfi;
+    residuals.block<3, 1>(9, 0) = Bvj - Bvi;
+    residuals.block<RHO_SIZE, 1>(12, 0) = rhoj - rhoi;
     // std::cout << "delta_epsilon\t" << delta_epsilon.transpose() << std::endl;
     // std::cout << "corrected_delta_epsilon\t" << corrected_delta_epsilon.transpose() << std::endl;
     // std::cout << "sum_dt\t\t" << sum_dt << std::endl;
@@ -446,6 +449,7 @@ class LOTightIntegrationBase {
 
   double sum_dt;
   Eigen::Vector3d delta_epsilon;
+  Eigen::Vector3d estimated_v;
   Eigen::Quaterniond delta_q;
   Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, LO_TIGHT_RESIDUAL_SIZE> jacobian, covariance;
 
