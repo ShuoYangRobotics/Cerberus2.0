@@ -1,0 +1,33 @@
+<?xml version="1.0"?>
+
+<launch>
+    <!-- use sim time-->
+    <param name="use_sim_time" value="true" />
+
+    <arg name="node_start_delay" default="1.0" />
+
+
+    <node pkg="rosbag" type="play" name="player" required="true"
+        launch-prefix="zsh -c 'sleep $(arg node_start_delay); $0 $@' "
+        args="--clock --hz=2000 -u 197 $(find cerberus2)/bags/map_test/_2023-05-01-14-36-37.bag" />
+
+
+    <!-- cerberus2 config -->
+    <arg name="vilo_config_file"
+        value="$(find cerberus2)/config/go1_config/hardware_go1_vilo_config.yaml" />
+
+
+    <node name="cerberus2_main" pkg="cerberus2"
+        args="$(arg vilo_config_file)"
+        type="cerberus2_main" />
+
+
+    <node pkg="tf" type="static_transform_publisher" name="camera_depth"
+        args="-0.0 0.0 -0.0 0.0 0.0 0.0 /camera /camera_forward_depth_optical_frame  1000" />
+
+
+    <!-- <include file="$(find cerberus2)/launch/elev_map/elevation_mapping.launch">
+    </include> -->
+
+
+</launch>

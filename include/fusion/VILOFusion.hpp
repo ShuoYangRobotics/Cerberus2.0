@@ -23,6 +23,7 @@
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/JointState.h>
 #include <sensor_msgs/PointCloud.h>
+#include <tf/transform_broadcaster.h>
 
 // project files
 #include "mipo/MIPOEstimator.hpp"
@@ -48,6 +49,7 @@ class VILOFusion {
   void publishPOEstimationResult(const Eigen::VectorXd& x, const Eigen::MatrixXd& P, const Eigen::Matrix<double, NUM_LEG, 1>& contact_est);
 
   void publishVILOEstimationResult(Eigen::Matrix<double, VS_OUTSIZE, 1>& state);
+  void publishVILOTF(double timestamp, Eigen::Matrix<double, VS_OUTSIZE, 1>& state, const Eigen::Vector3d& tic, const Eigen::Matrix3d& ric);
 
  private:
   // ros handle

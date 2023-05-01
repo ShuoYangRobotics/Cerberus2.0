@@ -209,6 +209,7 @@ void VILOFusion::POLoop() {
     // extract the result from VILO estimator and publish it
     vilo_x = vilo_estimator->outputState();
     publishVILOEstimationResult(vilo_x);
+    publishVILOTF(prev_esti_time, vilo_x, vilo_estimator->getTic(), vilo_estimator->getRic());
 
     /* record end time */
     auto loop_end = std::chrono::system_clock::now();
@@ -446,6 +447,34 @@ void VILOFusion::publishVILOEstimationResult(Eigen::Matrix<double, VS_OUTSIZE, 1
   // printf("time: %f, t: %f %f %f q: %f %f %f %f \n", ros::Time::now().toSec(),
   //        pos(0), pos(1), pos(2), quat.w(), quat.x(), quat.y(), quat.z());
   return;
+}
+
+void VILOFusion::publishVILOTF(double timestamp, Eigen::Matrix<double, VS_OUTSIZE, 1>& state, const Eigen::Vector3d& tic,
+                               const Eigen::Matrix3d& ric) {
+  static tf::TransformBroadcaster br;
+  tf::Transform transform;
+  tf::Quaternion q;
+  Eigen::Vector3d pos = state.segment(1, 3);
+  Eigen::Quaterniond quat(state(7), state(4), state(5),
+                          state(6));  // state quaternion is in order x, y, z, w
+                                      // because of Eigen coeffs function
+
+  transform.setOrigin(tf::Vector3(pos(0), pos(1), pos(2)));
+  q.setW(quat.w());
+  q.setX(quat.x());
+  q.setY(quat.y());
+  q.setZ(quat.z());
+  transform.setRotation(q);
+  br.sendTransform(tf::StampedTransform(transform, ros::Time(timestamp), "world", "robot"));
+
+  // camera frame
+  transform.setOrigin(tf::Vector3(tic.x(), tic.y(), tic.z()));
+  q.setW(Quaterniond(ric).w());
+  q.setX(Quaterniond(ric).x());
+  q.setY(Quaterniond(ric).y());
+  q.setZ(Quaterniond(ric).z());
+  transform.setRotation(q);
+  br.sendTransform(tf::StampedTransform(transform, ros::Time(timestamp), "robot", "camera"));
 }
 
 // private functions
