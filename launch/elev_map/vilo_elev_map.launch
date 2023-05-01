@@ -26,8 +26,16 @@
         args="-0.0 0.0 -0.0 0.0 0.0 0.0 /camera /camera_forward_depth_optical_frame  1000" />
 
 
-    <!-- <include file="$(find cerberus2)/launch/elev_map/elevation_mapping.launch">
-    </include> -->
+    <node pkg="tf" type="static_transform_publisher" name="robot_odom"
+        args="-0.0 0.0 -0.0 0.0 0.0 0.0 /world /odom  1000" />
 
+
+    <include file="$(find cerberus2)/launch/elev_map/elevation_mapping.launch">
+    </include>
+
+    <include file="$(find convex_plane_decomposition_ros)/launch/convex_plane_decomposition.launch">
+        <arg name="parameter_file"
+            value="$(find cerberus2)/config/elev_map/convex_plane_decompose.yaml" />
+    </include>
 
 </launch>
