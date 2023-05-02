@@ -76,6 +76,7 @@ void VILOEstimator::reset() {
   for (int i = 0; i < WINDOW_SIZE + 1; i++) {
     Rs[i].setIdentity();
     Ps[i].setZero();
+    Ps[i][2] = INIT_BASE_HEIGHT;
     Vs[i].setZero();
     Bas[i].setZero();
     Bgs[i].setZero();
@@ -498,7 +499,7 @@ Eigen::Matrix<double, VS_OUTSIZE, 1> VILOEstimator::outputState() const {
   Eigen::Matrix<double, VS_OUTSIZE, 1> state;
   state(0) = latest_time;
   state.segment(1, 3) = latest_P;
-  state.segment(4, 4) = Eigen::Quaterniond(latest_Q).coeffs();  // x y z w
+  state.segment(4, 4) = latest_Q.coeffs();  // x y z w
   state.segment(8, 3) = latest_V;
   state.segment(11, 3) = latest_Ba;
   state.segment(14, 3) = latest_Bg;

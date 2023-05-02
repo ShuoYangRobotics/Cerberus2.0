@@ -1,6 +1,6 @@
 {
 	"name": "Ubuntu",
-	"image": "yyss2028/legged_state_estimation:2.0", // noetic
+	"image": "yyss2028/legged_state_estimation:3.0", // noetic with  elevation map
 	// "build": {
 	// 	"dockerfile": "Dockerfile",
 	// 	"args": {
@@ -29,7 +29,7 @@
 	"workspaceFolder": "/home/EstimationUser/estimation_ws/src/cerberus2",
 	"initializeCommand": "sh .devcontainer/configure_xauth.bash; echo $DISPLAY $XAUTHORITY; xhost +",
 	"remoteUser": "EstimationUser",
-	"postStartCommand": "sudo cp /home/EstimationUser/estimation_ws/src/cerberus2/misc/casadi_misc.hpp /usr/local/include/casadi/core/",
+	"postStartCommand": "sudo cp /home/EstimationUser/estimation_ws/src/cerberus2/misc/casadi_misc.hpp /usr/local/include/casadi/core/; mkdir -p /home/EstimationUser/estimation_ws/devel/lib/cerberus2",
 	"customizations": {
 		"vscode": {
 			"extensions": [

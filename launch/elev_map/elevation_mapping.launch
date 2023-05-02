@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+
+<launch>
+    <!-- Elevation mapping node -->
+    <node pkg="elevation_mapping" type="elevation_mapping" name="elevation_mapping" output="screen">
+        <rosparam command="load"
+            file="$(find cerberus2)/config/elev_map/elevation_mapping.yaml" />
+        <rosparam command="load"
+            file="$(find elevation_mapping)/config/sensor_processors/realsense_d435.yaml" />
+    </node>
+
+
+</launch>

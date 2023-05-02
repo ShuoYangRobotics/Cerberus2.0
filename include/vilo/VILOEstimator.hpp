@@ -56,6 +56,10 @@ class VILOEstimator {
   // main function
   void processMeasurements();
 
+  // functions that return tic and ric
+  Eigen::Matrix3d getRic() const { return ric[0]; }
+  Eigen::Vector3d getTic() const { return tic[0]; }
+
  private:
   enum SolverFlag { INITIAL, NON_LINEAR };
 

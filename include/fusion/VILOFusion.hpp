@@ -23,6 +23,7 @@
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/JointState.h>
 #include <sensor_msgs/PointCloud.h>
+#include <tf/transform_broadcaster.h>
 
 // project files
 #include "mipo/MIPOEstimator.hpp"
@@ -48,6 +49,7 @@ class VILOFusion {
   void publishPOEstimationResult(const Eigen::VectorXd& x, const Eigen::MatrixXd& P, const Eigen::Matrix<double, NUM_LEG, 1>& contact_est);
 
   void publishVILOEstimationResult(Eigen::Matrix<double, VS_OUTSIZE, 1>& state);
+  void publishVILOTF(double timestamp, Eigen::Matrix<double, VS_OUTSIZE, 1>& state, const Eigen::Vector3d& tic, const Eigen::Matrix3d& ric);
 
  private:
   // ros handle
@@ -66,11 +68,12 @@ class VILOFusion {
   ros::Subscriber img1_sub_;
 
   // ros publishers for debug
-  ros::Publisher pose_pub_;        // MIPO pose
-  ros::Publisher pose_vilo_pub_;   // VILO pose
-  ros::Publisher twist_pub_;       // MIPO twist
-  ros::Publisher twist_vilo_pub_;  // VILO twist
-  ros::Publisher contact_pub_;     // contact state estimated by MIPO
+  ros::Publisher pose_pub_;            // MIPO pose
+  ros::Publisher pose_vilo_pub_;       // VILO pose
+  ros::Publisher twist_pub_;           // MIPO twist
+  ros::Publisher twist_vilo_pub_;      // VILO twist
+  ros::Publisher contact_pub_;         // contact state estimated by MIPO
+  ros::Publisher vis_joint_state_pub;  // publish joint state according to robot
 
   std::thread po_loop_thread_;
   std::thread vilo_loop_thread_;

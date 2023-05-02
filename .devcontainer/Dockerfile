@@ -171,3 +171,35 @@ RUN git clone https://github.com/robotology/osqp-eigen.git && cd osqp-eigen && m
 WORKDIR $SUPPORT_WS
 RUN wget https://download.pytorch.org/libtorch/nightly/cpu/libtorch-cxx11-abi-shared-with-deps-latest.zip
 RUN unzip libtorch-cxx11-abi-shared-with-deps-latest.zip
+
+### install elevation map
+ENV MAP_WS=/home/${USERNAME}/map_ws
+RUN mkdir -p $MAP_WS/src
+
+# some dependencies for elevation map
+RUN sudo apt-get update && export DEBIAN_FRONTEND=noninteractive \ 
+    && sudo apt-get install -y --no-install-recommends\
+    ros-${ROS_DISTRO}-octomap \
+    ros-${ROS_DISTRO}-octomap-msgs \
+    ros-${ROS_DISTRO}-costmap-2d \
+    ros-${ROS_DISTRO}-tf-conversions \
+    libgmp-dev \
+    libmpfr-dev
+
+WORKDIR $MAP_WS/src
+RUN git clone https://github.com/anybotics/grid_map.git && \
+    git clone https://github.com/ANYbotics/kindr.git && \ 
+    git clone https://github.com/ANYbotics/elevation_mapping.git && \
+    git clone https://github.com/ANYbotics/message_logger.git && \
+    git clone https://github.com/ANYbotics/kindr_ros.git
+
+# install elevation_mapping_cupy/plane_segmentation
+RUN cd /tmp &&  git clone https://github.com/ShuoYangRobotics/elevation_mapping_cupy.git && mv elevation_mapping_cupy/plane_segmentation $MAP_WS/src && \
+    cd $MAP_WS/src/plane_segmentation/convex_plane_decomposition_ros && sed -i '120,129d' CMakeLists.txt && \
+    cd $MAP_WS/src 
+
+WORKDIR $MAP_WS
+RUN /bin/zsh -c "source ${CATKIN_WS}/devel/setup.zsh; catkin build -DCMAKE_BUILD_TYPE=Release" 
+RUN catkin build -DCMAKE_BUILD_TYPE=Release
+
+RUN /bin/zsh -c "source ${MAP_WS}/devel/setup.zsh" && echo "source ${MAP_WS}/devel/setup.zsh" >> /home/${USERNAME}/.zshrc

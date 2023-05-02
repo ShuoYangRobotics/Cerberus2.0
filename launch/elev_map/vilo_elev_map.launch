@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<launch>
+    <!-- use sim time-->
+    <param name="use_sim_time" value="true" />
+
+    <arg name="node_start_delay" default="3.0" />
+
+
+    <node pkg="rosbag" type="play" name="player" required="true"
+        launch-prefix="zsh -c 'sleep $(arg node_start_delay); $0 $@' "
+        args="--clock --hz=2000 -u 197 $(find cerberus2)/bags/map_test/_2023-05-02-10-39-36.bag" />
+
+
+    <!-- cerberus2 config -->
+    <arg name="vilo_config_file"
+        value="$(find cerberus2)/config/go1_config/hardware_go1_vilo_config.yaml" />
+
+
+    <node name="cerberus2_main" pkg="cerberus2"
+        args="$(arg vilo_config_file)"
+        type="cerberus2_main" />
+
+
+    <node pkg="tf" type="static_transform_publisher" name="camera_depth"
+        args="-0.0 0.0 -0.0 0.0 0.0 0.0 /camera /camera_forward_depth_optical_frame  1000" />
+
+
+    <node pkg="tf" type="static_transform_publisher" name="robot_odom"
+        args="-0.0 0.0 -0.0 0.0 0.0 0.0 /world /odom  1000" />
+
+
+    <!-- for visualization -->
+    <node pkg="tf" type="static_transform_publisher" name="base_to_robot"
+        args="-0.0 0.0 -0.0 0.0 0.0 0.0 /robot /base  1000" />
+    <!-- visualization using robot description -->
+    <param name="robot_description" textfile="$(find cerberus2)/urdf/a1_description/urdf/a1.urdf" />
+    <remap from="/joint_states" to="/vis_joint_state" />
+    <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher" />
+
+
+    <include file="$(find cerberus2)/launch/elev_map/elevation_mapping.launch">
+    </include>
+
+    <include file="$(find convex_plane_decomposition_ros)/launch/convex_plane_decomposition.launch">
+        <arg name="parameter_file"
+            value="$(find cerberus2)/config/elev_map/convex_plane_decompose.yaml" />
+    </include>
+
+</launch>

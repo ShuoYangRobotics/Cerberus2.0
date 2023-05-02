@@ -47,6 +47,8 @@ extern std::string GT_TOPIC;
 extern std::string IMAGE0_TOPIC;
 extern std::string IMAGE1_TOPIC;
 
+extern double INIT_BASE_HEIGHT;
+
 // this variable means the estimator actually always estimates the state at the
 // current time - LAG_TIME. We do so to account for potential delays and sensor
 // information mistaches
