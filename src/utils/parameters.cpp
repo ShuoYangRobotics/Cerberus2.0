@@ -22,6 +22,8 @@ std::string GT_TOPIC;
 std::string IMAGE0_TOPIC;
 std::string IMAGE1_TOPIC;
 
+double INIT_BASE_HEIGHT;
+
 // this variable means the estimator actually always estimates the state at the
 // current time - LAG_TIME. We do so to account for potential delays and sensor
 // information mistaches
@@ -134,6 +136,8 @@ void Utils::readParametersFile(std::string config_file) {
 
   fsSettings["leg_topic"] >> LEG_TOPIC;
   printf("LEG_TOPIC: %s\n", LEG_TOPIC.c_str());
+
+  INIT_BASE_HEIGHT = fsSettings["init_base_height"];
 
   JOINT_ANG_N = fsSettings["joint_angle_n"];
   JOINT_VEL_N = fsSettings["joint_vel_n"];
