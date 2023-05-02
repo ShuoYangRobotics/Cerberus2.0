@@ -68,11 +68,12 @@ class VILOFusion {
   ros::Subscriber img1_sub_;
 
   // ros publishers for debug
-  ros::Publisher pose_pub_;        // MIPO pose
-  ros::Publisher pose_vilo_pub_;   // VILO pose
-  ros::Publisher twist_pub_;       // MIPO twist
-  ros::Publisher twist_vilo_pub_;  // VILO twist
-  ros::Publisher contact_pub_;     // contact state estimated by MIPO
+  ros::Publisher pose_pub_;            // MIPO pose
+  ros::Publisher pose_vilo_pub_;       // VILO pose
+  ros::Publisher twist_pub_;           // MIPO twist
+  ros::Publisher twist_vilo_pub_;      // VILO twist
+  ros::Publisher contact_pub_;         // contact state estimated by MIPO
+  ros::Publisher vis_joint_state_pub;  // publish joint state according to robot
 
   std::thread po_loop_thread_;
   std::thread vilo_loop_thread_;

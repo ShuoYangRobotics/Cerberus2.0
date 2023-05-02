@@ -37,6 +37,8 @@ VILOFusion::VILOFusion(ros::NodeHandle nh) {
   twist_vilo_pub_ = nh_.advertise<geometry_msgs::TwistWithCovarianceStamped>("/vilo/estimate_twist", 1000);
   contact_pub_ = nh.advertise<geometry_msgs::PoseStamped>("/mipo/contact", 1000);
 
+  vis_joint_state_pub = nh_.advertise<sensor_msgs::JointState>("/vis_joint_state", 1000);
+
   // initialize the filter
   for (int i = 0; i < 3; i++) {
     body_imu_acc_filter_[i] = MovingWindowFilter(BODY_IMU_MOVMEAN_WINDOW_SIZE);
@@ -584,6 +586,20 @@ void VILOFusion::jointFootCallback(const sensor_msgs::JointState::ConstPtr& msg)
     mq_foot_force_.pop();
   }
   mtx.unlock();
+
+  // immediate publish according to urdf joint order
+  sensor_msgs::JointState vis_joint_msg;
+  vis_joint_msg.header.stamp = ros::Time::now();
+  vis_joint_msg.name = {"FL_hip_joint", "FL_thigh_joint", "FL_calf_joint", "FR_hip_joint", "FR_thigh_joint", "FR_calf_joint",
+                        "RL_hip_joint", "RL_thigh_joint", "RL_calf_joint", "RR_hip_joint", "RR_thigh_joint", "RR_calf_joint"};
+  vis_joint_msg.position.resize(NUM_DOF);
+  vis_joint_msg.velocity.resize(NUM_DOF);
+  vis_joint_msg.effort.resize(NUM_DOF);
+  for (int i = 0; i < NUM_DOF; ++i) {
+    vis_joint_msg.position[i] = joint_pos(i);
+    vis_joint_msg.velocity[i] = joint_vel(i);
+  }
+  vis_joint_state_pub.publish(vis_joint_msg);
 
   return;
 }
