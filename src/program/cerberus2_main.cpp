@@ -33,7 +33,7 @@ int main(int argc, char** argv) {
         "please input: rosrun cerberus2 cerberus2_main [config "
         "file] \n"
         "for example: rosrun cerberus2 cerberus2_main "
-        "/home/EstimationUser/estimation_ws/src/cerberus2/config/go1_config/"
+        "/home/rexlabcmu/zixin_ws/src/Cerberus2.0/config/go1_config/"
         "hardware_go1_vilo_config.yaml \n");
     return 1;
   }

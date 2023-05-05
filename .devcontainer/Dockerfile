@@ -162,7 +162,7 @@ WORKDIR $SUPPORT_WS
 RUN git clone https://github.com/robotology/osqp-eigen.git && cd osqp-eigen && mkdir build  && cd build && \
     cmake ../  && \
     make  -j ${USE_PROC} && \
-    sudo make install
+    sudo make installCould not find a package configuration file provided by "camera_models"
 
 # add libtorch
 # https://github.com/pytorch/pytorch/issues/17492#issuecomment-524692441
