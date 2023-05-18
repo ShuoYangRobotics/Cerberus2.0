@@ -9,7 +9,7 @@
 
     <node pkg="rosbag" type="play" name="player" required="true"
         launch-prefix="zsh -c 'sleep $(arg node_start_delay); $0 $@' "
-        args="--clock --hz=2000 -u 197 $(find cerberus2)/bags/map_test/_2023-05-02-10-39-36.bag" />
+        args="--clock --hz=2000 -u 197 $(find cerberus2)/bags/map_test/_2023-05-02-15-23-41.bag" />
 
 
     <!-- cerberus2 config -->

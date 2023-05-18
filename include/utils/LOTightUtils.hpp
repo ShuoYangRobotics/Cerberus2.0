@@ -366,7 +366,7 @@ class LOTightUtils {
     Eigen::Matrix<casadi::SX, 3, 1> foot_v_pivoting = legged::skewSymmetric<casadi::SX>(foot_w_body) * foot_support_vec;
 
     // be careful about the sign of terms
-    return leg_v + foot_v_pivoting - bv;
+    return leg_v + foot_v_pivoting;
   }
 
   MIPOEstimatorSensorData mipo_utils;           // we only use R_fi_list in it

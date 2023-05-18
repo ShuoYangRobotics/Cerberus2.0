@@ -6,9 +6,8 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /Image1
+        - /TF1/Frames1
         - /TF1/Tree1
-        - /RobotModel1
         - /RobotModel1/Status1
       Splitter Ratio: 0.6441176533699036
     Tree Height: 471
@@ -96,28 +95,115 @@ Visualization Manager:
       Use rainbow: true
       Value: false
     - Class: rviz/TF
-      Enabled: false
+      Enabled: true
       Frame Timeout: 15
       Frames:
-        All Enabled: true
+        All Enabled: false
+        FL_calf:
+          Value: false
+        FL_foot:
+          Value: false
+        FL_hip:
+          Value: false
+        FL_thigh:
+          Value: false
+        FL_thigh_shoulder:
+          Value: false
+        FR_calf:
+          Value: false
+        FR_foot:
+          Value: false
+        FR_hip:
+          Value: false
+        FR_thigh:
+          Value: false
+        FR_thigh_shoulder:
+          Value: false
+        RL_calf:
+          Value: false
+        RL_foot:
+          Value: false
+        RL_hip:
+          Value: false
+        RL_thigh:
+          Value: false
+        RL_thigh_shoulder:
+          Value: false
+        RR_calf:
+          Value: false
+        RR_foot:
+          Value: false
+        RR_hip:
+          Value: false
+        RR_thigh:
+          Value: false
+        RR_thigh_shoulder:
+          Value: false
+        base:
+          Value: false
+        camera:
+          Value: false
+        imu_link:
+          Value: false
+        robot:
+          Value: true
+        trunk:
+          Value: true
+        world:
+          Value: true
       Marker Alpha: 1
       Marker Scale: 1
       Name: TF
       Show Arrows: true
       Show Axes: true
-      Show Names: true
+      Show Names: false
       Tree:
-        {}
+        world:
+          robot:
+            base:
+              trunk:
+                FL_hip:
+                  FL_thigh:
+                    FL_calf:
+                      FL_foot:
+                        {}
+                  FL_thigh_shoulder:
+                    {}
+                FR_hip:
+                  FR_thigh:
+                    FR_calf:
+                      FR_foot:
+                        {}
+                  FR_thigh_shoulder:
+                    {}
+                RL_hip:
+                  RL_thigh:
+                    RL_calf:
+                      RL_foot:
+                        {}
+                  RL_thigh_shoulder:
+                    {}
+                RR_hip:
+                  RR_thigh:
+                    RR_calf:
+                      RR_foot:
+                        {}
+                  RR_thigh_shoulder:
+                    {}
+                imu_link:
+                  {}
+            camera:
+              {}
       Update Interval: 0
-      Value: false
-    - Alpha: 1
+      Value: true
+    - Alpha: 0.699999988079071
       Autocompute Intensity Bounds: true
       Class: grid_map_rviz_plugin/GridMap
       Color: 200; 200; 200
       Color Layer: elevation
       Color Transformer: GridMapLayer
       ColorMap: default
-      Enabled: true
+      Enabled: false
       Grid Cell Decimation: 1
       Grid Line Thickness: 0.10000000149011612
       Height Layer: elevation
@@ -133,7 +219,7 @@ Visualization Manager:
       Topic: /elevation_mapping/elevation_map
       Unreliable: false
       Use ColorMap: true
-      Value: true
+      Value: false
     - Alpha: 1
       Autocompute Intensity Bounds: true
       Class: grid_map_rviz_plugin/GridMap
@@ -163,7 +249,7 @@ Visualization Manager:
       Marker Topic: /convex_plane_decomposition_ros/insets
       Name: MarkerArray
       Namespaces:
-        "": true
+        {}
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -325,7 +411,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 9.40667724609375
+      Distance: 16.871719360351562
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -333,17 +419,17 @@ Visualization Manager:
         Value: false
       Field of View: 0.7853981852531433
       Focal Point:
-        X: 0.6039770245552063
-        Y: 0.7035337090492249
-        Z: 1.819894790649414
+        X: 2.530311346054077
+        Y: -1.7358297109603882
+        Z: -2.8755931854248047
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.2503983974456787
+      Pitch: 0.6403984427452087
       Target Frame: <Fixed Frame>
-      Yaw: 2.1853833198547363
+      Yaw: 2.185393810272217
     Saved: ~
 Window Geometry:
   Displays:

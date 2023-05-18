@@ -22,25 +22,25 @@ image_height: 480
 # this variable shows when the robot starts, what is the initial base height
 # if the vilo starts when the Go1 robot stands on the ground, then this should be 0.3
 # if the vilo starts when the Go1 robot sits on the ground, then this should be 0.05
-init_base_height: 0.3
+init_base_height: 0.05
    
 # kf type 
 kf_type:   0  # 0 is MIPO (multi-imu PO)
               # 1 is SIPO (standard single imu PO)
 
 # leg related
-vilo_fusion_type: 1  # 0 - do not use leg for preintegration (then this is just VIO)
+vilo_fusion_type: 2  # 0 - do not use leg for preintegration (then this is just VIO)
                      # 1 - use LO velocity as preintegration
                      # 2 - tightly couple leg and imu for preintegration 
 
 foot_gyro_n: 0.1
-foot_gyro_w: 0.0002
+foot_gyro_w: 0.00000002
 joint_angle_n: 0.1
 joint_vel_n: 0.1      
-foot_vel_w: 0.0002
-rho_w: 0.0002    
+foot_vel_w: 0.00000002
+rho_w: 0.00000002    
 
-estimate_kinematic: 0  # 0 - do not estimate kinematic parameters
+estimate_kinematic: 1  # 0 - do not estimate kinematic parameters
                        # 1 - estimate kinematic parameters                       
 
 # Extrinsic parameter between IMU and Camera.
@@ -86,7 +86,7 @@ gyr_w: 0.0002       # gyroscope bias random work noise standard deviation.     #
 g_norm: 9.805         # gravity magnitude
 
 #unsynchronization parameters
-estimate_td: 0                      # online estimate time offset between camera and imu
+estimate_td: 1                      # online estimate time offset between camera and imu
 td: -0.02                           # initial value of time offset. unit: s. readed image clock + td = real image clock (IMU clock)
 
 #loop closure parameters

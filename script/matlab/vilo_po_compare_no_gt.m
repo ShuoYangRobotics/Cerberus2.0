@@ -8,7 +8,8 @@ dataset_name = '20230304_wightman_park_flying_trot_right_loop';       % modify t
 
 % look at src/utils/parameters.cpp for possible types
 % traj_types = {'gt','mipo','sipo','vio','vilo-m','vilo-s'};
-traj_types = {'mipo','sipo','vio','vilo-m','vilo-s','vilo-tm-n'};
+traj_types = {'mipo','sipo','vio','vilo-m','vilo-s','vilo-tm-n','vilo-tm-y'};
+traj_colors ={'#0072BD','#D95319','#EDB120','#7E2F8E','#77AC30','#4DBEEE','#000000'};
 
 % traj_types = {'mipo','vilo-tm-n'};
 total_types = size(traj_types,2);
@@ -45,10 +46,10 @@ end
 
 
 figure(1);clf
-subplot(2,1,1)
+% subplot(2,1,1)
 
 for i=1:total_types
- plot3(traj_pos{i}(:,1),traj_pos{i}(:,2),traj_pos{i}(:,3)); hold on;
+ plot3(traj_pos{i}(:,1),traj_pos{i}(:,2),traj_pos{i}(:,3),'Color',traj_colors{i}, 'LineWidth',3); hold on;
 end
 axis equal
 view(0,90)

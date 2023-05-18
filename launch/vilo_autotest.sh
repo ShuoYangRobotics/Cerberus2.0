@@ -4,7 +4,7 @@ dataset_name=$1
 dataset_duration=$2
 
 #ls the dataset
-bag_path="/home/EstimationUser/estimation_ws/src/cerberus2/bags/legged_robots/$dataset_name.bag"
+bag_path="/home/EstimationUser/estimation_ws/src/cerberus2/bags/230517_sqh_mocap/$dataset_name.bag"
 echo $bag_path
 
 
@@ -33,7 +33,7 @@ roslaunch cerberus2 vilo_auto.launch dataset_name:="$dataset_name" dataset_durat
 
 # launch the vilo node with different kf_type and vilo_fusion_type: 0 2  
 sed -i 's/\(vilo_fusion_type: \)1/\12/' "$temp_config"
-# roslaunch cerberus2 vilo_auto.launch dataset_name:="$dataset_name" dataset_duration:="$dataset_duration"
+roslaunch cerberus2 vilo_auto.launch dataset_name:="$dataset_name" dataset_duration:="$dataset_duration"
 
 # launch the vilo node with different kf_type and vilo_fusion_type: 0 2, no exstimate kinematic  # should be the best ones
 sed -i 's/\(estimate_kinematic: \)1/\10/' "$temp_config"

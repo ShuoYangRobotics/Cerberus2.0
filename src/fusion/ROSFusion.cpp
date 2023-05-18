@@ -54,7 +54,7 @@ void ROSFusion::readParameters() {
   FR_IMU_TOPIC = "/WT901_48_Data";
   RL_IMU_TOPIC = "/WT901_50_Data";
   RR_IMU_TOPIC = "/WT901_47_Data";
-  GT_TOPIC = "/mocap_node/Go1_body/pose";
+  GT_TOPIC = "/natnet_ros/Shuo_Go1/pose";
 
   // read parameters from ros server
   nh_.param<std::string>("IMU_TOPIC", IMU_TOPIC, "/unitree_hardware/imu");
@@ -63,7 +63,7 @@ void ROSFusion::readParameters() {
   nh_.param<std::string>("FR_IMU_TOPIC", FR_IMU_TOPIC, "/WT901_48_Data");
   nh_.param<std::string>("RL_IMU_TOPIC", RL_IMU_TOPIC, "/WT901_50_Data");
   nh_.param<std::string>("RR_IMU_TOPIC", RR_IMU_TOPIC, "/WT901_47_Data");
-  nh_.param<std::string>("GT_TOPIC", GT_TOPIC, "/mocap_node/Go1_body/pose");
+  nh_.param<std::string>("GT_TOPIC", GT_TOPIC, "/natnet_ros/Shuo_Go1/pose");
 }
 
 // constant loop

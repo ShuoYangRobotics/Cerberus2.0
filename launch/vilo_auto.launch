@@ -11,7 +11,7 @@
 
     <node pkg="rosbag" type="play" name="player" required="true"
         launch-prefix="zsh -c 'sleep $(arg node_start_delay); $0 $@' "
-        args="--clock --hz=2000 -u $(arg dataset_duration) $(find cerberus2)/bags/legged_robots/$(arg dataset_name).bag" />
+        args="--clock --hz=2000 -u $(arg dataset_duration) $(find cerberus2)/bags/230517_sqh_mocap/$(arg dataset_name).bag" />
 
 
     <!-- cerberus2 config -->
