@@ -13,6 +13,8 @@ image1_topic: "/camera_forward/infra2/image_rect_raw"
 output_path: "/home/EstimationUser/estimation_ws/src/cerberus2/bags/output"
 # leg topics
 leg_topic: "/unitree_hardware/joint_foot"
+# ground truth topic
+gt_topic: "/natnet_ros/Shuo_Go1/pose"
 
 cam0_calib: "go1_realsense_left.yaml"
 cam1_calib: "go1_realsense_right.yaml"

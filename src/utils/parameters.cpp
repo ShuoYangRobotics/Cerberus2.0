@@ -137,6 +137,10 @@ void Utils::readParametersFile(std::string config_file) {
   fsSettings["leg_topic"] >> LEG_TOPIC;
   printf("LEG_TOPIC: %s\n", LEG_TOPIC.c_str());
 
+  fsSettings["gt_topic"] >> GT_TOPIC;
+  printf("GT_TOPIC: %s\n", GT_TOPIC.c_str());
+
+
   INIT_BASE_HEIGHT = fsSettings["init_base_height"];
 
   JOINT_ANG_N = fsSettings["joint_angle_n"];

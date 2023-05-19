@@ -10,9 +10,9 @@ echo $bag_path
 
 temp_config="/tmp/temp_run.yaml"
 
-cp /home/EstimationUser/estimation_ws/src/cerberus2/config/go1_config/go1_realsense_left.yaml /tmp/go1_realsense_left.yaml
-cp /home/EstimationUser/estimation_ws/src/cerberus2/config/go1_config/go1_realsense_right.yaml /tmp/go1_realsense_right.yaml
-cp /home/EstimationUser/estimation_ws/src/cerberus2/config/go1_config/hardware_go1_vilo_config_base.yaml "$temp_config"
+cp /home/rexlabcmu/zixin_ws/src/Cerberus2.0/config/go1_config/go1_realsense_left.yaml /tmp/go1_realsense_left.yaml
+cp /home/rexlabcmu/zixin_ws/src/Cerberus2.0/config/go1_config/go1_realsense_right.yaml /tmp/go1_realsense_right.yaml
+cp /home/rexlabcmu/zixin_ws/src/Cerberus2.0/config/go1_config/hardware_go1_vilo_config_base.yaml "$temp_config"
 
 sed -i "s/\(dataset_name: \)\"lab\"/\1\"$dataset_name\"/" "$temp_config"
 

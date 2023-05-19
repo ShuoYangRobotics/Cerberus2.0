@@ -413,7 +413,7 @@ class LOTightUtils {
   std::mutex mtx;
 
   // code gen
-  const std::string code_gen_path = "/home/EstimationUser/estimation_ws/src/cerberus2/code_gen/";
+  const std::string code_gen_path = "/home/rexlabcmu/zixin_ws/src/Cerberus2.0/code_gen/";
 
   // a list of string names: "v_fun", "dvdphi_fun", "dvddphi_fun", "dvdw_fun", "dvdwf_fun", "dvdbg_fun", "dvdbf_fun", "dvdbv_fun",
   // "dvdd0_fun"

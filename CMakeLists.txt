@@ -51,10 +51,10 @@ include_directories(
     ${CERES_INCLUDE_DIRS}
 )
 
-# add libtorch - add /home/EstimationUser/support_ws/libtorch to CMAKE_PREFIX_PATH
+# add libtorch - add /home/rexlabcmu/support_files/libtorch to CMAKE_PREFIX_PATH
 # look at Dockerfile to understand why the path is like this
 message("${CMAKE_PREFIX_PATH}")
-list(APPEND CMAKE_PREFIX_PATH "/home/EstimationUser/support_ws/libtorch")
+list(APPEND CMAKE_PREFIX_PATH "$ENV{SUPPORT_WS}/libtorch")
 message("${CMAKE_PREFIX_PATH}")
 find_package(Torch REQUIRED)
 message("${CMAKE_CXX_FLAGS}")
@@ -149,10 +149,16 @@ target_link_libraries(test_LOTightIntegration
         ${catkin_LIBRARIES}
         casadi
 )
+set(MAKE_CMD "mkdir -p ${CMAKE_CURRENT_SOURCE_DIR}/../../devel/lib/cerberus2")
+MESSAGE("COMMAND: ${MAKE_CMD}")
+execute_process(COMMAND "${MAKE_CMD}"   
+   RESULT_VARIABLE CMD_ERROR
+   OUTPUT_FILE CMD_OUTPUT)
+
 add_custom_target(run_test_LOTightIntegration
         ALL
         COMMAND $<TARGET_FILE:test_LOTightIntegration>
         DEPENDS test_LOTightIntegration
-        WORKING_DIRECTORY "/home/EstimationUser/estimation_ws/devel/lib/cerberus2"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../../devel/lib/cerberus2"
         COMMENT "Executing target: my_executable"
         VERBATIM)
