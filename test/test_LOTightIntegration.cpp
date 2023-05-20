@@ -8,7 +8,7 @@ LOTightUtils* tightUtils = new LOTightUtils();
 
 LOTightIntegrationBase* lo_pre_integration;
 int main() {
-  std::string config_file = "/home/rexlabcmu/zixin_ws/src/Cerberus2.0/config/go1_config/hardware_go1_vilo_config.yaml";
+  std::string config_file = "/home/shuoyang/Documents/vilo_dev/vilo_ws/src/Cerberus2.0/config/go1_config/hardware_go1_vilo_config.yaml";
   Utils::readParametersFile(config_file);
 
   std::cout << "Hello, World!" << std::endl;

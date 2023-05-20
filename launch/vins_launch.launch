@@ -4,7 +4,7 @@
 
       <arg name="node_start_delay" default="1.0" />
       <node pkg="rosbag" type="play" name="player"
-            args="--clock --hz=1000  $(find cerberus2)/bags/legged_robots/20230215_lab_short.bag" />
+            args="--clock --hz=1000  $(find cerberus2)/../../bags/legged_robots/20230215_lab_short.bag" />
 
       <!-- VINS config -->
       <param name="vins_config_file" type="string"

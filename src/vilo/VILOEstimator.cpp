@@ -27,6 +27,7 @@ void VILOEstimator::setParameter() {
   ProjectionOneFrameTwoCamFactor::sqrt_info = FOCAL_LENGTH / 1.5 * Matrix2d::Identity();
   td = TD;
   g = G;
+
   cout << "set g " << g.transpose() << endl;
   feature_tracker_->readIntrinsicParameter(CAM_NAMES);
 
@@ -247,7 +248,7 @@ bool VILOEstimator::getBodyIMUInterval(double t0, double t1, vector<pair<double,
 bool VILOEstimator::getBodyIMULegInterval(double t0, double t1, vector<pair<double, Eigen::Vector3d>>& bodyAccVector,
                                           vector<pair<double, Eigen::Vector3d>>& bodyGyrVector, vector<Eigen::Vector3d> footGyrVector[],
                                           vector<Eigen::Vector3d> jointAngVector[], vector<Eigen::Vector3d> jointVelVector[],
-                                          double contactDecision[]) {
+                                          bool contactDecision[]) {
   if (accBuf.empty()) {
     printf("not receive imu and leg\n");
     return false;
@@ -362,7 +363,7 @@ void VILOEstimator::processMeasurements() {
     pair<double, map<int, vector<pair<int, Eigen::Matrix<double, 7, 1>>>>> feature;
     vector<pair<double, Eigen::Vector3d>> accVector, gyrVector;
     vector<Eigen::Vector3d> footGyrVector[NUM_LEG], jointAngVector[NUM_LEG], jointVelVector[NUM_LEG];
-    double contactDecision[NUM_LEG];
+    bool contactDecision[NUM_LEG];
 
     vector<pair<double, Eigen::Vector3d>> loVelVector;
     vector<pair<double, Eigen::Matrix3d>> loCovVector;
@@ -418,7 +419,7 @@ void VILOEstimator::processMeasurements() {
         // do contact preintegration for leg in contact
         if (VILO_FUSION_TYPE == 2) {
           for (int j = 0; j < NUM_LEG; j++) {
-            if (tlo_all_in_contact[frame_count][j] == 1) {
+            if (tlo_all_in_contact[frame_count][j] == true) {
               processIMULegOdom(j, accVector[i].first, dt, gyrVector[i].second, footGyrVector[j][i], jointAngVector[j][i],
                                 jointVelVector[j][i]);
             }
@@ -430,18 +431,19 @@ void VILOEstimator::processMeasurements() {
             average_vel.setZero();
             int count = 0;
             for (int j = 0; j < NUM_LEG; j++) {
-              if (tlo_all_in_contact[frame_count][j] == 1) {
+              if (tlo_all_in_contact[frame_count][j] == true) {
                 average_vel += tlo_pre_integration[frame_count][j]->estimated_v;
                 count++;
               }
             }
             if (count == 0) {
-              average_vel = Vector3d::Zero();
+              Vs[frame_count] = Vs[frame_count - 1];
+              Ps[frame_count] += dt * Vs[frame_count];
             } else {
-              average_vel /= count;
+              average_vel = average_vel / count;
+              Vs[frame_count] = Rs[frame_count] * average_vel;  // world frame velocity from LO
+              Ps[frame_count] += dt * Vs[frame_count];
             }
-            Vs[frame_count] = Rs[frame_count] * average_vel;  // world frame velocity from LO
-            Ps[frame_count] += dt * Vs[frame_count];
           }
         }
       }

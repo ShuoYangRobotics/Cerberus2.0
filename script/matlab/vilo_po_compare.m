@@ -1,25 +1,24 @@
 % plot vilo and po in matlab
 
-bag_output_path = '../../bags/output/';
+bag_output_path = '../../../../bags/cerberus2_output/';
 
-% dataset_name = '20230517_risqh_02speed_mocap';       % modify this
-% dataset_name = '20230517_risqh_04speed_mocap';       % modify this
-% dataset_name = '20230517_risqh_06speed_mocap';       % modify this
-dataset_name = '20230517_risqh_08speed_mocap_more_turns';       % modify this
-% dataset_name = '20230517_risqh_10speed_mocap';       % modify this
+             % name,       gt_yaw,        plot_time
+data_info = {'20230517_risqh_02speed_mocap',                5, 80};
+% data_info = {'20230517_risqh_04speed_mocap',              5, 44};
+% data_info = {'20230517_risqh_06speed_mocap',              0, 33};
+% data_info = {'20230517_risqh_08speed_mocap_more_turns',   0, 35};
+% data_info = {'20230517_risqh_10speed_mocap',              0, 29};
+
+dataset_name = data_info{1};       
 
 % look at src/utils/parameters.cpp for possible types
-traj_types =      {     'gt',   'mipo',   'sipo',    'vio', 'vilo-m', 'vilo-s', 'vilo-tm-n'};
-traj_colors =     {'#0072BD','#D95319','#EDB120','#7E2F8E','#77AC30','#4DBEEE',   '#000000'};
-traj_yaw_offset = {        0,        0,         0,       0,        0,        0,           0};
+traj_types =      {     'gt',   'mipo',   'sipo',    'vio', 'vilo-m', 'vilo-s', 'vilo-tm-n', 'vilo-tm-y'};
+traj_colors =     {'#0072BD','#D95319','#EDB120','#7E2F8E','#77AC30','#4DBEEE',   '#000000',   '#A00F00'};
+traj_yaw_offset = { data_info{2},        0,         0,       0,        0,        0,           0, 0};
 total_types = size(traj_types,2);
 
 plot_start = 0;
-% plot_end = 80;
-% plot_end = 44;
-% plot_end = 33;
-plot_end = 35;
-% plot_end = 29;
+plot_end = data_info{3};
 %% read data
 traj_data = cell(1, total_types);
 for i=1:total_types
@@ -61,7 +60,8 @@ end
 axis equal
 view(0,90)
     legend(traj_types)
-
+xlim([-1 5])
+ylim([-1 4])
 % subplot(2,1,2)
 % if (has_gt == 1)
 %     p1 = plot(gt_time,gt_euler(:,3)); hold on;

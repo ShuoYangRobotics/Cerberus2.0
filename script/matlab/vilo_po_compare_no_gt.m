@@ -1,6 +1,6 @@
 % plot vilo and po in matlab
 
-bag_output_path = '../../bags/output/';
+bag_output_path = '../../../../bags/cerberus2_output/';
 
 % dataset_name = '20230304_wightman_park_trot_bridge_loop';       % modify this
 dataset_name = '20230304_wightman_park_flying_trot_right_loop';       % modify this

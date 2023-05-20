@@ -195,7 +195,7 @@ class VILOEstimator {
                           vector<pair<double, Eigen::Vector3d>>& gyrVector);
   bool getBodyIMULegInterval(double t0, double t1, vector<pair<double, Eigen::Vector3d>>& bodyAccVector,
                              vector<pair<double, Eigen::Vector3d>>& bodyGyrVector, vector<Eigen::Vector3d> footGyrVector[],
-                             vector<Eigen::Vector3d> jointAngVector[], vector<Eigen::Vector3d> jointVelVector[], double contactDecision[]);
+                             vector<Eigen::Vector3d> jointAngVector[], vector<Eigen::Vector3d> jointVelVector[], bool contactDecision[]);
   bool BodyIMUAvailable(double t);
 
   bool getLoVelInterval(double t0, double t1, vector<pair<double, Eigen::Vector3d>>& loVelVector,

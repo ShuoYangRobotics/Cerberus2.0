@@ -42,10 +42,10 @@ class LOTightIntegrationBase {
     delta_q.setIdentity();
     jacobian.setIdentity();  // this has to be identity as the beginning
     covariance.setZero();
-    covariance = 1 * Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, LO_TIGHT_RESIDUAL_SIZE>::Identity();
+    covariance = 1e-5 * Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, LO_TIGHT_RESIDUAL_SIZE>::Identity();
 
     // init noise
-    noise_diag.diagonal() = 1e-2 * Eigen::Matrix<double, LO_TIGHT_NOISE_SIZE, 1>::Ones();
+    noise_diag.diagonal() = 1e-4 * Eigen::Matrix<double, LO_TIGHT_NOISE_SIZE, 1>::Ones();
     noise_diag.diagonal().segment<3>(T_PHIN) = JOINT_ANG_N * JOINT_ANG_N * Eigen::Matrix<double, 3, 1>::Ones();
     noise_diag.diagonal().segment<3>(T_DPHIN) = JOINT_VEL_N * JOINT_VEL_N * Eigen::Matrix<double, 3, 1>::Ones();
     noise_diag.diagonal().segment<3>(T_GN) = GYR_N * GYR_N * Eigen::Matrix<double, 3, 1>::Ones();
@@ -130,7 +130,7 @@ class LOTightIntegrationBase {
     Eigen::Matrix3d delta_R = delta_q.toRotationMatrix();
     Eigen::Matrix3d result_delta_R = result_delta_q.toRotationMatrix();
 
-    estimated_v = delta_R * vi + result_delta_R * vip1;
+    estimated_v = 0.5 * (vi + vip1);
     result_delta_epsilon = delta_epsilon + 0.5 * (delta_R * vi + result_delta_R * vip1) * _dt;
 
     if (update_jacobian) {
