@@ -1,7 +1,7 @@
-bag_output_path = '../../../../bags/cerberus2_output/multi/';
+cerberus2_bag_output_path = '../../../../bags/cerberus2_output/multi/';
 
              % name,       gt_yaw,        plot_time
-data_info_list = {{'20230517_risqh_02speed_mocap',                5, 80},...
+cerberus2_data_info_list = {{'20230517_risqh_02speed_mocap',                5, 80},...
                   {'20230517_risqh_04speed_mocap',              5, 44},...
                   {'20230517_risqh_06speed_mocap',              0, 33},...
                   {'20230517_risqh_08speed_mocap_more_turns',   0, 35},...
@@ -11,14 +11,14 @@ data_info_list = {{'20230517_risqh_02speed_mocap',                5, 80},...
 figure(1);clf
 title('different speed')
 total_cells = 0;
-if rem(size(data_info_list,2),2) == 1
-    total_cells = size(data_info_list,2) + 1;
+if rem(size(cerberus2_data_info_list,2),2) == 1
+    total_cells = size(cerberus2_data_info_list,2) + 1;
 else
-    total_cells = size(data_info_list,2);
+    total_cells = size(cerberus2_data_info_list,2);
 end
-for item_idx = 1:size(data_info_list,2)
+for item_idx = 1:size(cerberus2_data_info_list,2)
     
-    data_info = data_info_list{item_idx};
+    data_info = cerberus2_data_info_list{item_idx};
     dataset_name = data_info{1};       
 
     % look at src/utils/parameters.cpp for possible types
@@ -30,10 +30,10 @@ for item_idx = 1:size(data_info_list,2)
     plot_start = 0;
     plot_end = data_info{3};
 
-    %% read data
+    %% read cerberus 2 data
     traj_data = cell(1, total_types);
     for i=1:total_types
-        csv_file_full_name = strcat(bag_output_path,traj_types{i},'-',dataset_name,'.csv');
+        csv_file_full_name = strcat(cerberus2_bag_output_path,traj_types{i},'-',dataset_name,'.csv');
         if isfile(csv_file_full_name)
             traj_data{i} = readmatrix(csv_file_full_name);
         else 

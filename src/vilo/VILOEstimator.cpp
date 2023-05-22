@@ -36,6 +36,13 @@ void VILOEstimator::setParameter() {
   if (initThreadFlag == false) {
     processThread = std::thread(&VILOEstimator::processMeasurements, this);
     initThreadFlag = true;
+    // set thread priority
+    sched_param sched{.sched_priority = 90};
+    if (pthread_setschedparam(processThread.native_handle(), SCHED_FIFO, &sched) != 0) {
+      ROS_WARN(
+          "Failed to set threads priority (one possible reason could be that the user and the group permissions "
+          "are not set properly.).\n");
+    }
   }
 }
 
