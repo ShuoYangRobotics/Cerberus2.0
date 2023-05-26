@@ -1,9 +1,11 @@
-file_path = ['/home/shuoyang/MATLAB/drive/MobileSensorData/',...
-'sensorlog_20230515_152953_loop_fairstead.mat'];
+function position = position_filter(file_name, total_time, yaw_offset)
+
+
+file_path = file_name;
 
 % mobile_data = load(file_path);
 SampleRate = 100.0;
-[mobile_data,gps_valid,mobile_data_imu_gps] = process_mobile_data(file_path,1/SampleRate);
+[mobile_data,gps_valid,mobile_data_imu_gps] = process_mobile_data(file_path,1/SampleRate, total_time);
 
 % sensor data are all in NED
 Accelerometer = [mobile_data.AccX mobile_data.AccY mobile_data.AccZ];
@@ -34,12 +36,12 @@ t = (0:numSamples-1).'/SampleRate;
 
 d = rad2deg(dist(qEst, Orientation));
 
-figure
-plot(t,eulerd(qEst,"ZYX","frame"))
-legend yaw pitch roll
-title("ahrsfilter Euler Angles")
-ylabel("Degrees")
-xlabel("Time (s)")
+% figure
+% plot(t,eulerd(qEst,"ZYX","frame"))
+% legend yaw pitch roll
+% title("ahrsfilter Euler Angles")
+% ylabel("Degrees")
+% xlabel("Time (s)")
 
 %% has gps, do insfilter
 if (gps_valid == 1)
@@ -55,7 +57,7 @@ if (gps_valid == 1)
           mobile_data_imu_gps.longitude(first_non_NaN_index_of_X)
           mobile_data_imu_gps.altitude(first_non_NaN_index_of_X)];
 
-    disp(refloc)
+%     disp(refloc)
     % construct initState
     initState = zeros(22,1);
     [q0,q1,q2,q3] = parts(Orientation(1));
@@ -122,16 +124,16 @@ R = [ 1 0 0 ;
       0 -1 0;
       0 0 -1];
 euler = eulerd(Orientation(1),"ZYX","frame");
-init_yaw = -euler(1)/180*pi;
+init_yaw = -euler(1)/180*pi - yaw_offset/180*pi;
 R_yaw = [cos(init_yaw) sin(init_yaw) 0;
         -sin(init_yaw) cos(init_yaw) 0;
          0 0 1];
 
 ros_p = p * R'*R_yaw';
-figure(2)
-plot3(ros_p(:,1),ros_p(:,2),ros_p(:,3))
-view(-90,90);
-axis equal
+% figure(2)
+% plot3(ros_p(:,1),ros_p(:,2),ros_p(:,3))
+% view(-90,90);
+% axis equal
 
 % imuFs = 100; % iphone output
 % refloc = [mobile_data.Position(1,:).latitude 
@@ -146,3 +148,5 @@ axis equal
 %         'GyroscopeNoise', 1e-5, 'MagnetometerBiasNoise', 1e-10, ...
 %         'GeomagneticVectorNoise', 1e-12, 'StateCovariance', ...
 %         1e-9*ones(22), 'State', initstate);
+position = ros_p;
+end

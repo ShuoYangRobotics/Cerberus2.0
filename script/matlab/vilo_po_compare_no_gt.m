@@ -1,9 +1,9 @@
 % plot vilo and po in matlab
 
-bag_output_path = '../../../../bags/cerberus2_output/';
+bag_output_path = '../../../../bags/cerberus2_output/230525/';
 
 % dataset_name = '20230304_wightman_park_trot_bridge_loop';       % modify this
-dataset_name = '20230304_wightman_park_flying_trot_right_loop';       % modify this
+dataset_name = '20230525_frick_park_arch_short';       % modify this
 
 
 % look at src/utils/parameters.cpp for possible types
@@ -15,7 +15,7 @@ traj_colors ={'#0072BD','#D95319','#EDB120','#7E2F8E','#77AC30','#4DBEEE','#0000
 total_types = size(traj_types,2);
 
 plot_start = 0;
-plot_end = 415;
+plot_end = 46;
 %% read data
 traj_data = cell(1, total_types);
 for i=1:total_types

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<launch>
+    <!-- use sim time-->
+    <param name="use_sim_time" value="true" />
+
+    <arg name="node_start_delay" default="2.0" />
+
+    <arg name="dataset_name" default="20230215_lab_short" />
+    <arg name="dataset_duration" default="45.0" />
+    <arg name="dataset_foldername" default="230517_sqh_mocap" />
+
+    <node pkg="rosbag" type="play" name="player" required="true"
+        launch-prefix="zsh -c 'sleep $(arg node_start_delay); $0 $@' "
+        args="--clock --hz=2000 -u $(arg dataset_duration) -r 0.5 $(find cerberus2)/../../bags/$(arg dataset_foldername)/$(arg dataset_name).bag" />
+
+
+    <!-- cerberus2 config -->
+    <arg name="vilo_config_file"
+        value="/tmp/temp_run.yaml" />
+
+
+    <node name="cerberus2_main" pkg="cerberus2"
+        args="$(arg vilo_config_file)"
+        type="cerberus2_main"
+        output="screen" />
+</launch>
