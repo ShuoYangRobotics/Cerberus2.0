@@ -38,7 +38,7 @@ traj_euler = cell(1, total_types);
 
 for i=1:total_types
     [traj_t0(i), traj_time{i}, traj_pos{i}, traj_euler{i}, ~] =...
-        parse_data(traj_data{i}, plot_start, plot_end);
+        parse_cerberus2_data(traj_data{i}, plot_start, plot_end);
 end
 
 traj_t0 = traj_t0 - min(traj_t0);

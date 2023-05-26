@@ -1,4 +1,4 @@
-function [t0,time_list, pos_list, euler_list, vel_list] = parse_data(data, plot_start, plot_end)
+function [t0,time_list, pos_list, euler_list, vel_list] = parse_cerberus_data(data, plot_start, plot_end)
 
 % the input csv file should has format of time - pos - euer - velocity
 % time should be nonzero UTC time 16XXXX.XXXX
@@ -11,7 +11,7 @@ nonzero_indices = find(input_time);
 first_nonzero = input_time(nonzero_indices(1));
 t0 = first_nonzero;
 shift_time = input_time(nonzero_indices)-first_nonzero;
-
+shift_time = shift_time/10^9;
 range_idx = shift_time > plot_start & shift_time < plot_end;
 
 time_list = shift_time(range_idx);

@@ -52,7 +52,7 @@ traj_euler = cell(1, cerberus2_total_types);
 for i=1:cerberus2_total_types
     i
     [traj_t0(i), traj_time{i}, traj_pos{i}, traj_euler{i}, ~] =...
-        parse_data(traj_data{i}, plot_start, plot_end);
+        parse_cerberus2_data(traj_data{i}, plot_start, plot_end);
 end
 
 traj_t0 = traj_t0 - min(traj_t0);
@@ -82,7 +82,11 @@ for i=1:total_types
     else 
         disp({csv_file_full_name, ' is not valid'})
     end
-    plot3(cerberus_data(:,2),cerberus_data(:,3),cerberus_data(:,4),'Color',cerberus_traj_colors{i}, 'LineWidth',3); hold on;
+
+    [~, ~, cerberus_pos, ~, ~] =...
+        parse_cerberus_data(cerberus_data, plot_start, plot_end);
+
+    plot3(cerberus_pos(:,1),cerberus_pos(:,2),cerberus_pos(:,3),'Color',cerberus_traj_colors{i}, 'LineWidth',3); hold on;
 
 end 
 
