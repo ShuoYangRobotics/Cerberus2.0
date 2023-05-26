@@ -75,6 +75,9 @@ After the shell script finishes execution, there will be output files in the fol
 We visualize and analyze dataset using scripts in **Cerberus2.0/script/matlab**
 ```
 outdoor_cerberus12_single_dataset_compare.m
+indoor_cerberus12_single_dataset_compare.m
 ```
 Change section 2 to the dataset you want to visualize, modify other values if necessary, and then run the script.
 A figure compares the ground truth, cerberus variants, and cerberus2.0 variants will be generated. 
+
+There are several other scuh scripts in the folder that are obsolete.
