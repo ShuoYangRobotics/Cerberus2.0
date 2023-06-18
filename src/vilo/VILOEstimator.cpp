@@ -444,8 +444,9 @@ void VILOEstimator::processMeasurements() {
               }
             }
             if (count == 0) {
-              Vs[frame_count] = Vs[frame_count - 1];
-              Ps[frame_count] += dt * Vs[frame_count];
+              Vector3d un_acc_0 = Rs[frame_count] * (acc_0 - Bas[frame_count]) - g;
+              Ps[frame_count] += dt * Vs[frame_count] + 0.5 * dt * dt * un_acc_0;
+              Vs[frame_count] += dt * un_acc_0;
             } else {
               average_vel = average_vel / count;
               Vs[frame_count] = Rs[frame_count] * average_vel;  // world frame velocity from LO
@@ -535,7 +536,7 @@ void VILOEstimator::processIMU(double t, double dt, const Vector3d& linear_accel
     linear_acceleration_buf[frame_count].push_back(linear_acceleration);
     angular_velocity_buf[frame_count].push_back(angular_velocity);
 
-    // TODO: IMU acc may be noise, so a better solution for initialization may
+    // TODO: IMU acc may be noisy, so a better solution for initialization may
     // be is to use LO velocity
     int j = frame_count;
 

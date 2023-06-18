@@ -42,7 +42,7 @@ class LOTightIntegrationBase {
     delta_q.setIdentity();
     jacobian.setIdentity();  // this has to be identity as the beginning
     covariance.setZero();
-    covariance = 1e-8 * Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, LO_TIGHT_RESIDUAL_SIZE>::Identity();
+    covariance = 1e-3 * Eigen::Matrix<double, LO_TIGHT_RESIDUAL_SIZE, LO_TIGHT_RESIDUAL_SIZE>::Identity();
 
     // init noise
     noise_diag.diagonal() = 1e-4 * Eigen::Matrix<double, LO_TIGHT_NOISE_SIZE, 1>::Ones();
