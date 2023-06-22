@@ -6,7 +6,7 @@ CERBERUS_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus_output/'];
 CERBERUS2_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus2_output/'];
 
 %% only need to change these three usually
-DATASET_FOLDER_NAME = '230616_convex_mpc';
+DATASET_FOLDER_NAME = '20230620_risqh_robustness_test';
 
 % DATASET_NAME = '20230525_new_IMU_round';
 % DATASET_TIME = 26;
@@ -15,8 +15,8 @@ DATASET_FOLDER_NAME = '230616_convex_mpc';
 % DATASET_Z_RANGE = [-2 2];
 
 
-DATASET_NAME = '20230616-risqh-trot-06-convex-mpc-2';
-DATASET_TIME = 45;
+DATASET_NAME = '230620-risqh-trot-10-052-33square-convexmpc';
+DATASET_TIME = 34;
 DATASET_X_RANGE = [-1 4];
 DATASET_Y_RANGE = [-1 3.5];
 DATASET_Z_RANGE = [-2 2];
@@ -265,4 +265,4 @@ legend([baseline_traj_legend cerberus_traj_legend,cerberus2_traj_legend], 'Locat
 
 %% export to tikz
 % cleanfigure;
-matlab2tikz(strcat('tro_indoor_compare2.tex'), 'height', '\fheighta', 'width', '\fwidtha');
+% matlab2tikz(strcat('tro_indoor_compare2.tex'), 'height', '\fheighta', 'width', '\fwidtha');

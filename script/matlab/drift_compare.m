@@ -18,7 +18,7 @@ displacement = vecnorm(diff')';
 travel_distance = cumsum(displacement);
 
 for i=1:num_methods
-    pos_error = gt_pos - method_pos_lists{i};
+    pos_error = gt_pos(:,1:2) - method_pos_lists{i}(:,1:2);
     pos_error_norm = vecnorm(pos_error')';
     idx = pos_error_norm > travel_distance;
     pos_error_norm(idx) = 0;

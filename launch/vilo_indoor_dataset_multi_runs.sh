@@ -43,6 +43,10 @@ sed -i 's/\(kf_type: \)1/\10/' "$temp_config"
 roslaunch cerberus2 vilo_dataset_multi_runs.launch dataset_name:="$dataset_name" dataset_duration:="$dataset_duration" dataset_foldername:="$dataset_foldername"
 
 # launch the vilo node with different kf_type and vilo_fusion_type: 0 2  
+sed -i 's/\(max_cnt: \)120/\1320/' "$temp_config"
+sed -i 's/\(max_solver_time: \)0.2/\10.5/' "$temp_config"
+sed -i 's/\(max_num_iterations: \)12/\118/' "$temp_config"
+
 sed -i 's/\(vilo_fusion_type: \)1/\12/' "$temp_config"
 roslaunch cerberus2 vilo_dataset_multi_runs.launch dataset_name:="$dataset_name" dataset_duration:="$dataset_duration" dataset_foldername:="$dataset_foldername"
 

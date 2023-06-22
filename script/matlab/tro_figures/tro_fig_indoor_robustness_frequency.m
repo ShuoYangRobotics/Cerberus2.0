@@ -12,13 +12,17 @@ CERBERUS2_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus2_output/'];
 
 %% prepare list of datasets
 % for future experiments, should just need to modify these three items
-DATASET_LIST = {'20230615-risqh-standtrot-04-06-square',...
-                '20230517_risqh_04speed_mocap',...
-                '20230615-risqh-flyingtrot-04-04-square-more-stable'};
-DATASET_LABEL_LIST = {'Standing Trot',...
-                      'Trot',...
-                      'Flying Trot'};
-DATASET_TIME_LIST = {50, 50, 50};
+DATASET_LIST = {'230620-risqh-trot-05-036-33square',...
+                '230620-risqh-trot-05-040-33square',...
+                '230620-risqh-trot-05-044-33square',...
+                '230620-risqh-trot-05-048-33square',...
+                '230620-risqh-trot-05-052-33square'};
+DATASET_LABEL_LIST = {'0.36s',...
+                      '0.40s',...
+                      '0.44s',...
+                      '0.48s',...
+                      '0.52s'};
+DATASET_TIME_LIST = {30, 30, 30, 30, 30};
 
 
 %% iterate through DATASET_LIST
@@ -50,10 +54,10 @@ for idx_dataset=1:num_datasets
     % check whether CERBERUS2_OUTPUT_DATASET_FOLDER_PATH is emppty
     
     % look at src/utils/parameters.cpp for possible types
-    baseline_traj_types =  {     'gt',   'mipo',      'vio'};
+    baseline_traj_types =  {     'gt',    'mipo',      'vio'};
     baseline_traj_colors = {'#0072BD','#EDB120','#7E2F8E'};
     
-    baseline_traj_legend =  {'Ground Truth', 'Multi-IMU PO',  'VINS-Fusion'};
+    baseline_traj_legend =  {'Ground Truth',  'Multi-IMU PO',  'VINS-Fusion'};
     
     baseline_total_types = size(baseline_traj_types,2);
     
@@ -268,4 +272,4 @@ legend(fake_line_handles,plot_traj_legends)
 
 
 %%
-matlab2tikz(strcat('tro_indoor_robustness_gait.tex'), 'height', '\fheight', 'width', '\fwidth');
+matlab2tikz(strcat('tro_indoor_robustness_frequency.tex'), 'height', '\fheight', 'width', '\fwidth');

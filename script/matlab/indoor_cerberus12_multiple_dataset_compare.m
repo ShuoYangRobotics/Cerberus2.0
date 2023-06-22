@@ -1,28 +1,31 @@
-cerberus2_bag_output_path = '../../../../bags/cerberus2_output/multi/';
+
+BAG_FOLDER_PATH = '/home/shuoyang/Documents/vilo_dev/vilo_ws/bags/';
+CERBERUS_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus_output/'];
+CERBERUS2_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus2_output/'];
 
              % name,       gt_yaw,        plot_time
-cerberus2_data_info_list = {{'20230517_risqh_02speed_mocap',                5, 80},...
-                  {'20230517_risqh_04speed_mocap',              5, 44},...
-                  {'20230517_risqh_06speed_mocap',              0, 33},...
-                  {'20230517_risqh_08speed_mocap_more_turns',   0, 35},...
-                  {'20230517_risqh_10speed_mocap',              0, 29}};
+DATASET_LIST =    {{'230620-risqh-trot-05-036-33square',                0, 30},...
+                  {'230620-risqh-trot-05-040-33square',              0, 30},...
+                  {'230620-risqh-trot-05-044-33square',              0, 30},...
+                  {'230620-risqh-trot-05-048-33square',   0, 30},...
+                  {'230620-risqh-trot-05-052-33square',              0, 30}};
 
-cerberus_bag_output_path = '../../../../bags/cerberus_output/';
-% use the same data_info_list
     
 figure(1);clf
 title('different speed')
 total_cells = 0;
-if rem(size(cerberus2_data_info_list,2),2) == 1
-    total_cells = size(cerberus2_data_info_list,2) + 1;
+if rem(size(DATASET_LIST,2),2) == 1
+    total_cells = size(DATASET_LIST,2) + 1;
 else
-    total_cells = size(cerberus2_data_info_list,2);
+    total_cells = size(DATASET_LIST,2);
 end
 
 
-for item_idx = 1:size(cerberus2_data_info_list,2)
-    data_info = cerberus2_data_info_list{item_idx};
-    dataset_name = data_info{1};       
+for item_idx = 1:size(DATASET_LIST,2)
+    data_info = DATASET_LIST{item_idx};
+    DATASET_NAME = data_info{1};
+    CERBERUS_OUTPUT_DATASET_FOLDER_PATH = [CERBERUS_OUTPUT_FOLDER_PATH,DATASET_NAME,'/'];
+    CERBERUS2_OUTPUT_DATASET_FOLDER_PATH = [CERBERUS2_OUTPUT_FOLDER_PATH,DATASET_NAME,'/'];
 
     % look at src/utils/parameters.cpp for possible types
     cerberus2_traj_types =      {     'gt',   'mipo',  'vio',  'vilo-m', 'vilo-tm-n', 'vilo-tm-y'};
@@ -31,12 +34,14 @@ for item_idx = 1:size(cerberus2_data_info_list,2)
     total_types = size(cerberus2_traj_types,2);
     
     plot_start = 0;
-    plot_end = data_info{3};
+    plot_end = data_info{3}
 
     %% read data from cerberus 2
     traj_data = cell(1, total_types);
     for i=1:total_types
-        csv_file_full_name = strcat(cerberus2_bag_output_path,cerberus2_traj_types{i},'-',dataset_name,'.csv');
+        csv_file_full_name = [CERBERUS2_OUTPUT_DATASET_FOLDER_PATH,...
+            cerberus2_traj_types{i},'-',DATASET_NAME,'.csv'];
+        csv_file_full_name
         if isfile(csv_file_full_name)
             traj_data{i} = readmatrix(csv_file_full_name);
         else 
@@ -76,7 +81,8 @@ for item_idx = 1:size(cerberus2_data_info_list,2)
     cerberus_traj_yaw_offset = { 0,        0,       };
     total_types = size(cerberus_traj_types,2);
     for i=1:total_types
-        csv_file_full_name = strcat(cerberus_bag_output_path,cerberus_traj_types{i},'-',dataset_name,'.csv');
+        csv_file_full_name = strcat(CERBERUS_OUTPUT_DATASET_FOLDER_PATH,...
+            cerberus_traj_types{i},'-',DATASET_NAME,'.csv');
         if isfile(csv_file_full_name)
                 cerberus_data = readmatrix(csv_file_full_name);
         else 

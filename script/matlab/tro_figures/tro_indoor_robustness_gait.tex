@@ -4,10 +4,9 @@
 %  http://www.mathworks.com/matlabcentral/fileexchange/22022-matlab2tikz-matlab2tikz
 %where you can also make suggestions and rate matlab2tikz.
 %
-\definecolor{mycolor1}{rgb}{0.85098,0.32549,0.09804}%
-\definecolor{mycolor2}{rgb}{0.92941,0.69412,0.12549}%
-\definecolor{mycolor3}{rgb}{0.49412,0.18431,0.55686}%
-\definecolor{mycolor4}{rgb}{0.46667,0.67451,0.18824}%
+\definecolor{mycolor1}{rgb}{0.92941,0.69412,0.12549}%
+\definecolor{mycolor2}{rgb}{0.49412,0.18431,0.55686}%
+\definecolor{mycolor3}{rgb}{0.46667,0.67451,0.18824}%
 %
 \begin{tikzpicture}
 
@@ -18,11 +17,11 @@ at={(0\fwidth,0\fheight)},
 scale only axis,
 unbounded coords=jump,
 xmin=0,
-xmax=21,
-xtick={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20},
-xticklabels={{},{},{        Stand Trot},{},{},{},{},{},{},{        Trot},{},{},{},{},{},{},{        Flying Trot},{},{},{}},
-ymin=-2,
-ymax=20,
+xmax=18,
+xtick={1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17},
+xticklabels={{},{},{Standing Trot},{},{},{},{},{},{Trot},{},{},{},{},{},{Flying Trot},{},{}},
+ymin=-1,
+ymax=5,
 ylabel style={font=\color{white!15!black}},
 ylabel={Drift (\%)},
 axis background/.style={fill=white},
@@ -30,103 +29,88 @@ legend style={legend cell align=left, align=left, draw=white!15!black}
 ]
 \addplot [color=mycolor1, dashed, forget plot]
   table[row sep=crcr]{%
-1	8.44907297585747\\
-1	12.5584795562846\\
+1	1.30262319528749\\
+1	1.73003206295668\\
 };
 \addplot [color=mycolor2, dashed, forget plot]
   table[row sep=crcr]{%
-2	1.96165336950541\\
-2	2.93730990497279\\
-};
-\addplot [color=mycolor3, dashed, forget plot]
-  table[row sep=crcr]{%
-3	1.75343436309493\\
-3	2.61574829374521\\
+2	1.73986584135525\\
+2	2.6070593532637\\
 };
 \addplot [color=green, dashed, forget plot]
   table[row sep=crcr]{%
-4	1.63604531843673\\
-4	2.43510483325773\\
+3	1.63186474379482\\
+3	2.43457121401419\\
 };
-\addplot [color=mycolor4, dashed, forget plot]
+\addplot [color=mycolor3, dashed, forget plot]
   table[row sep=crcr]{%
-5	1.39018558812012\\
-5	1.70690105112214\\
+4	1.06584225327569\\
+4	1.49058049171645\\
 };
 \addplot [color=black, dashed, forget plot]
   table[row sep=crcr]{%
-6	1.59315634947905\\
-6	2.37939658194046\\
+5	1.54490936561793\\
+5	2.31727162555366\\
 };
 \addplot [color=white, dashed, forget plot]
   table[row sep=crcr]{%
-7	nan\\
-7	nan\\
+6	nan\\
+6	nan\\
 };
 \addplot [color=mycolor1, dashed, forget plot]
   table[row sep=crcr]{%
-8	15.0114454153158\\
-8	16.8937072470318\\
+7	3.27272684699678\\
+7	4.8212836355659\\
 };
 \addplot [color=mycolor2, dashed, forget plot]
   table[row sep=crcr]{%
-9	3.46767077516975\\
-9	5.195755100174\\
-};
-\addplot [color=mycolor3, dashed, forget plot]
-  table[row sep=crcr]{%
-10	2.28909240638792\\
-10	3.353402310105\\
+8	3.3583157878662\\
+8	4.95057931314019\\
 };
 \addplot [color=green, dashed, forget plot]
   table[row sep=crcr]{%
-11	4.98767400695221\\
-11	6.15771588151562\\
+9	4.78220070555809\\
+9	5.59605738728274\\
 };
-\addplot [color=mycolor4, dashed, forget plot]
+\addplot [color=mycolor3, dashed, forget plot]
   table[row sep=crcr]{%
-12	2.56137349063331\\
-12	3.84142608164393\\
+10	3.81250290798354\\
+10	5.715863054542\\
 };
 \addplot [color=black, dashed, forget plot]
   table[row sep=crcr]{%
-13	2.11294651847916\\
-13	3.12050211029758\\
+11	1.65775027660752\\
+11	2.48507228750465\\
 };
 \addplot [color=white, dashed, forget plot]
   table[row sep=crcr]{%
-14	nan\\
-14	nan\\
+12	nan\\
+12	nan\\
 };
 \addplot [color=mycolor1, dashed, forget plot]
   table[row sep=crcr]{%
-15	10.0848938810536\\
-15	14.9119856085163\\
+13	2.31832685837976\\
+13	3.44302822706643\\
 };
 \addplot [color=mycolor2, dashed, forget plot]
   table[row sep=crcr]{%
-16	3.49115568360381\\
-16	5.23366652958354\\
-};
-\addplot [color=mycolor3, dashed, forget plot]
-  table[row sep=crcr]{%
-17	2.90914214201826\\
-17	3.40360165757815\\
+14	2.90579060962012\\
+14	3.40319510847744\\
 };
 \addplot [color=green, dashed, forget plot]
   table[row sep=crcr]{%
-18	2.48852462585535\\
-18	3.08461113891949\\
+15	2.48605375242395\\
+15	3.07912395530034\\
 };
-\addplot [color=mycolor4, dashed, forget plot]
+\addplot [color=mycolor3, dashed, forget plot]
   table[row sep=crcr]{%
-19	2.03033948232796\\
-19	3.04502831845293\\
+16	0.715846068611105\\
+16	1.07242446597907\\
 };
 \addplot [color=black, dashed, forget plot]
   table[row sep=crcr]{%
-20	2.49534940877509\\
-20	3.73492438021598\\
+17	2.49238502819458\\
+17	3.72532995202905\\
 };
 \addplot [color=mycolor1, dashed, forget plot]
   table[row sep=crcr]{%
@@ -138,37 +122,37 @@ legend style={legend cell align=left, align=left, draw=white!15!black}
 2	0\\
 2	0\\
 };
-\addplot [color=mycolor3, dashed, forget plot]
-  table[row sep=crcr]{%
-3	0\\
-3	0\\
-};
 \addplot [color=green, dashed, forget plot]
   table[row sep=crcr]{%
-4	0\\
-4	0\\
+3	0\\
+3	0\\
 };
-\addplot [color=mycolor4, dashed, forget plot]
+\addplot [color=mycolor3, dashed, forget plot]
   table[row sep=crcr]{%
-5	0\\
-5	0\\
+4	0\\
+4	0\\
 };
 \addplot [color=black, dashed, forget plot]
   table[row sep=crcr]{%
-6	0\\
-6	0\\
+5	0\\
+5	0\\
 };
 \addplot [color=white, dashed, forget plot]
   table[row sep=crcr]{%
-7	nan\\
-7	nan\\
+6	nan\\
+6	nan\\
 };
 \addplot [color=mycolor1, dashed, forget plot]
+  table[row sep=crcr]{%
+7	0\\
+7	0\\
+};
+\addplot [color=mycolor2, dashed, forget plot]
   table[row sep=crcr]{%
 8	0\\
 8	0\\
 };
-\addplot [color=mycolor2, dashed, forget plot]
+\addplot [color=green, dashed, forget plot]
   table[row sep=crcr]{%
 9	0\\
 9	0\\
@@ -178,155 +162,125 @@ legend style={legend cell align=left, align=left, draw=white!15!black}
 10	0\\
 10	0\\
 };
-\addplot [color=green, dashed, forget plot]
-  table[row sep=crcr]{%
-11	0\\
-11	0\\
-};
-\addplot [color=mycolor4, dashed, forget plot]
-  table[row sep=crcr]{%
-12	0\\
-12	0\\
-};
 \addplot [color=black, dashed, forget plot]
   table[row sep=crcr]{%
-13	0\\
-13	0\\
+11	0\\
+11	0\\
 };
 \addplot [color=white, dashed, forget plot]
   table[row sep=crcr]{%
-14	nan\\
-14	nan\\
+12	nan\\
+12	nan\\
 };
 \addplot [color=mycolor1, dashed, forget plot]
   table[row sep=crcr]{%
-15	0\\
-15	0\\
+13	0\\
+13	0\\
 };
 \addplot [color=mycolor2, dashed, forget plot]
   table[row sep=crcr]{%
-16	0\\
-16	0\\
-};
-\addplot [color=mycolor3, dashed, forget plot]
-  table[row sep=crcr]{%
-17	0\\
-17	0\\
+14	0\\
+14	0\\
 };
 \addplot [color=green, dashed, forget plot]
   table[row sep=crcr]{%
-18	0\\
-18	0\\
+15	0\\
+15	0\\
 };
-\addplot [color=mycolor4, dashed, forget plot]
+\addplot [color=mycolor3, dashed, forget plot]
   table[row sep=crcr]{%
-19	0\\
-19	0\\
+16	0\\
+16	0\\
 };
 \addplot [color=black, dashed, forget plot]
   table[row sep=crcr]{%
-20	0\\
-20	0\\
+17	0\\
+17	0\\
 };
 \addplot [color=mycolor1, forget plot]
   table[row sep=crcr]{%
-0.875	12.5584795562846\\
-1.125	12.5584795562846\\
+0.875	1.73003206295668\\
+1.125	1.73003206295668\\
 };
 \addplot [color=mycolor2, forget plot]
   table[row sep=crcr]{%
-1.875	2.93730990497279\\
-2.125	2.93730990497279\\
-};
-\addplot [color=mycolor3, forget plot]
-  table[row sep=crcr]{%
-2.875	2.61574829374521\\
-3.125	2.61574829374521\\
+1.875	2.6070593532637\\
+2.125	2.6070593532637\\
 };
 \addplot [color=green, forget plot]
   table[row sep=crcr]{%
-3.875	2.43510483325773\\
-4.125	2.43510483325773\\
+2.875	2.43457121401419\\
+3.125	2.43457121401419\\
 };
-\addplot [color=mycolor4, forget plot]
+\addplot [color=mycolor3, forget plot]
   table[row sep=crcr]{%
-4.875	1.70690105112214\\
-5.125	1.70690105112214\\
+3.875	1.49058049171645\\
+4.125	1.49058049171645\\
 };
 \addplot [color=black, forget plot]
   table[row sep=crcr]{%
-5.875	2.37939658194046\\
-6.125	2.37939658194046\\
+4.875	2.31727162555366\\
+5.125	2.31727162555366\\
 };
 \addplot [color=white, forget plot]
   table[row sep=crcr]{%
-6.875	nan\\
-7.125	nan\\
+5.875	nan\\
+6.125	nan\\
 };
 \addplot [color=mycolor1, forget plot]
   table[row sep=crcr]{%
-7.875	16.8937072470318\\
-8.125	16.8937072470318\\
+6.875	4.8212836355659\\
+7.125	4.8212836355659\\
 };
 \addplot [color=mycolor2, forget plot]
   table[row sep=crcr]{%
-8.875	5.195755100174\\
-9.125	5.195755100174\\
-};
-\addplot [color=mycolor3, forget plot]
-  table[row sep=crcr]{%
-9.875	3.353402310105\\
-10.125	3.353402310105\\
+7.875	4.95057931314019\\
+8.125	4.95057931314019\\
 };
 \addplot [color=green, forget plot]
   table[row sep=crcr]{%
-10.875	6.15771588151562\\
-11.125	6.15771588151562\\
+8.875	5.59605738728274\\
+9.125	5.59605738728274\\
 };
-\addplot [color=mycolor4, forget plot]
+\addplot [color=mycolor3, forget plot]
   table[row sep=crcr]{%
-11.875	3.84142608164393\\
-12.125	3.84142608164393\\
+9.875	5.715863054542\\
+10.125	5.715863054542\\
 };
 \addplot [color=black, forget plot]
   table[row sep=crcr]{%
-12.875	3.12050211029758\\
-13.125	3.12050211029758\\
+10.875	2.48507228750465\\
+11.125	2.48507228750465\\
 };
 \addplot [color=white, forget plot]
   table[row sep=crcr]{%
-13.875	nan\\
-14.125	nan\\
+11.875	nan\\
+12.125	nan\\
 };
 \addplot [color=mycolor1, forget plot]
   table[row sep=crcr]{%
-14.875	14.9119856085163\\
-15.125	14.9119856085163\\
+12.875	3.44302822706643\\
+13.125	3.44302822706643\\
 };
 \addplot [color=mycolor2, forget plot]
   table[row sep=crcr]{%
-15.875	5.23366652958354\\
-16.125	5.23366652958354\\
-};
-\addplot [color=mycolor3, forget plot]
-  table[row sep=crcr]{%
-16.875	3.40360165757815\\
-17.125	3.40360165757815\\
+13.875	3.40319510847744\\
+14.125	3.40319510847744\\
 };
 \addplot [color=green, forget plot]
   table[row sep=crcr]{%
-17.875	3.08461113891949\\
-18.125	3.08461113891949\\
+14.875	3.07912395530034\\
+15.125	3.07912395530034\\
 };
-\addplot [color=mycolor4, forget plot]
+\addplot [color=mycolor3, forget plot]
   table[row sep=crcr]{%
-18.875	3.04502831845293\\
-19.125	3.04502831845293\\
+15.875	1.07242446597907\\
+16.125	1.07242446597907\\
 };
 \addplot [color=black, forget plot]
   table[row sep=crcr]{%
-19.875	3.73492438021598\\
-20.125	3.73492438021598\\
+16.875	3.72532995202905\\
+17.125	3.72532995202905\\
 };
 \addplot [color=mycolor1, forget plot]
   table[row sep=crcr]{%
@@ -338,37 +292,37 @@ legend style={legend cell align=left, align=left, draw=white!15!black}
 1.875	0\\
 2.125	0\\
 };
-\addplot [color=mycolor3, forget plot]
+\addplot [color=green, forget plot]
   table[row sep=crcr]{%
 2.875	0\\
 3.125	0\\
 };
-\addplot [color=green, forget plot]
+\addplot [color=mycolor3, forget plot]
   table[row sep=crcr]{%
 3.875	0\\
 4.125	0\\
 };
-\addplot [color=mycolor4, forget plot]
+\addplot [color=black, forget plot]
   table[row sep=crcr]{%
 4.875	0\\
 5.125	0\\
 };
-\addplot [color=black, forget plot]
-  table[row sep=crcr]{%
-5.875	0\\
-6.125	0\\
-};
 \addplot [color=white, forget plot]
   table[row sep=crcr]{%
-6.875	nan\\
-7.125	nan\\
+5.875	nan\\
+6.125	nan\\
 };
 \addplot [color=mycolor1, forget plot]
+  table[row sep=crcr]{%
+6.875	0\\
+7.125	0\\
+};
+\addplot [color=mycolor2, forget plot]
   table[row sep=crcr]{%
 7.875	0\\
 8.125	0\\
 };
-\addplot [color=mycolor2, forget plot]
+\addplot [color=green, forget plot]
   table[row sep=crcr]{%
 8.875	0\\
 9.125	0\\
@@ -378,339 +332,279 @@ legend style={legend cell align=left, align=left, draw=white!15!black}
 9.875	0\\
 10.125	0\\
 };
-\addplot [color=green, forget plot]
+\addplot [color=black, forget plot]
   table[row sep=crcr]{%
 10.875	0\\
 11.125	0\\
 };
-\addplot [color=mycolor4, forget plot]
+\addplot [color=white, forget plot]
   table[row sep=crcr]{%
-11.875	0\\
-12.125	0\\
+11.875	nan\\
+12.125	nan\\
 };
-\addplot [color=black, forget plot]
+\addplot [color=mycolor1, forget plot]
   table[row sep=crcr]{%
 12.875	0\\
 13.125	0\\
 };
-\addplot [color=white, forget plot]
+\addplot [color=mycolor2, forget plot]
   table[row sep=crcr]{%
-13.875	nan\\
-14.125	nan\\
+13.875	0\\
+14.125	0\\
 };
-\addplot [color=mycolor1, forget plot]
+\addplot [color=green, forget plot]
   table[row sep=crcr]{%
 14.875	0\\
 15.125	0\\
 };
-\addplot [color=mycolor2, forget plot]
+\addplot [color=mycolor3, forget plot]
   table[row sep=crcr]{%
 15.875	0\\
 16.125	0\\
 };
-\addplot [color=mycolor3, forget plot]
+\addplot [color=black, forget plot]
   table[row sep=crcr]{%
 16.875	0\\
 17.125	0\\
 };
-\addplot [color=green, forget plot]
-  table[row sep=crcr]{%
-17.875	0\\
-18.125	0\\
-};
-\addplot [color=mycolor4, forget plot]
-  table[row sep=crcr]{%
-18.875	0\\
-19.125	0\\
-};
-\addplot [color=black, forget plot]
-  table[row sep=crcr]{%
-19.875	0\\
-20.125	0\\
-};
 \addplot [color=mycolor1, forget plot]
   table[row sep=crcr]{%
 0.75	0\\
-0.75	8.44907297585747\\
-1.25	8.44907297585747\\
+0.75	1.30262319528749\\
+1.25	1.30262319528749\\
 1.25	0\\
 0.75	0\\
 };
 \addplot [color=mycolor2, forget plot]
   table[row sep=crcr]{%
 1.75	0\\
-1.75	1.96165336950541\\
-2.25	1.96165336950541\\
+1.75	1.73986584135525\\
+2.25	1.73986584135525\\
 2.25	0\\
 1.75	0\\
 };
-\addplot [color=mycolor3, forget plot]
+\addplot [color=green, forget plot]
   table[row sep=crcr]{%
 2.75	0\\
-2.75	1.75343436309493\\
-3.25	1.75343436309493\\
+2.75	1.63186474379482\\
+3.25	1.63186474379482\\
 3.25	0\\
 2.75	0\\
 };
-\addplot [color=green, forget plot]
+\addplot [color=mycolor3, forget plot]
   table[row sep=crcr]{%
 3.75	0\\
-3.75	1.63604531843673\\
-4.25	1.63604531843673\\
+3.75	1.06584225327569\\
+4.25	1.06584225327569\\
 4.25	0\\
 3.75	0\\
 };
-\addplot [color=mycolor4, forget plot]
+\addplot [color=black, forget plot]
   table[row sep=crcr]{%
 4.75	0\\
-4.75	1.39018558812012\\
-5.25	1.39018558812012\\
+4.75	1.54490936561793\\
+5.25	1.54490936561793\\
 5.25	0\\
 4.75	0\\
 };
-\addplot [color=black, forget plot]
-  table[row sep=crcr]{%
-5.75	0\\
-5.75	1.59315634947905\\
-6.25	1.59315634947905\\
-6.25	0\\
-5.75	0\\
-};
 \addplot [color=white, forget plot]
   table[row sep=crcr]{%
-6.75	nan\\
-6.75	nan\\
-7.25	nan\\
-7.25	nan\\
-6.75	nan\\
+5.75	nan\\
+5.75	nan\\
+6.25	nan\\
+6.25	nan\\
+5.75	nan\\
 };
 \addplot [color=mycolor1, forget plot]
   table[row sep=crcr]{%
-7.75	0\\
-7.75	15.0114454153158\\
-8.25	15.0114454153158\\
-8.25	0\\
-7.75	0\\
+6.75	0\\
+6.75	3.27272684699678\\
+7.25	3.27272684699678\\
+7.25	0\\
+6.75	0\\
 };
 \addplot [color=mycolor2, forget plot]
   table[row sep=crcr]{%
+7.75	0\\
+7.75	3.3583157878662\\
+8.25	3.3583157878662\\
+8.25	0\\
+7.75	0\\
+};
+\addplot [color=green, forget plot]
+  table[row sep=crcr]{%
 8.75	0\\
-8.75	3.46767077516975\\
-9.25	3.46767077516975\\
+8.75	4.78220070555809\\
+9.25	4.78220070555809\\
 9.25	0\\
 8.75	0\\
 };
 \addplot [color=mycolor3, forget plot]
   table[row sep=crcr]{%
 9.75	0\\
-9.75	2.28909240638792\\
-10.25	2.28909240638792\\
+9.75	3.81250290798354\\
+10.25	3.81250290798354\\
 10.25	0\\
 9.75	0\\
 };
-\addplot [color=green, forget plot]
+\addplot [color=black, forget plot]
   table[row sep=crcr]{%
 10.75	0\\
-10.75	4.98767400695221\\
-11.25	4.98767400695221\\
+10.75	1.65775027660752\\
+11.25	1.65775027660752\\
 11.25	0\\
 10.75	0\\
 };
-\addplot [color=mycolor4, forget plot]
+\addplot [color=white, forget plot]
   table[row sep=crcr]{%
-11.75	0\\
-11.75	2.56137349063331\\
-12.25	2.56137349063331\\
-12.25	0\\
-11.75	0\\
+11.75	nan\\
+11.75	nan\\
+12.25	nan\\
+12.25	nan\\
+11.75	nan\\
 };
-\addplot [color=black, forget plot]
+\addplot [color=mycolor1, forget plot]
   table[row sep=crcr]{%
 12.75	0\\
-12.75	2.11294651847916\\
-13.25	2.11294651847916\\
+12.75	2.31832685837976\\
+13.25	2.31832685837976\\
 13.25	0\\
 12.75	0\\
 };
-\addplot [color=white, forget plot]
+\addplot [color=mycolor2, forget plot]
   table[row sep=crcr]{%
-13.75	nan\\
-13.75	nan\\
-14.25	nan\\
-14.25	nan\\
-13.75	nan\\
+13.75	0\\
+13.75	2.90579060962012\\
+14.25	2.90579060962012\\
+14.25	0\\
+13.75	0\\
 };
-\addplot [color=mycolor1, forget plot]
+\addplot [color=green, forget plot]
   table[row sep=crcr]{%
 14.75	0\\
-14.75	10.0848938810536\\
-15.25	10.0848938810536\\
+14.75	2.48605375242395\\
+15.25	2.48605375242395\\
 15.25	0\\
 14.75	0\\
 };
-\addplot [color=mycolor2, forget plot]
+\addplot [color=mycolor3, forget plot]
   table[row sep=crcr]{%
 15.75	0\\
-15.75	3.49115568360381\\
-16.25	3.49115568360381\\
+15.75	0.715846068611105\\
+16.25	0.715846068611105\\
 16.25	0\\
 15.75	0\\
 };
-\addplot [color=mycolor3, forget plot]
+\addplot [color=black, forget plot]
   table[row sep=crcr]{%
 16.75	0\\
-16.75	2.90914214201826\\
-17.25	2.90914214201826\\
+16.75	2.49238502819458\\
+17.25	2.49238502819458\\
 17.25	0\\
 16.75	0\\
 };
-\addplot [color=green, forget plot]
-  table[row sep=crcr]{%
-17.75	0\\
-17.75	2.48852462585535\\
-18.25	2.48852462585535\\
-18.25	0\\
-17.75	0\\
-};
-\addplot [color=mycolor4, forget plot]
-  table[row sep=crcr]{%
-18.75	0\\
-18.75	2.03033948232796\\
-19.25	2.03033948232796\\
-19.25	0\\
-18.75	0\\
-};
-\addplot [color=black, forget plot]
-  table[row sep=crcr]{%
-19.75	0\\
-19.75	2.49534940877509\\
-20.25	2.49534940877509\\
-20.25	0\\
-19.75	0\\
-};
 \addplot [color=mycolor1, forget plot]
   table[row sep=crcr]{%
-0.75	3.11263414791009\\
-1.25	3.11263414791009\\
+0.75	0.0922158443418121\\
+1.25	0.0922158443418121\\
 };
 \addplot [color=mycolor2, forget plot]
   table[row sep=crcr]{%
-1.75	0.695334183585669\\
-2.25	0.695334183585669\\
-};
-\addplot [color=mycolor3, forget plot]
-  table[row sep=crcr]{%
-2.75	0.198343172346729\\
-3.25	0.198343172346729\\
+1.75	0.160552752232239\\
+2.25	0.160552752232239\\
 };
 \addplot [color=green, forget plot]
   table[row sep=crcr]{%
-3.75	0.216506026224654\\
-4.25	0.216506026224654\\
+2.75	0.216253150591982\\
+3.25	0.216253150591982\\
 };
-\addplot [color=mycolor4, forget plot]
+\addplot [color=mycolor3, forget plot]
   table[row sep=crcr]{%
-4.75	0.40735970297569\\
-5.25	0.40735970297569\\
+3.75	0.0135021595492516\\
+4.25	0.0135021595492516\\
 };
 \addplot [color=black, forget plot]
   table[row sep=crcr]{%
-5.75	0.206316384282738\\
-6.25	0.206316384282738\\
+4.75	0.203977732840533\\
+5.25	0.203977732840533\\
 };
 \addplot [color=white, forget plot]
   table[row sep=crcr]{%
-6.75	nan\\
-7.25	nan\\
+5.75	nan\\
+6.25	nan\\
 };
 \addplot [color=mycolor1, forget plot]
   table[row sep=crcr]{%
-7.75	4.04698404945178\\
-8.25	4.04698404945178\\
+6.75	0.674152105717109\\
+7.25	0.674152105717109\\
 };
 \addplot [color=mycolor2, forget plot]
   table[row sep=crcr]{%
-8.75	0.904992754703855\\
-9.25	0.904992754703855\\
-};
-\addplot [color=mycolor3, forget plot]
-  table[row sep=crcr]{%
-9.75	0.670831756911932\\
-10.25	0.670831756911932\\
+7.75	0.644317696230618\\
+8.25	0.644317696230618\\
 };
 \addplot [color=green, forget plot]
   table[row sep=crcr]{%
-10.75	0.656227122284499\\
-11.25	0.656227122284499\\
+8.75	0.642748811219641\\
+9.25	0.642748811219641\\
 };
-\addplot [color=mycolor4, forget plot]
+\addplot [color=mycolor3, forget plot]
   table[row sep=crcr]{%
-11.75	0.336688676536758\\
-12.25	0.336688676536758\\
+9.75	0.72478271831432\\
+10.25	0.72478271831432\\
 };
 \addplot [color=black, forget plot]
   table[row sep=crcr]{%
-12.75	0.122217427067824\\
-13.25	0.122217427067824\\
+10.75	0.00215755362681971\\
+11.25	0.00215755362681971\\
 };
 \addplot [color=white, forget plot]
   table[row sep=crcr]{%
-13.75	nan\\
-14.25	nan\\
+11.75	nan\\
+12.25	nan\\
 };
 \addplot [color=mycolor1, forget plot]
   table[row sep=crcr]{%
-14.75	2.10485248108829\\
-15.25	2.10485248108829\\
+12.75	0.364542593698622\\
+13.25	0.364542593698622\\
 };
 \addplot [color=mycolor2, forget plot]
   table[row sep=crcr]{%
-15.75	0.99495164671588\\
-16.25	0.99495164671588\\
-};
-\addplot [color=mycolor3, forget plot]
-  table[row sep=crcr]{%
-16.75	1.13510516612004\\
-17.25	1.13510516612004\\
+13.75	1.13390989741089\\
+14.25	1.13390989741089\\
 };
 \addplot [color=green, forget plot]
   table[row sep=crcr]{%
-17.75	0.46542541376545\\
-18.25	0.46542541376545\\
+14.75	0.464974534390299\\
+15.25	0.464974534390299\\
 };
-\addplot [color=mycolor4, forget plot]
+\addplot [color=mycolor3, forget plot]
   table[row sep=crcr]{%
-18.75	0.720906882886763\\
-19.25	0.720906882886763\\
+15.75	0.0503957980015137\\
+16.25	0.0503957980015137\\
 };
 \addplot [color=black, forget plot]
   table[row sep=crcr]{%
-19.75	0.848628358490944\\
-20.25	0.848628358490944\\
+16.75	0.84445600306699\\
+17.25	0.84445600306699\\
 };
 \addplot [color=black, dashed, forget plot]
   table[row sep=crcr]{%
-7	-2\\
-7	20\\
+6	-1\\
+6	5\\
 };
 \addplot [color=black, dashed, forget plot]
   table[row sep=crcr]{%
-14	-2\\
-14	20\\
+12	-1\\
+12	5\\
 };
 \addplot [color=mycolor1, line width=4.0pt]
   table[row sep=crcr]{%
 -5	-5\\
 };
-\addlegendentry{Standard PO}
-
-\addplot [color=mycolor2, line width=4.0pt]
-  table[row sep=crcr]{%
--5	-5\\
-};
 \addlegendentry{Multi-IMU PO}
 
-\addplot [color=mycolor3, line width=4.0pt]
+\addplot [color=mycolor2, line width=4.0pt]
   table[row sep=crcr]{%
 -5	-5\\
 };
@@ -722,7 +616,7 @@ legend style={legend cell align=left, align=left, draw=white!15!black}
 };
 \addlegendentry{Cerberus}
 
-\addplot [color=mycolor4, line width=4.0pt]
+\addplot [color=mycolor3, line width=4.0pt]
   table[row sep=crcr]{%
 -5	-5\\
 };
