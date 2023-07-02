@@ -4,35 +4,48 @@ CERBERUS_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus_output/'];
 CERBERUS2_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus2_output/'];
 
              % name,       gt_yaw,        plot_time
-DATASET_LIST =    {{'230622-risqh-trot-06-036-33square2',                0, 99},...
-                  {'230622-risqh-trot-02-052-33square',              0, 99},...
-                  {'230622-risqh-trot-04-044-33square',              0, 99},...
-                  {'230622-risqh-trot-08-036-33square',   0, 99},...
-                  {'230622-risqh-trot-10-032-33square',              0, 99}};
+FLY_DATASET_LIST =    {{'230625-risqh-flytrot-02-032-33square',                0, 99},...
+                  {'230625-risqh-flytrot-02-036-33square',              0, 99},...
+                  {'230625-risqh-flytrot-02-040-33square',              0, 99},...
+                  ...
+                  {'230625-risqh-flytrot-04-032-33square',              0, 99},...
+                  {'230625-risqh-flytrot-04-036-33square',              0, 99},...
+                  {'230625-risqh-flytrot-04-040-33square',              0, 99},...
+                  ...
+                  {'230625-risqh-flytrot-06-032-33square',              0, 99},...
+                  {'230625-risqh-flytrot-06-036-33square',              0, 99},...
+                  {'230625-risqh-flytrot-06-040-33square',              0, 99},...
+                  ...
+                  {'230625-risqh-flytrot-08-032-33square',              0, 99},...
+                  {'230625-risqh-flytrot-08-036-33square',              0, 99},...
+                  {'230625-risqh-flytrot-08-040-33square',              0, 99},...
+                  ...
+                  {'230625-risqh-flytrot-10-032-33square',              0, 99},...
+                  {'230625-risqh-flytrot-10-036-33square',              0, 99},...
+                  {'230625-risqh-flytrot-12-036-33square',              0, 99}
+                  };
 
-ROW = 3;
+ROW = 5;
     
 figure(1);
-title('different speed')
-total_cells = 0;
-if rem(size(DATASET_LIST,2),2) == 1
-    total_cells = size(DATASET_LIST,2) + 1;
-else
-    total_cells = size(DATASET_LIST,2);
-end
+title('different speed, gait time')
+set(gcf,'color','w');
+total_cells = size(FLY_DATASET_LIST,2);
 
-t = tiledlayout(total_cells/ROW,ROW,'TileSpacing','Compact','Padding','Compact');
 
-for item_idx = 1:size(DATASET_LIST,2)
-    data_info = DATASET_LIST{item_idx};
+t = tiledlayout(ceil(total_cells/ROW),ROW,'TileSpacing','Compact','Padding','Compact');
+
+for item_idx = 1:size(FLY_DATASET_LIST,2)
+    data_info = FLY_DATASET_LIST{item_idx};
     DATASET_NAME = data_info{1};
     CERBERUS_OUTPUT_DATASET_FOLDER_PATH = [CERBERUS_OUTPUT_FOLDER_PATH,DATASET_NAME,'/'];
     CERBERUS2_OUTPUT_DATASET_FOLDER_PATH = [CERBERUS2_OUTPUT_FOLDER_PATH,DATASET_NAME,'/'];
 
     % look at src/utils/parameters.cpp for possible types
-    cerberus2_traj_types =      {     'gt',   'mipo',  'vio',  'vilo-m', 'vilo-tm-n'};
-    cerberus2_traj_colors =     {'#0072BD','#EDB120','#7E2F8E','#77AC30','#000000'};
-    cerberus2_traj_yaw_offset = { data_info{2},        0,         0,   0,      0};
+    cerberus2_traj_types =      {     'gt',   'sipo', 'mipo', 'vio',  'vilo-m', 'vilo-tm-n'};
+    cerberus2_traj_colors =     {'#0072BD','#D95319','#EDB120','#7E2F8E','#77AC30','#000000'};
+    cerberus2_traj_legends =     {'Ground Truth',   'Standard PO', 'Multi-IMU PO',  'VINS-Fusion', 'Cerberus2-L', 'Cerberus2-T'};
+    cerberus2_traj_yaw_offset = { data_info{2},        0,         0,   0,      0,   0};
     total_types = size(cerberus2_traj_types,2);
     
     plot_start = 0;
@@ -79,8 +92,9 @@ for item_idx = 1:size(DATASET_LIST,2)
     end
     % construct plot
     %% plot cerberus 1 data
-    cerberus_traj_types =      {     'cerberus-wb',   'cerberus-wob',};
-    cerberus_traj_colors =     {'#0000FF','#00FF00'};
+    cerberus_traj_types =      {'cerberus-wob',};
+    cerberus_traj_legends =      {'Cerberus',};
+    cerberus_traj_colors =     {'#00FF00'};
     cerberus_traj_yaw_offset = { 0,        0,       };
     total_types = size(cerberus_traj_types,2);
     for i=1:total_types
@@ -97,7 +111,7 @@ for item_idx = 1:size(DATASET_LIST,2)
     %% final legend and figure adjustment
     axis equal
     view(0,90)
-    % legend([cerberus2_traj_types  cerberus_traj_types], 'Location','best')
-    % xlim([-2 5])
-    % ylim([-1.5 4.5])
+    xlim([-1 4])
+    ylim([-1 4])
 end
+legend([cerberus2_traj_legends  cerberus_traj_legends], 'Location','best')

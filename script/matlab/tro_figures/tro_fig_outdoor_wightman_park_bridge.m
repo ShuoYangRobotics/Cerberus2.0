@@ -1,5 +1,7 @@
 % add mobile gps process code
 addpath('../mobile_gps_process/')
+addpath(genpath('matlab2tikz/'))
+addpath('../')
 
 % prepare necessary file paths
 BAG_FOLDER_PATH = '/home/rosie2/vilo_dev/vilo_ws/bags/';
@@ -10,13 +12,18 @@ CERBERUS2_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus2_output/'];
 DATASET_FOLDER_NAME = '230304_wightman';
 DATASET_NAME = '20230304_wightman_park_trot_bridge_loop';
 DATASET_TIME = 417;
-SAMPLE_RATE=100.0;
-GT_TIME_OFFSET = 100; % how much GT is longer than the robot dataset
-GT_YAW_OFFSET = -10; % deg of gt
 
-DATASET_X_RANGE = [-50 25];
-DATASET_Y_RANGE = [-10 40];
-DATASET_Z_RANGE = [-5 5];
+% DATASET_FOLDER_NAME = '230630_schenley';
+% DATASET_NAME = '230630-schen-trot-08-038-tennis-to-overlook';
+% DATASET_TIME = 530;
+
+SAMPLE_RATE = 100.0;
+GT_TIME_OFFSET = 100; % how much GT is longer than the robot dataset
+GT_YAW_OFFSET = 0; % deg of gt
+
+DATASET_X_RANGE = [-59 16];
+DATASET_Y_RANGE = [-7 44];
+DATASET_Z_RANGE = [-55 55];
 
 %% if mobile exists
 % process mobile data
@@ -24,19 +31,23 @@ mobile_gps_file_name = [BAG_FOLDER_PATH,'/',DATASET_FOLDER_NAME,'/',...
     DATASET_NAME,'.mat'];
 has_mobile_gt = 0;
 if isfile(mobile_gps_file_name)
-    gps_position = position_filter(mobile_gps_file_name, DATASET_TIME+GT_TIME_OFFSET, GT_YAW_OFFSET, SAMPLE_RATE);
+    gps_position = position_filter(mobile_gps_file_name, DATASET_TIME+GT_TIME_OFFSET, GT_YAW_OFFSET,SAMPLE_RATE);
     has_mobile_gt = 1;
 else
     has_mobile_gt = 0;
 end
-
+%%
+gps_position = movmean(gps_position,75,1);
 %% prepare figure
 figure(1);clf
 
+plot_didx = 10;
 % plot gps_position as gt
 traj_types =      {     'gt'};
 traj_colors =     {'#0072BD'};
-plot3(gps_position(:,1),gps_position(:,2),gps_position(:,3), 'Color',traj_colors{1}); hold on;
+
+traj_legend =  {'Ground Truth'};
+plot(gps_position(1:400:end,1),gps_position(1:400:end,2), 'Color',traj_colors{1}, 'LineWidth',3); hold on;
 
 %% plot cerberus2
 CERBERUS2_OUTPUT_DATASET_FOLDER_PATH = [CERBERUS2_OUTPUT_FOLDER_PATH,DATASET_NAME,'/'];
@@ -44,9 +55,10 @@ CERBERUS2_OUTPUT_DATASET_FOLDER_PATH = [CERBERUS2_OUTPUT_FOLDER_PATH,DATASET_NAM
 
 % look at src/utils/parameters.cpp for possible types
 % traj_types = {'gt','mipo','sipo','vio','vilo-m','vilo-s'};
-cerberus2_traj_types = {'mipo','sipo','vio','vilo-m','vilo-s','vilo-tm-n'};
-cerberus2_traj_colors ={'#EDB120','#D95319','#7E2F8E','#77AC30','#4DBEEE','#000000'};
+cerberus2_traj_types = {'sipo','mipo'};
+cerberus2_traj_colors ={'#D95319','#EDB120'};
 
+cerberus2_traj_legend =  {'Standard PO', 'Multi-IMU PO'};
 % traj_types = {'mipo','vilo-tm-n'};
 cerberus2_total_types = size(cerberus2_traj_types,2);
 
@@ -85,34 +97,15 @@ end
 
 
 for i=1:cerberus2_total_types
- plot3(traj_pos{i}(:,1),traj_pos{i}(:,2),traj_pos{i}(:,3),'Color',cerberus2_traj_colors{i}, 'LineWidth',3); hold on;
+ plot(traj_pos{i}(1:plot_didx:end,1),traj_pos{i}(1:plot_didx:end,2),'Color',cerberus2_traj_colors{i}, 'LineWidth',3); hold on;
 end
-
-%% plot cerberus 1 data
-CERBERUS_OUTPUT_DATASET_FOLDER_PATH = [CERBERUS_OUTPUT_FOLDER_PATH,DATASET_NAME,'/'];
-% check whether CERBERUS2_OUTPUT_DATASET_FOLDER_PATH is emppty
-cerberus_traj_types =      {     'cerberus-wob',};
-cerberus_traj_colors =     {'#00FF00'};
-cerberus_traj_yaw_offset = {       0       };
-total_types = size(cerberus_traj_types,2);
-for i=1:total_types
-    csv_file_full_name = strcat(CERBERUS_OUTPUT_DATASET_FOLDER_PATH,...
-        cerberus_traj_types{i},'-',DATASET_NAME,'.csv');
-    csv_file_full_name
-    if isfile(csv_file_full_name)
-            cerberus_data = readmatrix(csv_file_full_name);
-    else 
-        disp({csv_file_full_name, ' is not valid'})
-    end
-    plot3(cerberus_data(:,2),cerberus_data(:,3),cerberus_data(:,4),'Color',cerberus_traj_colors{i}, 'LineWidth',3); hold on;
-
-end 
-
 
 %% final adjustment to the figure
 axis equal
-view(0,90)
 xlim(DATASET_X_RANGE)    
 ylim(DATASET_Y_RANGE)
 zlim(DATASET_Z_RANGE)
-legend([traj_types, cerberus2_traj_types,cerberus_traj_types], 'Location','best')
+legend([traj_legend, cerberus2_traj_legend], 'Location','northwest')
+set(gca,'Box','off');
+
+matlab2tikz(strcat('outdoor_sipo_mipo_compare2.tex'), 'height', '\fheight', 'width', '\fwidth');

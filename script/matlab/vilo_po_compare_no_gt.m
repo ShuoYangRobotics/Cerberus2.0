@@ -8,7 +8,7 @@ dataset_name = '20230525_frick_park_arch_short';       % modify this
 
 % look at src/utils/parameters.cpp for possible types
 % traj_types = {'gt','mipo','sipo','vio','vilo-m','vilo-s'};
-traj_types = {'mipo','sipo','vio','vilo-m','vilo-s','vilo-tm-n','vilo-tm-y'};
+traj_types = {    'mipo','sipo','vio','vilo-m','vilo-s',    'vilo-tm-n',    'vilo-tm-y'};
 traj_colors ={'#0072BD','#D95319','#EDB120','#7E2F8E','#77AC30','#4DBEEE','#000000'};
 
 % traj_types = {'mipo','vilo-tm-n'};

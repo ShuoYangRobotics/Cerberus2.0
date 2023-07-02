@@ -6,30 +6,41 @@ CERBERUS_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus_output/'];
 CERBERUS2_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus2_output/'];
 
 %% only need to change these three usually
-% DATASET_NAME = '20230615-risqh-flyingtrot-06-04-square';
-% DATASET_NAME = '20230615-risqh-standtrot-06-06-square-2';
+DATASET_FOLDER_NAME = '20230620_risqh_robustness_test';
+
+% DATASET_NAME = '20230525_new_IMU_round';
+% DATASET_TIME = 26;
+% DATASET_X_RANGE = [-2.5 2.5];
+% DATASET_Y_RANGE = [-1.5 2];
+% DATASET_Z_RANGE = [-2 2];
 
 
-% DATASET_NAME = '20230615-risqh-standtrot-04-06-square';
-DATASET_NAME = '20230615-risqh-flyingtrot-04-04-square-more-stable';
-% DATASET_NAME = '20230517_risqh_04speed_mocap';
-% 
+% DATASET_NAME = '230620-risqh-trot-10-036-33square';
+DATASET_NAME = '230620-risqh-trot-05-036-33square-vision-block1424';
 DATASET_TIME = 50;
-
-DATASET_X_RANGE = [-2.5 3.5];
-DATASET_Y_RANGE = [-1.5 3];
+DATASET_X_RANGE = [-0.5 5];
+DATASET_Y_RANGE = [-1 4.5];
 DATASET_Z_RANGE = [-2 2];
 
+% 0.1956    0.0286    0.0243    0.0225    0.0205    0.0211
 
 CERBERUS_OUTPUT_DATASET_FOLDER_PATH = [CERBERUS_OUTPUT_FOLDER_PATH,DATASET_NAME,'/'];
 CERBERUS2_OUTPUT_DATASET_FOLDER_PATH = [CERBERUS2_OUTPUT_FOLDER_PATH,DATASET_NAME,'/'];
+
+num_methods = 6; % standard PO, 
+all_drift_list = [];   % Nx(num_datasets*num_methods+(num_datasets-1))
+all_color_maps = [];   %(num_datasets*num_methods+(num_datasets-1))x3 colormap for boxplot
+all_draw_labels = {};
+all_nan_indices = [];  % store index of nan lines, use for drawing separation lines
+
+plot_traj_colors = {};
+plot_traj_legends={};
 %% prepare figure
 figure(1);clf
 
 %% plot baseline
 % check whether CERBERUS2_OUTPUT_DATASET_FOLDER_PATH is emppty
 
-% look at src/utils/parameters.cpp for possible types
 baseline_traj_types =  {     'gt',  'sipo',  'mipo',      'vio'};
 baseline_traj_colors = {'#0072BD','#D95319','#EDB120','#7E2F8E'};
 
@@ -70,9 +81,14 @@ end
 
 
 
-for i=1:baseline_total_types
- plot3(baseline_traj_pos{i}(:,1),baseline_traj_pos{i}(:,2),baseline_traj_pos{i}(:,3),'Color',baseline_traj_colors{i}, 'LineWidth',3); hold on;
-end
+%% rotate GT
+yaw_offset = -1;
+init_yaw = - yaw_offset/180*pi;
+R_yaw = [cos(init_yaw) sin(init_yaw) 0;
+        -sin(init_yaw) cos(init_yaw) 0;
+         0 0 1];
+baseline_traj_pos{1} = baseline_traj_pos{1}*R_yaw';
+
 
 %% plot cerberus 1 data
 
@@ -101,7 +117,6 @@ for i=1:cerberus1_total_types
         parse_cerberus_data(cerberus_data, plot_start, plot_end);
 
     c1_traj_time{i} = c1_traj_time{i}+c1_traj_t0(i);
-    plot3(c1_traj_pos{i}(:,1),c1_traj_pos{i}(:,2),c1_traj_pos{i}(:,3),'Color',cerberus_traj_colors{i}, 'LineWidth',3); hold on;
 
 end 
 %% plot cerberus2
@@ -151,18 +166,11 @@ end
 
 
 
-for i=1:cerberus2_total_types
- plot3(c2_traj_pos{i}(:,1),c2_traj_pos{i}(:,2),c2_traj_pos{i}(:,3),'Color',cerberus2_traj_colors{i}, 'LineWidth',3); hold on;
-end
+% for i=1:cerberus2_total_types
+%  plot3(c2_traj_pos{i}(:,1),c2_traj_pos{i}(:,2),c2_traj_pos{i}(:,3),'Color',cerberus2_traj_colors{i}, 'LineWidth',3); hold on;
+% end
 
-%% final adjustment to the figure
-axis equal
-view(0,90)
-xlim(DATASET_X_RANGE)    
-ylim(DATASET_Y_RANGE)
-zlim(DATASET_Z_RANGE)
-legend([baseline_traj_legend cerberus_traj_legend,cerberus2_traj_legend], 'Location','best')
-
+%% drift 
 %% get min and max of times 
 start_time_list = [];
 end_time_list = [];
@@ -183,28 +191,32 @@ end
 %% interpolate all trajectories so we can compare drift
 t0 = max(start_time_list);
 t1 = min(end_time_list);
-dt = 0.05;
+interp_t_list = linspace(t0,t1,500);
 
 
 interp_baseline_traj_pos = cell(1, baseline_total_types-1);
 interp_c1_traj_pos = cell(1, cerberus1_total_types);
 interp_c2_traj_pos = cell(1, cerberus2_total_types);
 
-interp_gt_traj_pos = interp1(baseline_traj_time{1},baseline_traj_pos{1},t0:dt:t1);
+interp_gt_traj_pos = interp1(baseline_traj_time{1},baseline_traj_pos{1},interp_t_list);
 
 plot_traj_colors={};
+plot_traj_legends={};
 
 for i=2:baseline_total_types
-    interp_baseline_traj_pos{i-1} = interp1(baseline_traj_time{i},baseline_traj_pos{i},t0:dt:t1);
+    interp_baseline_traj_pos{i-1} = interp1(baseline_traj_time{i},baseline_traj_pos{i},interp_t_list);
     plot_traj_colors = [plot_traj_colors baseline_traj_colors{i}];
+    plot_traj_legends = [plot_traj_legends baseline_traj_legend{i}];
 end
 for i=1:cerberus1_total_types
-    interp_c1_traj_pos{i} = interp1(c1_traj_time{i},c1_traj_pos{i},t0:dt:t1);
+    interp_c1_traj_pos{i} = interp1(c1_traj_time{i},c1_traj_pos{i},interp_t_list);
     plot_traj_colors = [plot_traj_colors cerberus_traj_colors{i}];
+    plot_traj_legends = [plot_traj_legends cerberus_traj_legend{i}];
 end
 for i=1:cerberus2_total_types
-    interp_c2_traj_pos{i} = interp1(c2_traj_time{i},c2_traj_pos{i},t0:dt:t1);
+    interp_c2_traj_pos{i} = interp1(c2_traj_time{i},c2_traj_pos{i},interp_t_list);
     plot_traj_colors = [plot_traj_colors cerberus2_traj_colors{i}];
+    plot_traj_legends = [plot_traj_legends cerberus2_traj_legend{i}];
 end
 
 % interp_baseline_traj_pos{1} - ground truth
@@ -212,16 +224,46 @@ methods = [interp_baseline_traj_pos interp_c1_traj_pos interp_c2_traj_pos];
 
 [ave_drifts,drifts_list] = drift_compare(interp_gt_traj_pos,methods);
 
-%% test box plot
-figure('Color', 'w');
-clf
-c = validatecolor(plot_traj_colors, 'multiple')
 
-C = [c];  % this is the trick for coloring the boxes
+plot3(interp_gt_traj_pos(:,1),interp_gt_traj_pos(:,2),interp_gt_traj_pos(:,3),'Color',baseline_traj_colors{1}, 'LineWidth',3); hold on;
+for i=2:baseline_total_types
+    plot3(interp_baseline_traj_pos{i-1}(:,1),interp_baseline_traj_pos{i-1}(:,2),interp_baseline_traj_pos{i-1}(:,3),'Color',baseline_traj_colors{i}, 'LineWidth',3); 
+end
+for i=1:cerberus1_total_types
+    plot3(interp_c1_traj_pos{i}(:,1),interp_c1_traj_pos{i}(:,2),interp_c1_traj_pos{i}(:,3),'Color',cerberus_traj_colors{i}, 'LineWidth',3); 
+end
+for i=1:cerberus2_total_types
+    plot3(interp_c2_traj_pos{i}(:,1),interp_c2_traj_pos{i}(:,2),interp_c2_traj_pos{i}(:,3),'Color',cerberus2_traj_colors{i}, 'LineWidth',3); 
+end
+
+%% final adjustment to the figure
+axis equal
+view(0,90)
+xlim(DATASET_X_RANGE)    
+ylim(DATASET_Y_RANGE)
+zlim(DATASET_Z_RANGE)
+legend([baseline_traj_legend cerberus_traj_legend,cerberus2_traj_legend], 'Location','Northwest')
 
 
-% regular plot
-boxplot(drifts_list*100, 'colors', C,'Symbol','','Whisker',0.5); % label only two categories
+%% put drift_list and color map to overall data structure
 
-set(gca, 'XLim', [0 8], 'YLim', [-5 30]);
+% c = validatecolor(plot_traj_colors, 'multiple');
+% all_color_maps = [all_color_maps; c];
+% all_drift_list = [all_drift_list drifts_list];
+% item_per_group = size(drifts_list,2);
+% all_draw_labels = [all_draw_labels {'','','','','',''}];
+% figure(6);
+% set(gcf,'Color', 'w');
+% clf
+% % regular plot
+% draw_y_lim_low = -2;
+% draw_y_lim_high = 10;
+% boxplot(all_drift_list*100, 'colors', all_color_maps,...
+%     'labels', all_draw_labels,...
+%     'Symbol','','Whisker',0.5,'LabelOrientation','horizontal'); % label only two categories
+% hold on; 
+% set(gca, 'XLim', [0 size(all_drift_list,2)+1], 'YLim', [draw_y_lim_low draw_y_lim_high]);
 
+%% export to tikz
+% cleanfigure;
+matlab2tikz(strcat('tro_indoor_robustness_vision.tex'), 'height', '\fheighta', 'width', '\fwidtha');

@@ -1,5 +1,5 @@
 % prepare necessary file paths
-BAG_FOLDER_PATH = '/home/shuoyang/Documents/vilo_dev/vilo_ws/bags/';
+BAG_FOLDER_PATH = '/home/rosie2/vilo_dev/vilo_ws/bags/';
 CERBERUS_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus_output/'];
 CERBERUS2_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus2_output/'];
 
@@ -23,7 +23,7 @@ CERBERUS2_OUTPUT_DATASET_FOLDER_PATH = [CERBERUS2_OUTPUT_FOLDER_PATH,DATASET_NAM
 % look at src/utils/parameters.cpp for possible types
 % traj_types = {'gt','mipo','sipo','vio','vilo-m','vilo-s'};
 cerberus2_traj_types =      {     'gt',   'mipo',   'sipo',    'vio', 'vilo-m', 'vilo-s', 'vilo-tm-n', 'vilo-tm-y'};
-cerberus2_traj_colors =     {'#0072BD','#D95319','#EDB120','#7E2F8E','#77AC30','#4DBEEE',   '#000000',   '#A00F00'};
+cerberus2_traj_colors =     {'#0072BD','#EDB120','#D95319','#7E2F8E','#77AC30','#4DBEEE',   '#000000',   '#A00F00'};
 
 % traj_types = {'mipo','vilo-tm-n'};
 cerberus2_total_types = size(cerberus2_traj_types,2);

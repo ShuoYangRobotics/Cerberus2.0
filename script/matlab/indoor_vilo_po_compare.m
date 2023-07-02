@@ -13,7 +13,7 @@ dataset_name = data_info{1};
 
 % look at src/utils/parameters.cpp for possible types
 traj_types =      {     'gt',   'mipo',   'sipo',    'vio', 'vilo-m', 'vilo-s', 'vilo-tm-n', 'vilo-tm-y'};
-traj_colors =     {'#0072BD','#D95319','#EDB120','#7E2F8E','#77AC30','#4DBEEE',   '#000000',   '#A00F00'};
+traj_colors =     {'#0072BD','#EDB120','#D95319','#7E2F8E','#77AC30','#4DBEEE',   '#000000',   '#A00F00'};
 traj_yaw_offset = { data_info{2},        0,         0,       0,        0,        0,           0, 0};
 total_types = size(traj_types,2);
 

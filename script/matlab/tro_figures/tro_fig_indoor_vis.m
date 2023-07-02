@@ -1,7 +1,7 @@
 addpath("../")
 addpath(genpath("matlab2tikz/"))
 % prepare necessary file paths
-BAG_FOLDER_PATH = '/home/shuoyang/Documents/vilo_dev/vilo_ws/bags/';
+BAG_FOLDER_PATH = '/home/rosie2/vilo_dev/vilo_ws/bags/';
 CERBERUS_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus_output/'];
 CERBERUS2_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus2_output/'];
 
@@ -15,8 +15,8 @@ DATASET_FOLDER_NAME = '230616_convex_mpc';
 % DATASET_Z_RANGE = [-2 2];
 
 
-DATASET_NAME = '20230616-risqh-trot-06-convex-mpc-2';
-DATASET_TIME = 45;
+DATASET_NAME = '230625-risqh-flytrot-08-036-33square';
+DATASET_TIME = 90;
 DATASET_X_RANGE = [-1 4];
 DATASET_Y_RANGE = [-1 3.5];
 DATASET_Z_RANGE = [-2 2];
@@ -265,4 +265,4 @@ legend([baseline_traj_legend cerberus_traj_legend,cerberus2_traj_legend], 'Locat
 
 %% export to tikz
 % cleanfigure;
-matlab2tikz(strcat('tro_indoor_compare2.tex'), 'height', '\fheighta', 'width', '\fwidtha');
+% matlab2tikz(strcat('tro_indoor_compare2.tex'), 'height', '\fheighta', 'width', '\fwidtha');

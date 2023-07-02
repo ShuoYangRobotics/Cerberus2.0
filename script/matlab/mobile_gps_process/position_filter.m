@@ -1,10 +1,10 @@
-function position = position_filter(file_name, total_time, yaw_offset)
+function position = position_filter(file_name, total_time, yaw_offset, sample_rate)
 
 
 file_path = file_name;
 
 % mobile_data = load(file_path);
-SampleRate = 100.0;
+SampleRate = sample_rate;
 [mobile_data,gps_valid,mobile_data_imu_gps] = process_mobile_data(file_path,1/SampleRate, total_time);
 
 % sensor data are all in NED
@@ -74,17 +74,17 @@ if (gps_valid == 1)
     filt.State = [initState(1:4);0;0;0;initState(5:10);0;0;0;initState(11:end)];
     filt.StateCovariance = 0.1*eye(28);
 
-    filt.AccelerationNoise = 0.01*ones(3,1);
-    filt.AngularVelocityNoise = 0.001*ones(3,1);
-    filt.PositionNoise = 1e-2*ones(3,1);
-    filt.VelocityNoise = 1e-1*ones(3,1);
-    filt.QuaternionNoise = 1e-3*ones(4,1);
-    filt.GeomagneticVectorNoise = 1e-3*ones(3,1);
-    filt.GyroscopeBiasNoise = 1e-3*ones(3,1);
-    Rmag  = 10;
-    Racc  = 500;
-    Rgyro = 1;
-    Rpos  = 1;
+    filt.AccelerationNoise = 0.0001*ones(3,1)/SampleRate*100;
+    filt.AngularVelocityNoise = 0.00001*ones(3,1)/SampleRate*100;
+    filt.PositionNoise = 1e-2*ones(3,1)/SampleRate*100;
+    filt.VelocityNoise = 1e-1*ones(3,1)/SampleRate*100;
+    filt.QuaternionNoise = 1e-3*ones(4,1)/SampleRate*100;
+    filt.GeomagneticVectorNoise = 1e-3*ones(3,1)/SampleRate*100;
+    filt.GyroscopeBiasNoise = 1e-3*ones(3,1)/SampleRate*100;
+    Rmag  = 0.1;
+    Racc  = 10;
+    Rgyro = 0.1;
+    Rpos  = 0.001;
 
 
     N = size(mobile_data_imu_gps.AccX,1);

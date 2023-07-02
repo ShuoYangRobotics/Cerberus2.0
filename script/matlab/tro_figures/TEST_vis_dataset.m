@@ -1,12 +1,12 @@
 addpath("../")
 addpath(genpath("matlab2tikz/"))
 % prepare necessary file paths
-BAG_FOLDER_PATH = '/home/shuoyang/Documents/vilo_dev/vilo_ws/bags/';
+BAG_FOLDER_PATH = '/home/rosie2/vilo_dev/vilo_ws/bags/';
 CERBERUS_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus_output/'];
 CERBERUS2_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus2_output/'];
 
 %% only need to change these three usually
-DATASET_FOLDER_NAME = '20230620_risqh_robustness_test';
+DATASET_FOLDER_NAME = '230625_gait';
 
 % DATASET_NAME = '20230525_new_IMU_round';
 % DATASET_TIME = 26;
@@ -15,8 +15,9 @@ DATASET_FOLDER_NAME = '20230620_risqh_robustness_test';
 % DATASET_Z_RANGE = [-2 2];
 
 
-DATASET_NAME = '230620-risqh-trot-10-052-33square-convexmpc';
-DATASET_TIME = 34;
+% DATASET_NAME = '230620-risqh-trot-10-036-33square';
+DATASET_NAME = '230620-risqh-trot-10-036-33square';
+DATASET_TIME = 90;
 DATASET_X_RANGE = [-1 4];
 DATASET_Y_RANGE = [-1 3.5];
 DATASET_Z_RANGE = [-2 2];
