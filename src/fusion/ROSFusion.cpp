@@ -97,8 +97,16 @@ void ROSFusion::loop() {
       continue;
     }
 
+    // print sizes
+    std::cout << "imu queue size: " << mq_imu_.size() << std::endl;
+    std::cout << "joint_foot queue size: " << mq_joint_foot_.size() << std::endl;
+    std::cout << "fl_imu queue size: " << mq_fl_imu_.size() << std::endl;
+    std::cout << "fr_imu queue size: " << mq_fr_imu_.size() << std::endl;
+    std::cout << "rl_imu queue size: " << mq_rl_imu_.size() << std::endl;
+    std::cout << "rr_imu queue size: " << mq_rr_imu_.size() << std::endl;
+
     /* estimator logic */
-    if (isDataAvailable()) {
+    if (isMIPODataAvailable()) {
       mtx.lock();
       // first, given time stamps of all queues, get a time t which is a
       // little earlier than all the measurements in the queues then,
@@ -252,6 +260,14 @@ bool ROSFusion::isDataAvailable() {
   if (mq_imu_.size() > MIN_PO_QUEUE_SIZE && mq_joint_foot_.size() > MIN_PO_QUEUE_SIZE && mq_fl_imu_.size() > MIN_PO_QUEUE_SIZE &&
       mq_fr_imu_.size() > MIN_PO_QUEUE_SIZE && mq_rl_imu_.size() > MIN_PO_QUEUE_SIZE && mq_rr_imu_.size() > MIN_PO_QUEUE_SIZE &&
       mq_gt_.size() > MIN_PO_QUEUE_SIZE) {
+    return true;
+  }
+  return false;
+}
+
+bool ROSFusion::isMIPODataAvailable() {
+  if (mq_imu_.size() > MIN_PO_QUEUE_SIZE && mq_joint_foot_.size() > MIN_PO_QUEUE_SIZE && mq_fl_imu_.size() > MIN_PO_QUEUE_SIZE &&
+      mq_fr_imu_.size() > MIN_PO_QUEUE_SIZE && mq_rl_imu_.size() > MIN_PO_QUEUE_SIZE && mq_rr_imu_.size() > MIN_PO_QUEUE_SIZE) {
     return true;
   }
   return false;

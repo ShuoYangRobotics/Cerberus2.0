@@ -415,15 +415,29 @@ class MeasureQueue {
     if (vec[i]->getTime() == t) {
       return vec[i];
     }
-    // else call the interpolate_two function
-    return interpolate_two(t, vec[i - 1], vec[i]);
+
+    try {
+      // else call the interpolate_two function
+      return interpolate_two(t, vec[i - 1], vec[i]);
+    }
+    catch (int error_num) {
+      throw error_num;
+    } 
+
   }
 
   // helper function interpolate with just a given time
   // caller must ensure that the time is within the range
   std::shared_ptr<Measurement> interpolate(double t) {
     dump_vec();
-    return interpolate_list(t, vec_meas);
+    
+    try {
+      return interpolate_list(t, vec_meas);
+    }
+    catch (int error_num) {
+      throw error_num;
+    } 
+
   }
 
  private:

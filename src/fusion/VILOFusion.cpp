@@ -811,12 +811,60 @@ double VILOFusion::interpolateMIPOData(Eigen::Matrix<double, 55, 1>& sensor_data
   prev_esti_time = curr_esti_time;
   // now curr_esti_time must within the range of all the queues
   // we can use it to do interpolation
-  std::shared_ptr<SWE::Measurement> imu_meas = mq_imu_.interpolate(curr_esti_time);
-  std::shared_ptr<SWE::Measurement> joint_meas = mq_joint_foot_.interpolate(curr_esti_time);
-  std::shared_ptr<SWE::Measurement> fl_imu_meas = mq_fl_imu_.interpolate(curr_esti_time);
-  std::shared_ptr<SWE::Measurement> fr_imu_meas = mq_fr_imu_.interpolate(curr_esti_time);
-  std::shared_ptr<SWE::Measurement> rl_imu_meas = mq_rl_imu_.interpolate(curr_esti_time);
-  std::shared_ptr<SWE::Measurement> rr_imu_meas = mq_rr_imu_.interpolate(curr_esti_time);
+  std::shared_ptr<SWE::Measurement> imu_meas;
+  try {
+    imu_meas = mq_imu_.interpolate(curr_esti_time);
+  } catch (int myNum) {
+    cout << "Error number: " << myNum;  
+    imu_meas = std::make_shared<SWE::BodyIMUMeasurement>(curr_esti_time, 
+      Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero());
+  }
+
+  std::shared_ptr<SWE::Measurement> joint_meas;
+  try {
+    joint_meas = mq_joint_foot_.interpolate(curr_esti_time);
+  } catch (int myNum) {
+    cout << "Error number: " << myNum;  
+    joint_meas = std::make_shared<SWE::LegMeasurement>(curr_esti_time, 
+      Eigen::Matrix<double, 12, 1>::Zero(), Eigen::Matrix<double, 12, 1>::Zero());
+  }
+
+  std::shared_ptr<SWE::Measurement> fl_imu_meas;
+  try {
+    fl_imu_meas = mq_fl_imu_.interpolate(curr_esti_time);
+  } catch (int myNum) {
+    cout << "Error number: " << myNum;  
+    fl_imu_meas = std::make_shared<SWE::FootIMUMeasurement>(curr_esti_time, 
+      Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero(), 0);
+  }
+
+
+  std::shared_ptr<SWE::Measurement> fr_imu_meas;
+  try {
+    fr_imu_meas = mq_fr_imu_.interpolate(curr_esti_time);
+  } catch (int myNum) {
+    cout << "Error number: " << myNum;  
+    fr_imu_meas = std::make_shared<SWE::FootIMUMeasurement>(curr_esti_time, 
+      Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero(), 1);
+  }
+
+  std::shared_ptr<SWE::Measurement> rl_imu_meas;
+  try {
+    rl_imu_meas = mq_rl_imu_.interpolate(curr_esti_time);
+  } catch (int myNum) {
+    cout << "Error number: " << myNum;  
+    rl_imu_meas = std::make_shared<SWE::FootIMUMeasurement>(curr_esti_time, 
+      Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero(), 2);
+  }
+
+  std::shared_ptr<SWE::Measurement> rr_imu_meas;
+  try {
+    rr_imu_meas = mq_rr_imu_.interpolate(curr_esti_time);
+  } catch (int myNum) {
+    cout << "Error number: " << myNum;  
+    rr_imu_meas = std::make_shared<SWE::FootIMUMeasurement>(curr_esti_time, 
+      Eigen::Vector3d::Zero(), Eigen::Vector3d::Zero(), 3);
+  }
 
   // input sensor data vectors to the estimator
   Eigen::VectorXd imu_data = imu_meas->getVector();

@@ -34,6 +34,7 @@ class ROSFusion {
 
   void loop();
   bool isDataAvailable();
+  bool isMIPODataAvailable();
   double getMinLatestTime();
   double getMaxOldestTime();
 

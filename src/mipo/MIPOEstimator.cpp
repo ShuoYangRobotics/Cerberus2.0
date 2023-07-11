@@ -54,8 +54,8 @@ MIPOEstimator::MIPOEstimator() {
   //   rho_true_(2, 3) = -0.0838;
   //   rho_true_(3, 3) = 0.2;
   //   rho_true_(4, 3) = 0.2;
-  rho_true_ << 0.1805, 0.1805, -0.1805, -0.1805, 0.047, -0.047, 0.047, -0.047, 0.0838, -0.0838, 0.0838, -0.0838, 0.2, 0.2, 0.2, 0.2, 0.2,
-      0.2, 0.2, 0.2;
+  rho_true_ << 0.1805, 0.1805, -0.1805, -0.1805, 0.047, -0.047, 0.047, -0.047, 0.0838, -0.0838, 0.0838, -0.0838, 0.2, 0.2, 0.2, 0.2, 0.225,
+      0.225, 0.225, 0.225;
 
   // must be called every time at the beginning
   mipo_init_casadi();
@@ -186,6 +186,7 @@ void MIPOEstimator::ekfUpdate(const Eigen::Matrix<double, MS_SIZE, 1>& x_k, cons
   Eigen::MatrixXd tmp = P_k_pred * H_masked.transpose();
   Eigen::VectorXd update = tmp * Sy;
   //   std::cout << "update: " << update.transpose() << std::endl;
+
   x_k1 = x_k1_pred - update;
 
   P_k1 = P_k_pred - tmp * S_masked.ldlt().solve(H_masked) * P_k_pred;

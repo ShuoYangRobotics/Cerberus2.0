@@ -1138,7 +1138,7 @@ void VILOEstimator::optimization() {
     int j = i + 1;
     if (pre_integrations[j]->sum_dt > 10.0) continue;
     IMUFactor* imu_factor = new IMUFactor(pre_integrations[j]);
-    problem.AddResidualBlock(imu_factor, NULL, para_Pose[i], para_SpeedBias[i], para_Pose[j], para_SpeedBias[j]);
+    problem.AddResidualBlock(imu_factor, loss_function, para_Pose[i], para_SpeedBias[i], para_Pose[j], para_SpeedBias[j]);
   }
 
   // lo factor
@@ -1147,7 +1147,7 @@ void VILOEstimator::optimization() {
       int j = i + 1;
       if (lo_pre_integrations[j]->sum_dt > 10.0) continue;
       LOFactor* lo_factor = new LOFactor(lo_pre_integrations[j]);
-      problem.AddResidualBlock(lo_factor, NULL, para_Pose[i], para_Pose[j]);
+      problem.AddResidualBlock(lo_factor, loss_function, para_Pose[i], para_Pose[j]);
     }
   }
 
@@ -1270,14 +1270,14 @@ void VILOEstimator::optimization() {
       if (pre_integrations[1]->sum_dt < 10.0) {
         IMUFactor* imu_factor = new IMUFactor(pre_integrations[1]);
         ResidualBlockInfo* residual_block_info = new ResidualBlockInfo(
-            imu_factor, NULL, vector<double*>{para_Pose[0], para_SpeedBias[0], para_Pose[1], para_SpeedBias[1]}, vector<int>{0, 1});
+            imu_factor, loss_function, vector<double*>{para_Pose[0], para_SpeedBias[0], para_Pose[1], para_SpeedBias[1]}, vector<int>{0, 1});
         marginalization_info->addResidualBlockInfo(residual_block_info);
       }
       // lo factor
       if (VILO_FUSION_TYPE == 1) {
         if (lo_pre_integrations[1]->sum_dt < 10.0) {
           LOFactor* lo_factor = new LOFactor(lo_pre_integrations[1]);
-          ResidualBlockInfo* residual_block_info = new ResidualBlockInfo(lo_factor, NULL,
+          ResidualBlockInfo* residual_block_info = new ResidualBlockInfo(lo_factor, loss_function,
                                                                          vector<double*>{
                                                                              para_Pose[0],
                                                                              para_Pose[1],

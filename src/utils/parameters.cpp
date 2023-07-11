@@ -7,7 +7,7 @@ int MIN_PO_QUEUE_SIZE = 25;
 int MAX_PO_QUEUE_SIZE = 300;
 
 int BODY_IMU_MOVMEAN_WINDOW_SIZE = 5;
-int FOOT_IMU_MOVMEAN_WINDOW_SIZE = 5;
+int FOOT_IMU_MOVMEAN_WINDOW_SIZE = 30;
 int JOINT_MOVMEAN_WINDOW_SIZE = 10;
 int YAW_MOVMEAN_WINDOW_SIZE = 10;
 
@@ -30,7 +30,7 @@ double INIT_BASE_HEIGHT;
 double LAG_TIME = 0.0;  // 100ms
 
 double FOOT_PRESSURE_DELAY = 0.03;  // 30ms this is the foot pressure sensor delay
-double FOOT_IMU_DELAY = 0.023;      // 23ms, this is estimated from analysing data in Matlab
+double FOOT_IMU_DELAY = 0.023;      // 30ms, this is estimated from analysing data in Matlab
 
 /*
  * VINS Fusion parameters

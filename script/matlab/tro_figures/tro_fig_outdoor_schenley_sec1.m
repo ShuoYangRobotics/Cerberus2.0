@@ -9,12 +9,12 @@ CERBERUS2_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus2_output/'];
 
 %% only need to change these three usually
 DATASET_FOLDER_NAME = '230630_schenley';
-DATASET_NAME = '230630-schen-trot-08-038-sec2';
+DATASET_NAME = '230630-schen-trot-08-038-sec1';
 % DATASET_NAME = '230628-mil19-trot-07-039-wild1445';
-DATASET_TIME = 200;
+DATASET_TIME = 115;
 SAMPLE_RATE = 100.0;
 GT_TIME_OFFSET = 0; % how much GT is longer than the robot dataset
-GT_YAW_OFFSET = -14; % deg of gt
+GT_YAW_OFFSET = -2; % deg of gt
 
 
 % DATASET_NAME = '230630-schen-trot-08-038-tennis-to-overlook';

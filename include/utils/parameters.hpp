@@ -4,6 +4,7 @@
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/opencv.hpp>
 #include <string>
+#include <mutex>
 
 // robot constant
 #define NUM_LEG 4

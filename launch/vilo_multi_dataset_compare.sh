@@ -1,7 +1,7 @@
 #!/bin/bash
 # for a given list of datasets and durations run vilo_autotest.sh 
 
-ws_root='/home/shuoyang/Documents/vilo_dev/vilo_ws'
+ws_root='/home/rosie2/vilo_dev/vilo_ws'
 bag_folder='230517_sqh_mocap'
 
 # a string of dataset names: 20230517_risqh_02speed_mocap, 20230517_risqh_04speed_mocap, ..

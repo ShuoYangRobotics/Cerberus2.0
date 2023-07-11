@@ -25,8 +25,8 @@ GT_YAW_OFFSET = -14; % deg of gt
 % DATASET_TIME = 280;
 % GT_YAW_OFFSET = -17; % deg of gt
 
-DATASET_X_RANGE = [-15 65];
-DATASET_Y_RANGE = [-10 85];
+DATASET_X_RANGE = [-15 175];
+DATASET_Y_RANGE = [-30 35];
 DATASET_Z_RANGE = [-115 115];
 
 %% if mobile exists
