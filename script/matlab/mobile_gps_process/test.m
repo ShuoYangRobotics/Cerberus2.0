@@ -1,12 +1,14 @@
 
 
-folder_path = '/home/shuoyang/Documents/vilo_dev/vilo_ws/bags/230525/';
+folder_path = '/home/shuoyang/MATLAB/drive/MobileSensorData/';
 
-file_name = '20230525_frick_park_arch_short.mat';
+file_name = 'wightman_right_loop_trot.mat';
 
-position = position_filter([folder_path, file_name]);
-
-
+position = position_filter([folder_path, file_name], 350 ,0);
+%%
+position = movmean(position,150,1);
+plot3(position(:,1),position(:,2),position(:,3))
+axis equal
 % % mobile_data = load(file_path);
 % SampleRate = 100.0;
 % [mobile_data,gps_valid,mobile_data_imu_gps] = process_mobile_data(file_path,1/SampleRate);
