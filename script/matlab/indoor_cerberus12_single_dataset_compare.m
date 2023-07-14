@@ -1,5 +1,5 @@
 % prepare necessary file paths
-BAG_FOLDER_PATH = '/home/rosie2/vilo_dev/vilo_ws/bags/';
+BAG_FOLDER_PATH = '/home/shuoyang/Documents/vilo_dev/vilo_ws/bags/';
 CERBERUS_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus_output/'];
 CERBERUS2_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus2_output/'];
 

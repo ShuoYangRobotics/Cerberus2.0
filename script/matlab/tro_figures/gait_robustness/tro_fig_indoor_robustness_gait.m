@@ -14,13 +14,31 @@ all_draw_labels = {};
 all_nan_indices = [];  % store index of nan lines, use for drawing separation lines
 
 
-total = 7000;
+total = 17000;
 %
-all_drift_list = [all_drift_list standtrot_total_drifts(1:total,:)];
-all_drift_list = [all_drift_list NaN*standtrot_total_drifts(1:total,1)];
-all_drift_list = [all_drift_list trot_total_drifts(1:total,:)];
-all_drift_list = [all_drift_list NaN*trot_total_drifts(1:total,1)];
-all_drift_list = [all_drift_list flytrot_total_drifts(1:total,:)];
+if size(standtrot_total_drifts,1)<total
+    padding = total - size(standtrot_total_drifts,1);
+    height = size(standtrot_total_drifts,2);
+    all_drift_list = [all_drift_list [standtrot_total_drifts; nan*ones(padding,height)]];
+else
+    all_drift_list = [all_drift_list standtrot_total_drifts(1:total,:)];
+end
+all_drift_list = [all_drift_list NaN*ones(total,1)];
+if size(trot_total_drifts,1)<total
+    padding = total - size(trot_total_drifts,1);
+    height = size(trot_total_drifts,2);
+    all_drift_list = [all_drift_list [trot_total_drifts; nan*ones(padding,height)]];
+else
+    all_drift_list = [all_drift_list trot_total_drifts(1:total,:)];
+end
+all_drift_list = [all_drift_list NaN*ones(total,1)];
+if size(flytrot_total_drifts,1)<total
+    padding = total - size(flytrot_total_drifts,1);
+    height = size(flytrot_total_drifts,2);
+    all_drift_list = [all_drift_list [flytrot_total_drifts; nan*ones(padding,height)]];
+else
+    all_drift_list = [all_drift_list flytrot_total_drifts(1:total,:)];
+end
 
 for idx_dataset=1:num_gaits
     % put drift_list and color map to overall data structure
@@ -41,7 +59,7 @@ set(gcf,'Color', 'w');
 clf
 % regular plot
 draw_y_lim_low = -1;
-draw_y_lim_high = 5;
+draw_y_lim_high = 15;
 boxplot(all_drift_list*100, 'colors', all_color_maps,...
     'labels', all_draw_labels,...
     'Symbol','','Whisker',0.5,'LabelOrientation','horizontal'); % label only two categories
@@ -63,3 +81,4 @@ for ii = 1:length(plot_traj_colors)
     fake_line_handles = [fake_line_handles p_handle];
 end
 legend(fake_line_handles,plot_traj_legends)
+title('Median Drifts at Different Gaits')

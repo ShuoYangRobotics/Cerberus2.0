@@ -21,10 +21,10 @@ for i=1:num_methods
     pos_error = gt_pos(:,1:2) - method_pos_lists{i}(:,1:2);
     pos_error_norm = vecnorm(pos_error')';
     idx = pos_error_norm > travel_distance;
-    pos_error_norm(idx) = travel_distance(idx);
+    pos_error_norm(idx) = nan;
 
     drifts_list(:,i) = pos_error_norm./travel_distance;
-    drifts_list(1:floor(end/2),i) = 0;
+%     drifts_list(1:floor(end/2),i) = 0;
 end
 ave_drifts = mean(drifts_list(floor(end/2):end,:),1);
 end

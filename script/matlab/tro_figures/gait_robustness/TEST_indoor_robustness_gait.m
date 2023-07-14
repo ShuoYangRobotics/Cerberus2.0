@@ -3,26 +3,22 @@
 % we get three dataset results, each uses one gait
 % then we compare all of their drifts, plot a box plot
 
-addpath("../")
-addpath(genpath("matlab2tikz/"))
+addpath("../../")
+addpath(genpath("../matlab2tikz/"))
 % prepare necessary file paths
-BAG_FOLDER_PATH = '/home/rosie2/vilo_dev/vilo_ws/bags/';
+BAG_FOLDER_PATH = '/home/shuoyang/Documents/vilo_dev/vilo_ws/bags/';
 CERBERUS_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus_output/'];
 CERBERUS2_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus2_output/'];
 
 %% prepare list of datasets
 % for future experiments, should just need to modify these three items
-DATASET_LIST = {'230622-risqh-trot-02-052-33square',...
-                '230622-risqh-trot-04-052-33square',...
-                '230622-risqh-trot-06-052-33square',...
-                '230622-risqh-trot-08-044-33square',...
-                '230622-risqh-trot-10-040-33square'};
-DATASET_LABEL_LIST = {'0.2m/s',...
-                      '0.4m/s',...
-                      '0.6m/s',...
-                      '0.8m/s',...
-                      '1.0m/s'};
-DATASET_TIME_LIST = {71,34,26, 25,25};
+DATASET_LIST = {'20230615-risqh-standtrot-04-06-square',...
+                '20230517_risqh_04speed_mocap',...
+                '20230615-risqh-flyingtrot-04-04-square-more-stable'};
+DATASET_LABEL_LIST = {'Standing Trot',...
+                      'Trot',...
+                      'Flying Trot'};
+DATASET_TIME_LIST = {50, 50, 50};
 
 
 %% iterate through DATASET_LIST
@@ -54,10 +50,10 @@ for idx_dataset=1:num_datasets
     % check whether CERBERUS2_OUTPUT_DATASET_FOLDER_PATH is emppty
     
     % look at src/utils/parameters.cpp for possible types
-    baseline_traj_types =  {     'gt',  'mipo',      'vio'};
+    baseline_traj_types =  {     'gt',   'mipo',      'vio'};
     baseline_traj_colors = {'#0072BD','#EDB120','#7E2F8E'};
     
-    baseline_traj_legend =  {'Ground Truth',   'Multi-IMU PO',  'VINS-Fusion'};
+    baseline_traj_legend =  {'Ground Truth', 'Multi-IMU PO',  'VINS-Fusion'};
     
     baseline_total_types = size(baseline_traj_types,2);
     
@@ -246,7 +242,7 @@ figure(4);
 set(gcf,'Color', 'w');
 clf
 % regular plot
-draw_y_lim_low = -1
+draw_y_lim_low = -1;
 draw_y_lim_high = 5;
 boxplot(all_drift_list*100, 'colors', all_color_maps,...
     'labels', all_draw_labels,...
@@ -272,4 +268,4 @@ legend(fake_line_handles,plot_traj_legends)
 
 
 %%
-% matlab2tikz(strcat('tro_indoor_robustness_speed.tex'), 'height', '\fheight', 'width', '\fwidth');
+matlab2tikz(strcat('tro_indoor_robustness_gait.tex'), 'height', '\fheight', 'width', '\fwidth');

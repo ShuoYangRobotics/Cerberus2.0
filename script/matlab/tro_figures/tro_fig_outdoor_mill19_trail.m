@@ -3,7 +3,7 @@ addpath('../mobile_gps_process/')
 addpath('../')
 
 % prepare necessary file paths
-BAG_FOLDER_PATH = '/home/rosie2/vilo_dev/vilo_ws/bags/';
+BAG_FOLDER_PATH = '/home/shuoyang/Documents/vilo_dev/vilo_ws/bags/';
 CERBERUS_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus_output/'];
 CERBERUS2_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus2_output/'];
 
@@ -250,3 +250,5 @@ if has_mobile_gt == 1
 else
     legend([baseline_traj_legend cerberus_traj_legend,cerberus2_traj_legend], 'Location','best')
 end
+
+%% convert all traj_pos to neg then to geodesic, finally save kml file 

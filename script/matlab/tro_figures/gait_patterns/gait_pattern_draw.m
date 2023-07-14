@@ -7,6 +7,14 @@ stand_time = 0.05;
 
 figure(3);clf;
 set(gcf,'Color','w')
+ax = gca;
+outerpos = ax.OuterPosition;
+ti = ax.TightInset; 
+left = outerpos(1) + ti(1);
+bottom = outerpos(2) + ti(2);
+ax_width = outerpos(3) - ti(1) - ti(3);
+ax_height = outerpos(4) - ti(2) - ti(4);
+ax.Position = [left bottom ax_width ax_height];
 
 tiledlayout(1,3,'Padding','compact');
 %%

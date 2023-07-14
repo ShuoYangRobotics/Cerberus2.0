@@ -8,13 +8,13 @@ CERBERUS_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus_output/'];
 CERBERUS2_OUTPUT_FOLDER_PATH = [BAG_FOLDER_PATH,'cerberus2_output/'];
 
 %% only need to change these three usually
-DATASET_FOLDER_NAME = '230630_schenley';
-DATASET_NAME = '230630-schen-trot-08-038-sec2';
-% DATASET_NAME = '230628-mil19-trot-07-039-wild1445';
-DATASET_TIME = 200;
+DATASET_FOLDER_NAME = '230628_mill19';
+% DATASET_NAME = '230628-mil19-trot-07-039-wild1515-footIMU-fail-in-middle';
+DATASET_NAME = '230628-mil19-trot-07-039-wild1445';
+DATASET_TIME = 410;
 SAMPLE_RATE = 100.0;
-GT_TIME_OFFSET = 0; % how much GT is longer than the robot dataset
-GT_YAW_OFFSET = -14; % deg of gt
+GT_TIME_OFFSET = 100; % how much GT is longer than the robot dataset
+GT_YAW_OFFSET = 0.8; % deg of gt
 
 
 % DATASET_NAME = '230630-schen-trot-08-038-tennis-to-overlook';
@@ -25,9 +25,9 @@ GT_YAW_OFFSET = -14; % deg of gt
 % DATASET_TIME = 280;
 % GT_YAW_OFFSET = -17; % deg of gt
 
-DATASET_X_RANGE = [-15 175];
-DATASET_Y_RANGE = [-30 35];
-DATASET_Z_RANGE = [-115 115];
+DATASET_X_RANGE = [-10 160];
+DATASET_Y_RANGE = [-10 180];
+% DATASET_Z_RANGE = [-115 115];
 
 %% if mobile exists
 % process mobile data
@@ -38,8 +38,7 @@ save_mobile_gps_file_name = [BAG_FOLDER_PATH,'/',DATASET_FOLDER_NAME,'/',...
 has_mobile_gt = 0;
 if isfile(mobile_gps_file_name)
     %%
-    gps_position = position_filter(mobile_gps_file_name, DATASET_TIME+GT_TIME_OFFSET, GT_YAW_OFFSET,SAMPLE_RATE);
-    gps_position = movmean(gps_position,15,1);
+    [base_gps_position, gt_traj_time, gps_refloc, gps_refyaw] = gps_position_filter(mobile_gps_file_name, DATASET_TIME+GT_TIME_OFFSET,SAMPLE_RATE);
     % save (save_mobile_gps_file_name, 'gps_position');
     %%
     % load (save_mobile_gps_file_name)
@@ -47,17 +46,27 @@ if isfile(mobile_gps_file_name)
 else
     has_mobile_gt = 0;
 end
+
+%% rotate gps
+init_yaw = - GT_YAW_OFFSET/180*pi;
+R_yaw = [cos(init_yaw) sin(init_yaw) 0;
+        -sin(init_yaw) cos(init_yaw) 0;
+         0 0 1];
+
+gt_traj_pos = base_gps_position * R_yaw';
+gt_traj_pos = movmean(gt_traj_pos,15,1);
+
 %% prepare figure
 figure(1);clf
 
 % plot gps_position as gt
-traj_types =      {     'gt'};
-traj_colors =     {'#0072BD'};
-traj_legend =  {'Ground Truth'};
+gt_traj_types =      {     'gt'};
+gt_traj_colors =     {'#0072BD'};
+gt_traj_legend =  {'Ground Truth'};
 
-if has_mobile_gt == 1
-    plot(gps_position(:,1),gps_position(:,2), 'Color',traj_colors{1}, 'LineWidth',3); hold on;
-end
+% if has_mobile_gt == 1
+%     plot(gt_traj_pos(:,1),gt_traj_pos(:,2), 'Color',gt_traj_colors{1}, 'LineWidth',3); hold on;
+% end
 %% plot baseline
 % check whether CERBERUS2_OUTPUT_DATASET_FOLDER_PATH is emppty
 
@@ -199,10 +208,13 @@ end
 %% interpolate all trajectories so we can compare drift
 t0 = max(start_time_list);
 t1 = min(end_time_list);
+t1 = t1 - 72;  % adjust end time
 interp_t_list = linspace(t0,t1,500);
 start_time_list - t0
 end_time_list - t1
 
+
+interp_gt_traj_pos = interp1(gt_traj_time+14400,gt_traj_pos,interp_t_list);
 
 interp_baseline_traj_pos = cell(1, baseline_total_types);
 interp_c1_traj_pos = cell(1, cerberus1_total_types);
@@ -228,6 +240,7 @@ for i=1:cerberus2_total_types
     plot_traj_legends = [plot_traj_legends cerberus2_traj_legend{i}];
 end
 
+plot(interp_gt_traj_pos(:,1),interp_gt_traj_pos(:,2), 'Color',gt_traj_colors{1}, 'LineWidth',3); hold on;
 
 for i=1:baseline_total_types
     plot(interp_baseline_traj_pos{i}(:,1),interp_baseline_traj_pos{i}(:,2),'Color',baseline_traj_colors{i}, 'LineWidth',3); 
@@ -249,4 +262,23 @@ if has_mobile_gt == 1
     legend([traj_legend, baseline_traj_legend, cerberus_traj_legend,cerberus2_traj_legend], 'Location','best')
 else
     legend([baseline_traj_legend cerberus_traj_legend,cerberus2_traj_legend], 'Location','best')
+end
+
+%% convert all traj_pos to neg then to geodesic, finally save kml file 
+[geo_pos] = ros_pos_to_geo_pos(interp_gt_traj_pos, gps_refyaw-57.5, gps_refloc);
+write_geo_pos_to_kml(geo_pos, [DATASET_NAME,'-',gt_traj_types{1},'.kml'], hex2rgb(gt_traj_colors{1}));
+
+cal_yaw = 60;
+
+for i=1:baseline_total_types
+    [geo_pos] = ros_pos_to_geo_pos(interp_baseline_traj_pos{i}, gps_refyaw-cal_yaw, gps_refloc);
+    write_geo_pos_to_kml(geo_pos, [DATASET_NAME,'-',baseline_traj_types{i},'.kml'], hex2rgb(baseline_traj_colors{i}));
+end
+for i=1:cerberus1_total_types
+    [geo_pos] = ros_pos_to_geo_pos(interp_c1_traj_pos{i}, gps_refyaw-cal_yaw, gps_refloc);
+    write_geo_pos_to_kml(geo_pos, [DATASET_NAME,'-',cerberus_traj_types{i},'.kml'], hex2rgb(cerberus_traj_colors{i}));
+end
+for i=1:cerberus2_total_types
+    [geo_pos] = ros_pos_to_geo_pos(interp_c2_traj_pos{i}, gps_refyaw-cal_yaw, gps_refloc);
+    write_geo_pos_to_kml(geo_pos, [DATASET_NAME,'-',cerberus2_traj_types{i},'.kml'], hex2rgb(cerberus2_traj_colors{i}));
 end

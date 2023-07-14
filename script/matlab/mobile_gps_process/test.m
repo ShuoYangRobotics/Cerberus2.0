@@ -1,6 +1,6 @@
 
 
-folder_path = '/home/rosie2/vilo_dev/vilo_ws/bags/230525/';
+folder_path = '/home/shuoyang/Documents/vilo_dev/vilo_ws/bags/230525/';
 
 file_name = '20230525_frick_park_arch_short.mat';
 
