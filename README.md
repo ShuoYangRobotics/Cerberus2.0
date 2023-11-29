@@ -20,5 +20,48 @@ Open the repo folder in VSCode, use VSCode's "remote container" feature to open 
 
 The docker config file automatically mount the project folder to ~/estimate_ws/src/cerberus2 inside the docker container. After the docker container is built, run "catkin build" to compile cerberus2.0.
 
-# Run
-Dataset will be available soon
+# Dataset
+Dataset is available on [Google Drive](https://drive.google.com/drive/folders/1Jz3hRNc_yewCvL_H8dJJ5vGTxAGHD31e?usp=sharing)
+
+## Indoor
+Each indoor data sequence is a ROS bag file with the following topics:
+```
+/WT901_47_Data                           : sensor_msgs/Imu          
+/WT901_48_Data                           : sensor_msgs/Imu          
+/WT901_49_Data                           : sensor_msgs/Imu          
+/WT901_50_Data                           : sensor_msgs/Imu          
+/camera_forward/infra1/image_rect_raw    : sensor_msgs/Image        
+/camera_forward/infra2/image_rect_raw    : sensor_msgs/Image        
+/natnet_ros/Shuo_Go1/pose                : geometry_msgs/PoseStamped
+/unitree_hardware/imu                    : sensor_msgs/Imu          
+/unitree_hardware/joint_foot             : sensor_msgs/JointState
+```
+where topc "`/natnet_ros/Shuo_Go1/pose`" comes from precise motion capture system Optitrack. 
+
+## Outdoor
+Each indoor data sequence has one ROS bag file with the following topics:
+```
+/WT901_47_Data                           : sensor_msgs/Imu          
+/WT901_48_Data                           : sensor_msgs/Imu          
+/WT901_49_Data                           : sensor_msgs/Imu          
+/WT901_50_Data                           : sensor_msgs/Imu          
+/camera_forward/infra1/image_rect_raw    : sensor_msgs/Image        
+/camera_forward/infra2/image_rect_raw    : sensor_msgs/Image        
+/unitree_hardware/imu                    : sensor_msgs/Imu          
+/unitree_hardware/joint_foot             : sensor_msgs/JointState
+```
+and a "`*.mat`" file that contains iPhone GPS/IMU data. Also some data sequences have a "`*.mov`" video file that contains the video recorded by iPhone behind the robot.
+
+Instruction for generating ground truth trajectory from iPhone GPS/IMU data is located in folder "`/script/matlab`" in the `docker_free_desktop` branch.
+
+## Run Results
+
+### Mill19 Trail
+[![IMAGE ALT TEXT HERE](https://img.youtube.com/vi/C83_xMw58rg/0.jpg)](https://www.youtube.com/watch?v=C83_xMw58rg)
+
+### CMU Garage
+![image 1](doc/image/1.png)
+
+
+### Various
+![image 2](doc/image/2.png)
